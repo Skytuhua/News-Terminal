@@ -1,0 +1,4 @@
+# Preserve upstream notice bytes used by license and installer checks.
+resources/licenses/** -text
+resources/installer-notices/** -text
+THIRD_PARTY_NOTICES.md -text

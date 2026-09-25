@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Exact item fields captured from https://www.federalreserve.gov/feeds/feds_notes.xml;
+     only the surrounding RSS channel wrapper is a test harness. -->
+<rss version="2.0"><channel><title>FRB: FEDS Notes</title><link>https://www.federalreserve.gov/</link><description>FEDS Notes</description>
+<item>
+<title>FEDS Note: Repo Markets and the Fed’s Balance Sheet: Implications for Monetary Policy Implementation</title>
+<link>https://www.federalreserve.gov/econres/notes/feds-notes/repo-markets-and-the-feds-balance-sheet-implications-for-monetary-policy-implementation-20260826.html</link>
+<guid>https://www.federalreserve.gov/econres/notes/feds-notes/repo-markets-and-the-feds-balance-sheet-implications-for-monetary-policy-implementation-20260826.html</guid>
+<description>&lt;a href="https://www.federalreserve.gov/econres/sriya-l-anbil.htm"&gt;Sriya Anbil&lt;/a&gt;, &lt;a href="https://www.federalreserve.gov/econres/alyssa-g-anderson.htm"&gt;Alyssa Anderson&lt;/a&gt;, &lt;a href="https://www.federalreserve.gov/econres/lucy-l-cordes.htm"&gt;Lucy Cordes&lt;/a&gt;, and &lt;a href="https://www.federalreserve.gov/econres/romina-d-ruprecht.htm"&gt;Romina Ruprecht&lt;/a&gt;&lt;a name="f1"&gt;&lt;/a&gt;&lt;br&gt;&lt;br&gt;As the Federal Reserve (Fed) navigates periods of balance sheet expansion and reduction, it has become increasingly important to understand how changes in the size and composition of Fed assets affect short-term funding markets. The overnight Treasury repo market is central to this relationship since it is a transmission channel through which balance sheet policy can affect money market conditions and, ultimately, the Fed&amp;#39;s policy rate, the effective federal funds rate (EFFR).</description>
+<category>FEDS Notes</category><pubDate>Wed, 26 Aug 2026 18:30:00 GMT</pubDate>
+</item></channel></rss>

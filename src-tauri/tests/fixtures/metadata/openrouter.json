@@ -1,0 +1,84 @@
+{
+  "data": [
+    {
+      "id": "google/gemini-3.5-transcribe",
+      "canonical_slug": "google/gemini-3.5-transcribe-20260827",
+      "hugging_face_id": null,
+      "name": "Google: Gemini 3.5 Transcribe",
+      "created": 1790295820,
+      "description": "Gemini 3.5 Transcribe is a speech-to-text model from Google. It is suited for synchronous transcription that needs word-level timestamps or speaker diarization, with support for up to eight speakers. Audio...",
+      "context_length": 98304,
+      "architecture": {
+        "modality": "audio->transcription",
+        "input_modalities": [
+          "audio"
+        ],
+        "output_modalities": [
+          "transcription"
+        ],
+        "tokenizer": "Gemini",
+        "instruct_type": null
+      },
+      "pricing": {
+        "prompt": "0.000002",
+        "completion": "0.000012"
+      },
+      "top_provider": {
+        "context_length": 98304,
+        "max_completion_tokens": 32768,
+        "is_moderated": false
+      },
+      "per_request_limits": null,
+      "supported_parameters": [],
+      "default_parameters": {},
+      "supported_voices": null,
+      "knowledge_cutoff": null,
+      "expiration_date": null,
+      "links": {
+        "details": "/api/v1/models/google/gemini-3.5-transcribe-20260827/endpoints"
+      }
+    },
+    {
+      "id": "fish-audio/transcribe-1-pro",
+      "canonical_slug": "fish-audio/transcribe-1-pro-20260924",
+      "hugging_face_id": null,
+      "name": "Fish Audio: Transcribe 1 Pro",
+      "created": 1790278301,
+      "description": "Transcribe 1 Pro is a speech-to-text model from Fish Audio tuned for interviews, meetings, and podcasts. It labels speakers with inline `speaker` markers, preserves emotion and vocal-event cues such as...",
+      "context_length": 0,
+      "architecture": {
+        "modality": "audio->transcription",
+        "input_modalities": [
+          "audio"
+        ],
+        "output_modalities": [
+          "transcription"
+        ],
+        "tokenizer": "Other",
+        "instruct_type": null
+      },
+      "pricing": {
+        "prompt": "0.0001",
+        "completion": "0"
+      },
+      "top_provider": {
+        "context_length": 0,
+        "max_completion_tokens": 0,
+        "is_moderated": false
+      },
+      "per_request_limits": null,
+      "supported_parameters": [],
+      "default_parameters": {},
+      "supported_voices": null,
+      "knowledge_cutoff": null,
+      "expiration_date": null,
+      "links": {
+        "details": "/api/v1/models/fish-audio/transcribe-1-pro-20260924/endpoints"
+      }
+    }
+  ],
+  "total_count": 2,
+  "links": {
+    "next": null
+  }
+}

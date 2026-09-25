@@ -1,0 +1,37 @@
+[package]
+name = "news-terminal"
+version = "0.4.0"
+edition = "2021"
+description = "Local-first news reader"
+license = "MIT"
+
+[lib]
+name = "news_terminal_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+base64 = "0.22"
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-notification = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.37", features = ["bundled", "backup"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "stream"] }
+feed-rs = "2"
+futures-util = "0.3"
+url = "2"
+sha2 = "0.10"
+keyring = { version = "3", features = ["windows-native"] }
+html-escape = "0.2"
+chrono = "0.4"
+tokio = { version = "1", features = ["time", "sync", "net", "macros", "rt-multi-thread"] }
+uuid = { version = "1", features = ["v4"] }
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "gif", "webp"] }
+
+[dev-dependencies]
+tempfile = "3"
+

@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS documents(kind TEXT NOT NULL,id TEXT NOT NULL,scope TEXT NOT NULL DEFAULT '',data TEXT NOT NULL CHECK(json_valid(data)),PRIMARY KEY(kind,id,scope));
+CREATE TABLE IF NOT EXISTS articles(id TEXT PRIMARY KEY,source_id TEXT NOT NULL,data TEXT NOT NULL CHECK(json_valid(data)));
+CREATE INDEX IF NOT EXISTS articles_source ON articles(source_id);
+CREATE TABLE IF NOT EXISTS states(profile_id TEXT NOT NULL,article_id TEXT NOT NULL REFERENCES articles(id) ON DELETE CASCADE,data TEXT NOT NULL CHECK(json_valid(data)),PRIMARY KEY(profile_id,article_id));
+CREATE VIRTUAL TABLE IF NOT EXISTS articles_fts USING fts5(id UNINDEXED,title,excerpt,tokenize='unicode61');
+CREATE TRIGGER IF NOT EXISTS article_insert AFTER INSERT ON articles BEGIN INSERT INTO articles_fts(id,title,excerpt) VALUES(new.id,json_extract(new.data,'$.title'),json_extract(new.data,'$.excerpt')); END;
+CREATE TRIGGER IF NOT EXISTS article_delete AFTER DELETE ON articles BEGIN DELETE FROM articles_fts WHERE id=old.id; END;
+CREATE TRIGGER IF NOT EXISTS article_update AFTER UPDATE ON articles BEGIN DELETE FROM articles_fts WHERE id=old.id; INSERT INTO articles_fts(id,title,excerpt) VALUES(new.id,json_extract(new.data,'$.title'),json_extract(new.data,'$.excerpt')); END;
+CREATE TABLE IF NOT EXISTS alert_log(profile_id TEXT NOT NULL,article_id TEXT NOT NULL,at INTEGER NOT NULL,PRIMARY KEY(profile_id,article_id));
+PRAGMA user_version=1;

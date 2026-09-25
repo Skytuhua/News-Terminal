@@ -1,0 +1,17 @@
+[package]
+name = "nsis-tauri-utils"
+version = "0.5.3"
+authors = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+
+[lib]
+crate-type = [ "cdylib" ]
+
+[features]
+test = [ ]
+
+[dependencies]
+nsis-plugin-api = { workspace = true }
+windows-sys = { workspace = true }
+semver = { version = "1.0", default-features = false }

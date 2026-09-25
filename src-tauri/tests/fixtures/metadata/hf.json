@@ -1,0 +1,161 @@
+[
+  {
+    "_id": "6aaf9d774a43a3fea0c8b63b",
+    "id": "Qwen/Qwen-Image-2.1-PE-I2I",
+    "author": "Qwen",
+    "cardData": {
+      "license": "other",
+      "license_name": "qwen-research",
+      "license_link": "LICENSE",
+      "tags": [
+        "qwen",
+        "prompt-rewriting",
+        "image-editing"
+      ]
+    },
+    "gated": false,
+    "lastModified": "2026-09-20T11:59:48.000Z",
+    "likes": 48,
+    "private": false,
+    "sha": "72927bc08afc99b7888ceb7d7d51a12db3700bbd",
+    "downloads": 6779,
+    "tags": [
+      "safetensors",
+      "qwen3_5",
+      "qwen",
+      "prompt-rewriting",
+      "image-editing",
+      "license:other",
+      "region:us"
+    ],
+    "createdAt": "2026-09-20T08:46:47.000Z",
+    "modelId": "Qwen/Qwen-Image-2.1-PE-I2I",
+    "siblings": [
+      {
+        "rfilename": ".gitattributes"
+      },
+      {
+        "rfilename": "LICENSE"
+      },
+      {
+        "rfilename": "README.md"
+      },
+      {
+        "rfilename": "chat_template.jinja"
+      },
+      {
+        "rfilename": "config.json"
+      },
+      {
+        "rfilename": "generation_config.json"
+      },
+      {
+        "rfilename": "model-00001.safetensors"
+      },
+      {
+        "rfilename": "model-00002.safetensors"
+      },
+      {
+        "rfilename": "model-00003.safetensors"
+      },
+      {
+        "rfilename": "model-00004.safetensors"
+      },
+      {
+        "rfilename": "model.safetensors.index.json"
+      },
+      {
+        "rfilename": "processor_config.json"
+      },
+      {
+        "rfilename": "system_prompt.txt"
+      },
+      {
+        "rfilename": "tokenizer.json"
+      },
+      {
+        "rfilename": "tokenizer_config.json"
+      }
+    ]
+  },
+  {
+    "_id": "6aaf9d29343d3bfa98cc3ba1",
+    "id": "Qwen/Qwen-Image-2.1-PE-T2I",
+    "author": "Qwen",
+    "cardData": {
+      "license": "other",
+      "license_name": "qwen-research",
+      "license_link": "LICENSE",
+      "tags": [
+        "qwen",
+        "prompt-rewriting",
+        "text-to-image"
+      ]
+    },
+    "gated": false,
+    "lastModified": "2026-09-20T11:59:46.000Z",
+    "likes": 51,
+    "private": false,
+    "sha": "f3ed7985c788ad75b3ab7223e0c4c51e2a43545b",
+    "downloads": 3208,
+    "tags": [
+      "safetensors",
+      "qwen3_5",
+      "qwen",
+      "prompt-rewriting",
+      "text-to-image",
+      "license:other",
+      "region:us"
+    ],
+    "pipeline_tag": "text-to-image",
+    "createdAt": "2026-09-20T08:45:29.000Z",
+    "modelId": "Qwen/Qwen-Image-2.1-PE-T2I",
+    "siblings": [
+      {
+        "rfilename": ".gitattributes"
+      },
+      {
+        "rfilename": "LICENSE"
+      },
+      {
+        "rfilename": "README.md"
+      },
+      {
+        "rfilename": "chat_template.jinja"
+      },
+      {
+        "rfilename": "config.json"
+      },
+      {
+        "rfilename": "generation_config.json"
+      },
+      {
+        "rfilename": "model-00001.safetensors"
+      },
+      {
+        "rfilename": "model-00002.safetensors"
+      },
+      {
+        "rfilename": "model-00003.safetensors"
+      },
+      {
+        "rfilename": "model-00004.safetensors"
+      },
+      {
+        "rfilename": "model.safetensors.index.json"
+      },
+      {
+        "rfilename": "processor_config.json"
+      },
+      {
+        "rfilename": "system_prompt.txt"
+      },
+      {
+        "rfilename": "tokenizer.json"
+      },
+      {
+        "rfilename": "tokenizer_config.json"
+      }
+    ]
+  }
+]

@@ -1,0 +1,32 @@
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
+authors = ["Tauri Programme within the Commons Conservancy"]
+edition = "2021"
+license = "MIT or Apache-2.0"
+
+[workspace.dependencies]
+nsis-plugin-api = { path = "./crates/nsis-plugin-api" }
+
+[workspace.dependencies.windows-sys]
+version = "0.61.2"
+features = [
+    "Win32_Foundation",
+    "Win32_Globalization",
+    "Win32_Security",
+    "Win32_System_Diagnostics_ToolHelp",
+    "Win32_System_Memory",
+    "Win32_System_Threading",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Controls",
+    "Win32_UI_Shell",
+]
+
+[profile.release]
+panic = "abort"   # Strip expensive panic clean-up logic
+codegen-units = 1 # Compile crates one after another so the compiler can optimize better
+lto = true        # Enables link time optimizations
+opt-level = "s"   # Optimize for binary size
+strip = true      # Remove debug symbols

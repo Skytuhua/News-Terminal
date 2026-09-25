@@ -1,0 +1,12 @@
+#[path = "../src/rights.rs"]
+pub mod rights;
+#[path = "../src/db.rs"]
+pub mod db;
+#[path = "../src/intelligence.rs"]
+pub mod intelligence;
+#[path = "../src/briefing.rs"]
+pub mod briefing;
+#[path = "../src/media.rs"]
+pub mod media;
+#[path = "../src/services.rs"]
+pub mod services;

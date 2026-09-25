@@ -1,0 +1,138 @@
+{
+  "toolchain": "NSIS v3.11; Tauri CLI 2.11.5",
+  "upstream_downloads": [
+    {
+      "file": "bundler-mod.rs",
+      "url": "https://raw.githubusercontent.com/tauri-apps/tauri/tauri-cli-v2.11.5/crates/tauri-bundler/src/bundle/windows/nsis/mod.rs",
+      "sha256": "b1c6db4e8a9bcc55ed6a739fe73a64a18801600bbefc76083f7449db4fb87a0f",
+      "sha1": "ebcb9df31a8d9166793ea3919a0362db00e31e42",
+      "size": 30821
+    },
+    {
+      "file": "plugin-Cargo.toml",
+      "url": "https://raw.githubusercontent.com/tauri-apps/nsis-tauri-utils/13d9edd27b69310e108d6fbd49f90992f8a05390/crates/nsis-tauri-utils/Cargo.toml",
+      "sha256": "7cb1532f034a44b8b59a0a45c094d37a34f031fc6305df0863540eae1d572b30",
+      "sha1": "29f09a542918c21e63054f9a1d85cea764579d5c",
+      "size": 365
+    },
+    {
+      "file": "workspace-Cargo.toml",
+      "url": "https://raw.githubusercontent.com/tauri-apps/nsis-tauri-utils/13d9edd27b69310e108d6fbd49f90992f8a05390/Cargo.toml",
+      "sha256": "a652c35630f2991b7bb12e4ef8327a54e39bba9817ee2ab688c969afc8a99b5b",
+      "sha1": "0bd912346d8c744d19b7e0262456ac20d5a2f299",
+      "size": 890
+    },
+    {
+      "file": "plugin-LICENSE_MIT",
+      "url": "https://raw.githubusercontent.com/tauri-apps/nsis-tauri-utils/13d9edd27b69310e108d6fbd49f90992f8a05390/LICENSE_MIT",
+      "sha256": "1c1020fa10a6bf318717e82c911bcc54ebdfb9bb280460ae332bcb2f82f57fbe",
+      "sha1": "3014f8d27247ead5662539fbff1a361effda9f86",
+      "size": 1110
+    },
+    {
+      "file": "plugin-LICENSE_APACHE-2.0",
+      "url": "https://raw.githubusercontent.com/tauri-apps/nsis-tauri-utils/13d9edd27b69310e108d6fbd49f90992f8a05390/LICENSE_APACHE-2.0",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "sha1": "598f87f072f66e2269dd6919292b2934dbb20492",
+      "size": 10174
+    },
+    {
+      "file": "plugin-release.json",
+      "url": "https://api.github.com/repos/tauri-apps/nsis-tauri-utils/releases/tags/nsis_tauri_utils-v0.5.3",
+      "sha256": "2a6f3166c96f7d89c9aea23425e1d36857a9252dc813634c9b93f4b4138378f2",
+      "sha1": "9e14f1c374d9b33d51d6425e09ab9d427f1d7a8a",
+      "size": 4284
+    },
+    {
+      "file": "nsis-3.11.zip",
+      "url": "https://github.com/tauri-apps/binary-releases/releases/download/nsis-3.11/nsis-3.11.zip",
+      "sha256": "c7d27f780ddb6cffb4730138cd1591e841f4b7edb155856901cdf5f214394fa1",
+      "sha1": "ef7ff767e5cbd9edd22add3a32c9b8f4500bb10d",
+      "size": 2361546
+    },
+    {
+      "file": "nsis_tauri_utils.dll",
+      "url": "https://github.com/tauri-apps/nsis-tauri-utils/releases/download/nsis_tauri_utils-v0.5.3/nsis_tauri_utils.dll",
+      "sha256": "5ba143b5db4a87d32d6e7802e033330aae56cbceabe0d1e3ba41948385ad4709",
+      "sha1": "75197fee3c6a814fe035788d1c34ead39349b860",
+      "size": 34304
+    }
+  ],
+  "verified_toolchain_files": [
+    {
+      "file": "COPYING",
+      "size": 15632,
+      "sha256": "e7dd514003ab96cb3ddccbc028fe5c795fccf57dc41f21cfb9d4dd16ead23bf5",
+      "matches_pinned_nsis_archive": true
+    },
+    {
+      "file": "makensis.exe",
+      "size": 2560,
+      "sha256": "f497e92deb9f179f7b8f7553fcb3bd04f511bb2949e5e4a2aee80a10f7b20431",
+      "matches_pinned_nsis_archive": true
+    },
+    {
+      "file": "Stubs/zlib_solid-x86-unicode",
+      "size": 40960,
+      "sha256": "e6c2afdd03c7bc5f1dc24449e5c92f3859f7586f399dff01c175d52e052bc943",
+      "matches_pinned_nsis_archive": true
+    },
+    {
+      "file": "Plugins/x86-unicode/System.dll",
+      "size": 12288,
+      "sha256": "8b4c47c4cf5e76ec57dd5a050d5acd832a0d532ee875d7b44f6cdaf68f90d37c",
+      "matches_pinned_nsis_archive": true
+    },
+    {
+      "file": "Plugins/x86-unicode/nsDialogs.dll",
+      "size": 9728,
+      "sha256": "b1350f487692057c8ffde75dcc55287a52a3272240d4d4912f24464b27551fc0",
+      "matches_pinned_nsis_archive": true
+    },
+    {
+      "file": "Plugins/x86-unicode/StartMenu.dll",
+      "size": 7680,
+      "sha256": "fe330320459637d8dd2b5d84d07925c38ec264152ffd3b1760a4d44d76536caa",
+      "matches_pinned_nsis_archive": true
+    },
+    {
+      "file": "Plugins/x86-unicode/additional/nsis_tauri_utils.dll",
+      "size": 34304,
+      "sha256": "5ba143b5db4a87d32d6e7802e033330aae56cbceabe0d1e3ba41948385ad4709",
+      "matches_pinned_plugin_release": true
+    }
+  ],
+  "preserved_notice_files": [
+    {
+      "path": "nsis-3.11/COPYING",
+      "sha256": "e7dd514003ab96cb3ddccbc028fe5c795fccf57dc41f21cfb9d4dd16ead23bf5"
+    },
+    {
+      "path": "nsis-3.11/Modern-UI-License.txt",
+      "sha256": "60a810a36630b3cb455ccbf361b987ca4860fa235fd9e1466f1d7cd92b7a6faf"
+    },
+    {
+      "path": "nsis-tauri-utils-0.5.3/LICENSE_MIT",
+      "sha256": "1c1020fa10a6bf318717e82c911bcc54ebdfb9bb280460ae332bcb2f82f57fbe"
+    },
+    {
+      "path": "nsis-tauri-utils-0.5.3/LICENSE_APACHE-2.0",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+    },
+    {
+      "path": "nsis-tauri-utils-0.5.3/Cargo.toml.upstream",
+      "sha256": "7cb1532f034a44b8b59a0a45c094d37a34f031fc6305df0863540eae1d572b30"
+    },
+    {
+      "path": "nsis-tauri-utils-0.5.3/workspace-Cargo.toml.upstream",
+      "sha256": "a652c35630f2991b7bb12e4ef8327a54e39bba9817ee2ab688c969afc8a99b5b"
+    }
+  ],
+  "additional_verified_toolchain_files": [
+    {"file":"Plugins/x86-unicode/LangDLL.dll","size":5632,"sha256":"4cf25411f28f639f72156c24b0f66ea42f5aee5973f6c137d901da6ae42d5b7e","matches_pinned_nsis_archive":true},
+    {"file":"Docs/Modern UI 2/License.txt","size":840,"sha256":"d5957bd99460eb21148bd2695eeb5a3718abae6b118040a4678926da3f4cfbc0","matches_pinned_nsis_archive":true,"preserved_as":"nsis-3.11/Modern-UI-2-License.txt"},
+    {"file":"Contrib/Graphics/Wizard/win.bmp","size":26494,"sha256":"3ad2dc318056d0a2024af1804ea741146cfc18cc404649a44610cbf8b2056cf2","matches_pinned_nsis_archive":true},
+    {"file":"Contrib/UIs/modern.exe","size":6656,"sha256":"b6c763821a0e4e8ca76a4531dbe50dc88cbc7e5238a5b76a0646722b2524ee3c","matches_pinned_nsis_archive":true}
+  ],
+  "tauri_template_license_url": "https://raw.githubusercontent.com/tauri-apps/tauri/tauri-cli-v2.11.5/LICENSE_MIT"
+}

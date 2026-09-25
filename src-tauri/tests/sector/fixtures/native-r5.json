@@ -1,0 +1,183 @@
+{
+  "provenance": {
+    "path": "docs\\evidence\\sector-native-debug-r5.json",
+    "sha256": "195d7832475ef5dee36e528bc5ad69a2b035e7b25299fcdd57cb4fd90fe65156"
+  },
+  "preview": {
+    "coverageLabel": "Selected 2 eligible stories from 4 displayed representative headlines (4 retained sector articles); 2 displayed stories excluded. At most 12 inputs; excerpts may be truncated. Retrieved profile/day sample only, not exhaustive sector coverage.",
+    "date": "2026-09-23",
+    "eligibleCount": 2,
+    "excludedCount": 2,
+    "fingerprint": "59a61630a26cdcb265253cd21f34a4c831a63e9c61dd8dd43e89237a2f0f3e87",
+    "limit": 12,
+    "profileId": "default",
+    "sectorId": "weather",
+    "sectorTitle": "Weather",
+    "selectedCount": 2,
+    "sources": [
+      {
+        "articleId": "270d55cfc698503228f9bfdbf81af92239a6f516f921b52186af67b7f8dde436",
+        "attribution": "Source text: NOAA/NWS National Hurricane Center (public-domain NWS material); preserve advisory issue time and original link.",
+        "id": "S1",
+        "inputLabel": "Feed excerpt, potentially truncated \u2014 not the full article.",
+        "outputLabel": "News Terminal AI-generated analysis of a feed excerpt; not an official NOAA/NWS product. Check the original advisory; not an emergency-warning service.",
+        "publishedAt": 1790227251,
+        "sourceName": "NOAA/NWS National Hurricane Center \u2014 Atlantic",
+        "title": "Atlantic Tropical Weather Outlook",
+        "url": "https://www.nhc.noaa.gov/gtwo.php?basin=atlc"
+      },
+      {
+        "articleId": "8f99e88dd3cb70405bd161e2c7cdb3511ecbdd1abba6df93ff1316a5e64fa302",
+        "attribution": "Source text: NOAA/NWS National Hurricane Center (public-domain NWS material); preserve advisory issue time and original link.",
+        "id": "S2",
+        "inputLabel": "Feed excerpt, potentially truncated \u2014 not the full article.",
+        "outputLabel": "News Terminal AI-generated analysis of a feed excerpt; not an official NOAA/NWS product. Check the original advisory; not an emergency-warning service.",
+        "publishedAt": 1790217522,
+        "sourceName": "NOAA/NWS National Hurricane Center \u2014 Atlantic",
+        "title": "Tropical Storm Fay Forecast Discussion Number 16",
+        "url": "https://www.nhc.noaa.gov/text/refresh/MIATCDAT1+shtml/240238.shtml"
+      }
+    ]
+  },
+  "originalInputs": [
+    {
+      "aiAllowed": true,
+      "excerpt": "908 ABNT20 KNHC 240520 TWOAT Tropical Weather Outlook NWS National Hurricane Center Miami FL 200 AM EDT Thu Sep 24 2026 For the North Atlantic...Caribbean Sea and the Gulf of America: Active Systems: The National Hurricane Center is issuing advisories on recently upgraded Tropical Storm Fay, located several hundred miles southwest of the Azores. Far Eastern Tropical Atlantic (AL90): An area of low pressure located a few hundred miles south-southeast of the Cabo Verde Islands is accompanied by a large area of disorganized showers and thunderstorms. This system could become a short-lived tropical depression later today or on Friday while it moves northwestward to northward. However, strong upper-level winds should end the opportunity for development by the weekend. Interests in the Cabo Verde Islands should monitor the progress of this system as gusty winds, areas of heavy rain, and flash flooding are possible there by Friday. * Formation chance through 48 hours...medium...60 percent. * Formation chance through 7 days...medium...60 percent. && Public Advisories on Tropical Storm Fay are issued under WMO header WTNT31 KNHC and under AWIPS header MIATCPAT1. Forecast/Advisories on Tropical Depression Fay are issued under WMO header WTNT21 KNHC and under AWIPS header MIATCMAT1. $$ Forecaster Cangialosi",
+      "firstSeen": 1790228006,
+      "groupId": "270d55cfc698503228f9bfdbf81af92239a6f516f921b52186af67b7f8dde436",
+      "hidden": false,
+      "history": [],
+      "id": "270d55cfc698503228f9bfdbf81af92239a6f516f921b52186af67b7f8dde436",
+      "kind": "official notice",
+      "language": "en",
+      "publishedAt": 1790227251,
+      "read": false,
+      "reasons": [
+        "Recency: 0 hours since publication",
+        "Language match: en"
+      ],
+      "region": "US",
+      "saved": false,
+      "score": 110,
+      "sourceId": "nhc-atlantic",
+      "sourceName": "NOAA/NWS National Hurricane Center \u2014 Atlantic",
+      "title": "Atlantic Tropical Weather Outlook",
+      "topics": [
+        "weather"
+      ],
+      "updatedAt": 1790228006,
+      "url": "https://www.nhc.noaa.gov/gtwo.php?basin=atlc"
+    },
+    {
+      "aiAllowed": true,
+      "excerpt": "Issued at 300 AM GMT Thu Sep 24 2026 402 WTNT41 KNHC 240238 TCDAT1 Tropical Storm Fay Discussion Number 16 NWS National Hurricane Center Miami FL AL062026 300 AM GMT Thu Sep 24 2026 Deep convection has persisted since the previous advisory, especially to the north and northeast of the surface center. Recent microwave and geostationary satellite data indicate fairly good confidence that the center is near the southern or southwestern edge of the convection. The latest TAFB Dvorak intensity estimate is 2.5/35 kt and recent objective intensity estimates from UW-CIMSS range from 33-42 kt. A pair of ASCAT passes from around 23/2300 UTC showed several reliable 32 kt wind vectors. Given the low bias of the ASCAT instrument due to its resolution, the initial intensity is raised to 35 kt, in agreement with the TAFB estimate, making Fay a tropical storm again. The initial motion is estimated to be west-southwestward, or 250 degrees at 8 kt. Fay is expected to continue moving generally westward for the next few days as it is steered by a narrow low- to mid-level ridge to its north, although a deceleration is expected in a couple of days as steering currents weaken. The NHC forecast is very similar to the previous one, and is fairly close to, but slightly faster toward the west than, the latest GDMI and HCCA. Confidence in the NHC track forecast appears to be above average due to good agreement among the track models. Fay is forecast to remain over warm water and within a weak vertical wind shear environment for another 36 hours, but the dry airmass that Fay is embedded in, with mid-level relative humidity values between 30 and 40 percent, should prevent significant strengthening. The NHC forecast shows little change in strength while the shear remains weak. By 48 hours, increasing northeasterly vertical wind shear should work to induce gradual weakening. The NHC forecast is a little higher than the previous one, in that it shows a more gradual weakening in the 36 to 72 hour pe",
+      "firstSeen": 1790228006,
+      "groupId": "8f99e88dd3cb70405bd161e2c7cdb3511ecbdd1abba6df93ff1316a5e64fa302",
+      "hidden": false,
+      "history": [],
+      "id": "8f99e88dd3cb70405bd161e2c7cdb3511ecbdd1abba6df93ff1316a5e64fa302",
+      "kind": "official notice",
+      "language": "en",
+      "publishedAt": 1790217522,
+      "read": false,
+      "reasons": [
+        "Recency: 2 hours since publication",
+        "Language match: en"
+      ],
+      "region": "US",
+      "saved": false,
+      "score": 108,
+      "sourceId": "nhc-atlantic",
+      "sourceName": "NOAA/NWS National Hurricane Center \u2014 Atlantic",
+      "title": "Tropical Storm Fay Forecast Discussion Number 16",
+      "topics": [
+        "weather"
+      ],
+      "updatedAt": 1790228006,
+      "url": "https://www.nhc.noaa.gov/text/refresh/MIATCDAT1+shtml/240238.shtml"
+    }
+  ],
+  "hostResult": {
+    "bullets": [
+      {
+        "citations": [
+          "S1",
+          "S2"
+        ],
+        "text": "Tropical Storm Fay, located southwest of the Azores, is being monitored by the National Hurricane Center with a 60% chance of development within 48 hours and 7 days, though strong upper-level winds may inhibit intensification by weekend."
+      },
+      {
+        "citations": [
+          "S2"
+        ],
+        "text": "Satellite and microwave data indicate Fay's convection is concentrated north and northeast of its center, with recent intensity estimates ranging from 33 to 42 knots, and a revised initial intensity of 35 knots, maintaining its status as a tropical storm."
+      },
+      {
+        "citations": [
+          "S2"
+        ],
+        "text": "Fay is moving west-southwest at 8 knots, steered by a ridge to its north, with a forecasted track showing gradual weakening due to increasing northeasterly vertical wind shear by 48 hours."
+      },
+      {
+        "citations": [
+          "S2"
+        ],
+        "text": "Fay remains over warm water in a weak vertical wind shear environment, but dry mid-level humidity (30\u201340%) limits significant strengthening, with forecasted gradual weakening beginning around 36 hours."
+      }
+    ],
+    "coverageLabel": "Selected 2 eligible stories from 4 displayed representative headlines (4 retained sector articles); 2 displayed stories excluded. At most 12 inputs; excerpts may be truncated. Retrieved profile/day sample only, not exhaustive sector coverage.",
+    "date": "2026-09-23",
+    "fingerprint": "59a61630a26cdcb265253cd21f34a4c831a63e9c61dd8dd43e89237a2f0f3e87",
+    "generatedAt": 1790228010,
+    "model": "qwen3:4b-instruct-2507-q4_K_M",
+    "profileId": "default",
+    "provider": "ollama",
+    "sectorId": "weather",
+    "sources": [
+      {
+        "articleId": "270d55cfc698503228f9bfdbf81af92239a6f516f921b52186af67b7f8dde436",
+        "attribution": "Source text: NOAA/NWS National Hurricane Center (public-domain NWS material); preserve advisory issue time and original link.",
+        "id": "S1",
+        "inputLabel": "Feed excerpt, potentially truncated \u2014 not the full article.",
+        "outputLabel": "News Terminal AI-generated analysis of a feed excerpt; not an official NOAA/NWS product. Check the original advisory; not an emergency-warning service.",
+        "publishedAt": 1790227251,
+        "sourceName": "NOAA/NWS National Hurricane Center \u2014 Atlantic",
+        "title": "Atlantic Tropical Weather Outlook",
+        "url": "https://www.nhc.noaa.gov/gtwo.php?basin=atlc"
+      },
+      {
+        "articleId": "8f99e88dd3cb70405bd161e2c7cdb3511ecbdd1abba6df93ff1316a5e64fa302",
+        "attribution": "Source text: NOAA/NWS National Hurricane Center (public-domain NWS material); preserve advisory issue time and original link.",
+        "id": "S2",
+        "inputLabel": "Feed excerpt, potentially truncated \u2014 not the full article.",
+        "outputLabel": "News Terminal AI-generated analysis of a feed excerpt; not an official NOAA/NWS product. Check the original advisory; not an emergency-warning service.",
+        "publishedAt": 1790217522,
+        "sourceName": "NOAA/NWS National Hurricane Center \u2014 Atlantic",
+        "title": "Tropical Storm Fay Forecast Discussion Number 16",
+        "url": "https://www.nhc.noaa.gov/text/refresh/MIATCDAT1+shtml/240238.shtml"
+      }
+    ],
+    "warning": "AI-generated and unverified. Citation IDs identify supplied inputs, not factual verification. Check the original sources."
+  },
+  "uiBullets": [
+    {
+      "text": "Tropical Storm Fay, located southwest of the Azores, is being monitored by the National Hurricane Center with a 60% chance of development within 48 hours and 7 days; it remains a tropical storm with sustained winds of 35 knots, based on TAFB and ASCAT data.",
+      "citations": [
+        "S1 \u00b7 NOAA/NWS National Hurricane Center \u2014 Atlantic \u2197",
+        "S2 \u00b7 NOAA/NWS National Hurricane Center \u2014 Atlantic \u2197"
+      ]
+    },
+    {
+      "text": "Fay is moving west-southwest at 8 knots, steered by a ridge to its north, with forecasted continued westward motion and gradual weakening due to increasing northeasterly vertical wind shear by 36 hours.",
+      "citations": [
+        "S2 \u00b7 NOAA/NWS National Hurricane Center \u2014 Atlantic \u2197"
+      ]
+    },
+    {
+      "text": "Fay remains over warm water in a weak vertical wind shear environment, but is embedded in a dry airmass with mid-level relative humidity between 30 and 40 percent, limiting its potential for intensification.",
+      "citations": [
+        "S2 \u00b7 NOAA/NWS National Hurricane Center \u2014 Atlantic \u2197"
+      ]
+    }
+  ]
+}

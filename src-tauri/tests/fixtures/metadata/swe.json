@@ -1,0 +1,71 @@
+{
+  "leaderboards": [
+    {
+      "name": "Verified",
+      "results": [
+        {
+          "agent": "Sonar Foundation Agent",
+          "agent_org": "Sonar",
+          "checked": false,
+          "cost": null,
+          "date": "2025-12-05",
+          "folder": "20251205_sonar-foundation-agent_claude-opus-4-5",
+          "instance_calls": null,
+          "instance_cost": null,
+          "logo": [
+            "img/logos/20251205_sonar-foundation-agent_claude-opus-4-5.png"
+          ],
+          "logs": "s3://swe-bench-submissions/verified/20251205_sonar-foundation-agent_claude-opus-4-5/logs",
+          "model_display": "Claude 4.5 Opus",
+          "model_org": "Anthropic",
+          "model_release_date": null,
+          "name": "Sonar Foundation Agent + Claude 4.5 Opus",
+          "os_model": false,
+          "os_system": false,
+          "reasoning_effort": null,
+          "resolved": 79.2,
+          "site": "https://www.sonarsource.com",
+          "tags": [
+            "Model: claude-opus-4-5",
+            "Org: Sonar",
+            "System: Attempts - 1"
+          ],
+          "trajs": "s3://swe-bench-submissions/verified/20251205_sonar-foundation-agent_claude-opus-4-5/trajs",
+          "trajs_docent": false,
+          "warning": null
+        },
+        {
+          "agent": "live-SWE-agent",
+          "agent_org": "UIUC",
+          "checked": false,
+          "cost": null,
+          "date": "2025-12-15",
+          "folder": "20251215_livesweagent_claude-opus-4-5",
+          "instance_calls": null,
+          "instance_cost": null,
+          "logo": [
+            "img/logos/20251215_livesweagent_claude-opus-4-5.png"
+          ],
+          "logs": "s3://swe-bench-submissions/verified/20251215_livesweagent_claude-opus-4-5/logs",
+          "model_display": "Claude 4.5 Opus",
+          "model_org": "Anthropic",
+          "model_release_date": null,
+          "name": "live-SWE-agent + Claude 4.5 Opus medium (20251101)",
+          "os_model": false,
+          "os_system": true,
+          "reasoning_effort": "medium",
+          "resolved": 79.2,
+          "site": "https://github.com/OpenAutoCoder/live-swe-agent",
+          "tags": [
+            "Model: claude-opus-4-5-20251101",
+            "Org: UIUC",
+            "System: Attempts - 1"
+          ],
+          "trajs": "s3://swe-bench-submissions/verified/20251215_livesweagent_claude-opus-4-5/trajs",
+          "trajs_docent": false,
+          "warning": null
+        }
+      ]
+    }
+  ]
+}
