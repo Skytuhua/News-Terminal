@@ -36,3 +36,15 @@ export async function subscribe(callback: (kind: "changed" | "replaced") => void
     return () => { stopReplacement(); stopChange(); };
   } catch (error) { stopReplacement(); throw error; }
 }
+// 0.5: the host emits this when Windows notification delivery fails. Nothing
+// listened for it before, so a silenced alert looked identical to a delivered
+// one. The message is host-authored and shown verbatim - the renderer does not
+// paraphrase a delivery failure it cannot verify.
+export async function subscribeAlertStatus(callback: (message: string) => void) {
+  const handler = (e: Event) => callback((e as CustomEvent<string>).detail ?? "");
+  if (testDispatch) {
+    window.addEventListener("notification-status", handler);
+    return () => window.removeEventListener("notification-status", handler);
+  }
+  return listen<string>("notification-status", (e) => callback(e.payload));
+}

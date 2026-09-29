@@ -22,6 +22,28 @@
 nav button.chosen .nav-count { color: var(--foreground); }
 /* 0.5 bulk triage bar. Appears only with a non-empty selection, states the
    count in text, and sits above the list rather than floating over it. */
+/* 0.5 alert delivery failure banner. Sits above the list, never over it, so it
+   cannot cover a headline the way a floating toast would. */
+.alert-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  color: var(--danger);
+  background: color-mix(in oklch, var(--danger) 14%, transparent);
+  border-bottom: 1px solid color-mix(in oklch, var(--danger) 40%, transparent);
+}
+.alert-warning > span { flex: 1; min-width: 0; }
+.receipts { list-style: none; margin: 0; padding: 0; overflow-y: auto; }
+.receipts li {
+  display: flex;
+  gap: 10px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.receipts time { flex: 0 0 11em; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
 .bulk-actions {
   display: flex;
   align-items: center;

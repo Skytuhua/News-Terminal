@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpRight,
+  Bell,
   Bookmark,
   Check,
   ChevronLeft,
@@ -23,9 +24,11 @@ import {
   dispatch,
   runtimeAvailable,
   subscribe,
+  subscribeAlertStatus,
   type Request,
   type WindowContext,
 } from "./ipc";
+import AlertHistory from "./AlertHistory";
 import { date, sourceFailed, filterArticles, focusSections, relatedCounts, reconcileArticles, topics, matchesReadingStatus, unreadCounts, type ReadingStatus } from "./model";
 import { coalescedRead } from "./coalescedRead";
 import SettingsPanel from "./Settings";
@@ -515,6 +518,18 @@ export default function App() {
   const acceptedArticles = useMemo(() => new Map(data?.articles.map((a) => [a.id, a])), [data?.articles]);
   const metadataView = active?.mode === "all" && active.section === "ai" && aiView !== "news";
   const reportView = metadataView || active?.mode === "briefing" || active?.mode === "live" || active?.mode === "hidden";
+  // 0.5: the host emits notification-status when Windows delivery fails. Before
+  // this nothing listened, so a silenced alert was indistinguishable from a
+  // delivered one. The text is host-authored and shown verbatim.
+  const [alertWarning, setAlertWarning] = useState("");
+  useEffect(() => {
+    let stop = () => {};
+    let live = true;
+    void subscribeAlertStatus((message) => {
+      if (live && message) setAlertWarning(message);
+    }).then((un) => { if (live) stop = un; else un(); });
+    return () => { live = false; stop(); };
+  }, []);
   const collectionRows = useMemo(() =>
     active && data && !reportView
       ? filterArticles(
@@ -1079,6 +1094,7 @@ export default function App() {
               {badge(badges?.saved)}
             </button>
             <button className={active?.mode === "hidden" ? "chosen" : ""} aria-label="Hidden stories" onClick={() => navigate({mode:"hidden", title:"Hidden stories"})}><ListFilter size={16} />Hidden stories{badge(badges?.hidden)}</button>
+            <button className={active?.mode === "alerts" ? "chosen" : ""} aria-label="Alert history" onClick={() => navigate({mode:"alerts", title:"Alert history"})}><Bell size={16} />Alert history</button>
             <div className="nav-heading">
               <span>Watchlists</span>
               <button
@@ -1139,9 +1155,18 @@ export default function App() {
           onChange={value => pane.update('nav', value)}
           onCommit={value => pane.update('nav', value, true)}
         />
-        {active?.mode === "hidden" ? (!importing.current && !profilePending && !workspaceInvalid && <HiddenStories key={`${profileId}:${active.id}:${recoveryEpoch}`} profileId={profileId} replacementToken={data.replacementToken} isCurrent={() => !importing.current && !switchingProfile.current && dataRef.current?.replacementToken === data.replacementToken} browse={() => navigate({mode:"all", title:"Headlines"})} />) : active?.mode === "briefing" ? <Briefing key={`${profileId}:${active.id}`} profileId={profileId} inputRevision={briefingInput} providers={data.providers} configure={() => setPanel("providers")} /> : active?.mode === "live" ? <LiveDiscussion key={`${profileId}:${active.id}`} /> : <>
+        {active?.mode === "hidden" ? (!importing.current && !profilePending && !workspaceInvalid && <HiddenStories key={`${profileId}:${active.id}:${recoveryEpoch}`} profileId={profileId} replacementToken={data.replacementToken} isCurrent={() => !importing.current && !switchingProfile.current && dataRef.current?.replacementToken === data.replacementToken} browse={() => navigate({mode:"all", title:"Headlines"})} />) : active?.mode === "alerts" ? <AlertHistory key={`${profileId}`} profileId={profileId} /> : active?.mode === "briefing" ? <Briefing key={`${profileId}:${active.id}`} profileId={profileId} inputRevision={briefingInput} providers={data.providers} configure={() => setPanel("providers")} /> : active?.mode === "live" ? <LiveDiscussion key={`${profileId}:${active.id}`} /> : <>
         <main className="headlines" aria-label="Headlines">
-          <div className="list-heading">
+            {alertWarning && (
+              <div className="alert-warning" role="status" aria-label="Alert delivery problem">
+                <span>{alertWarning}</span>
+                <button onClick={() => navigate({mode:"alerts", title:"Alert history"})}>Show alert history</button>
+                <button className="icon" aria-label="Dismiss alert warning" onClick={() => setAlertWarning("")}>
+                  <X size={15} />
+                </button>
+              </div>
+            )}
+            <div className="list-heading">
             <div>
               <h2>{active?.title || "Workspace"}</h2>
               <p>

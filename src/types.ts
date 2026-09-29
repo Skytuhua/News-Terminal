@@ -138,7 +138,7 @@ export type Tab = {
   topic: string;
   query: string;
   section?: FocusSection;
-  mode: "all" | "saved" | "brief" | "watchlist" | "briefing" | "live" | "hidden";
+  mode: "all" | "saved" | "brief" | "watchlist" | "briefing" | "live" | "hidden" | "alerts";
   watchlistId?: string;
   selectedId?: string;
 };
@@ -228,4 +228,12 @@ export type Summary = {
   generatedAt: number;
   scope: string;
   url: string;
+};
+// 0.5. A receipt proves a watchlist alert was delivered. title is null once the
+// article has been pruned out of the 90-day log, which is not a failure.
+export type AlertReceipt = {
+  profileId: string;
+  articleId: string;
+  at: string;
+  title: string | null;
 };
