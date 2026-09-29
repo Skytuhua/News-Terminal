@@ -74,7 +74,13 @@ export default function SectorSummary({ profileId, day, sectorId, sectorTitle, p
     catch (e) { setError(String(e)); }
   }
   const ready = providers.some(p => p.enabled && p.consented && (p.kind === "ollama" || p.hasKey));
+  // The preview is only displayed inside the collapsed source-inputs review,
+  // and Generate stays disabled until it arrives, so an unexpanded preview is
+  // work with no reader-visible purpose. Check permitted inputs on first
+  // review instead of on mount, then keep the result for later expands.
+  const [requested, setRequested] = useState(false);
   useEffect(() => {
+    if (!requested) return;
     let current = true;
     setPreview(undefined);
     setPreviewError("");
@@ -82,7 +88,7 @@ export default function SectorSummary({ profileId, day, sectorId, sectorTitle, p
       .then(value => { if (current) setPreview(value); })
       .catch(e => { if (current) setPreviewError(String(e)); });
     return () => { current = false; };
-  }, [profileId, day, sectorId, previewRevision]);
+  }, [profileId, day, sectorId, previewRevision, requested]);
   const inputs = <ol className="sector-summary-sources">{(result?.sources ?? preview?.sources ?? []).map(source => <li key={source.id}>
     <p><strong>{source.id} · {source.sourceName}</strong> · {date(source.publishedAt)}</p>
     <p>{source.title}</p>
@@ -100,10 +106,17 @@ export default function SectorSummary({ profileId, day, sectorId, sectorTitle, p
       <p className="fine">{preview.coverageLabel}</p>
       <p className="fine">Up to {preview.limit} stories from this day’s displayed sector items; not all reporting on this sector.</p>
       {preview.selectedCount < preview.eligibleCount && <p className="fine">Sampled input: {preview.selectedCount} of {preview.eligibleCount} eligible stories selected.</p>}
-      {!result && preview.sources.length > 0 && <details onToggle={e => setShowInputs(e.currentTarget.open)}><summary>Review selected source inputs</summary>{showInputs && inputs}</details>}
       {preview.selectedCount < 2 && <p className="fine">At least 2 permitted source stories are needed. Read the originals or use an available per-story summary below.</p>}
     </> : previewError ? <div className="form-error" role="alert">Source preview unavailable: {previewError}. Original stories remain available. <button onClick={() => setPreviewRevision(v => v + 1)}>Retry source preview</button></div>
-      : <p className="fine" role="status">Checking permitted source stories…</p>}
+      : requested ? <p className="fine" role="status">Checking permitted source stories…</p>
+      : <p className="fine" role="status">Permitted source inputs are checked only when you review them below.</p>}
+    {/* Outside the preview states above, so the review affordance exists before
+        anything has been checked and can be what triggers the check. */}
+    {!result && <details onToggle={e => {
+      const open = e.currentTarget.open;
+      setShowInputs(open);
+      if (open) setRequested(true);
+    }}><summary>Review selected source inputs</summary>{showInputs && (preview ? inputs : <li>Checking permitted source stories…</li>)}</details>}
     {!ready && <p className="fine">Enable a provider and give consent before generating.</p>}
     <div className="form-actions">{busy ? <>
       <span role="status">Selecting source quotations…</span>
