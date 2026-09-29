@@ -986,13 +986,15 @@ export default function Settings({
                   ["J / K", "Next / previous story"],
                   ["O", "Open original in your browser"],
                   ["S", "Save / unsave selected story"],
+                  ["M", "Mark read / unread selected story"],
+                  ["X", "Hide selected story"],
                   ["R", "Refresh feeds"],
                   ["Ctrl T", "New tab"],
                   ["Ctrl W", "Close current tab"],
                   ["Ctrl Tab", "Next tab"],
                   ["Ctrl Shift Tab", "Previous tab"],
                   ["?", "Show keyboard shortcuts"],
-                  ["Escape", "Close the current dialog"],
+                  ["Escape", "Close the current dialog, or the reading pane"],
                 ].map(([key, label]) => (
                   <div key={key}>
                     <dt>

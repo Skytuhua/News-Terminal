@@ -714,6 +714,26 @@ export default function App() {
             .querySelector(`[data-article-id="${CSS.escape(a.id)}"]`)
             ?.scrollIntoView({ block: "nearest", behavior: "instant" });
         }
+      } else if (e.key === "x" && selected) {
+        e.preventDefault();
+        void action({
+          op: "article_state",
+          profileId,
+          articleId: selected.id,
+          hidden: true,
+        }, "Story hidden");
+      } else if (e.key === "m" && selected) {
+        e.preventDefault();
+        void action({
+          op: "article_state",
+          profileId,
+          articleId: selected.id,
+          read: !selected.read,
+        }, selected.read ? "Marked unread" : "Marked read");
+      } else if (e.key === "Escape" && selectedId) {
+        // Empty the reading pane rather than leaving a stale story on screen.
+        e.preventDefault();
+        closeStory();
       } else if (e.key === "s" && selected) {
         e.preventDefault();
         void action({

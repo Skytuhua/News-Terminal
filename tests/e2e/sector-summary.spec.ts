@@ -149,9 +149,12 @@ for (const change of ["date", "profile", "input", "permission", "provider", "unm
       if (change === "provider") {
         // 0.5: the preview is only re-requested when the reader reviews it, so
         // a provider change is observed by expanding the disclosure. The
-        // request is deliberately held here, so this must not wait for it.
+        // request is deliberately held here, so this must not wait for it to
+        // resolve - but it must wait for the re-render that exposes the
+        // disclosure, or the click lands on a detached element.
         const d = combined(page).locator("details")
           .filter({ hasText: "Review selected source inputs" }).first();
+        await d.waitFor({ state: "attached" });
         if (!(await d.evaluate((el: HTMLElement & { open: boolean }) => el.open)))
           await d.locator("summary").click();
       }
