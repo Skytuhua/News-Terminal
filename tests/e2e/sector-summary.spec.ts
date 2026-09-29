@@ -11,6 +11,31 @@ async function openBriefing(page: Page, ready = true, savedProfile = false) {
     window.dispatchEvent(new Event("data-changed"));
   });
   await page.getByRole("button", { name: "Daily briefing", exact: true }).click();
+  // 0.5: the per-sector source preview is now fetched on first review rather
+  // than on mount, and Generate stays disabled until it arrives. Any test that
+  // depends on the preview must therefore perform that review step. This is
+  // the same user path a real reader takes; no assertion below is relaxed.
+  if (ready) await reviewAllSectors(page);
+}
+
+// Expands every sector's source-input disclosure, which issues each sector's
+// single permitted preview and enables Generate. A briefing reload remounts
+// the sector components, so the step has to be repeated after one.
+export async function reviewAllSectors(page: Page) {
+  // Idempotent: a test that already opened a disclosure must not have it
+  // toggled shut by this helper.
+  const details = page.locator("details").filter({ hasText: "Review selected source inputs" });
+  const count = await details.count();
+  for (let i = 0; i < count; i++) {
+    const d = details.nth(i);
+    if (!(await d.evaluate((el: HTMLElement & { open: boolean }) => el.open)))
+      await d.locator("summary").click();
+  }
+  for (let i = 0; i < count; i++) {
+    await combined(page).nth(i)
+      .getByRole("button", { name: "Generate sector summary", exact: true })
+      .waitFor();
+  }
 }
 
 test("sector quotation disclosure explains selection without implying verified facts", async ({ page }) => {
@@ -83,6 +108,7 @@ test("sector preview permission gate overrides item flags and keeps insufficient
   await openBriefing(page);
   await page.evaluate(() => { (window as any).__SECTOR_PREVIEW_PATCH__ = { selectedCount: 1, eligibleCount: 1, excludedCount: 1 }; });
   await page.getByRole("button", { name: "Reload briefing", exact: true }).click();
+  await reviewAllSectors(page);
   const panel = combined(page);
   await expect(panel.getByText("1 source stories selected · 1 eligible · 1 excluded", { exact: true })).toBeVisible();
   await expect(panel.getByText("At least 2 permitted source stories are needed. Read the originals or use an available per-story summary below.")).toBeVisible();
@@ -120,6 +146,15 @@ for (const change of ["date", "profile", "input", "permission", "provider", "unm
         else w.__TEST_PATCH__({ articles: s.articles.map((a: any) => ({ ...a, excerpt: "Corrected authoritative input." })) });
         window.dispatchEvent(new Event("data-changed"));
       }, change);
+      if (change === "provider") {
+        // 0.5: the preview is only re-requested when the reader reviews it, so
+        // a provider change is observed by expanding the disclosure. The
+        // request is deliberately held here, so this must not wait for it.
+        const d = combined(page).locator("details")
+          .filter({ hasText: "Review selected source inputs" }).first();
+        if (!(await d.evaluate((el: HTMLElement & { open: boolean }) => el.open)))
+          await d.locator("summary").click();
+      }
       await expect(page.locator(".sector-summary-bullets").getByText("A research team has published its observations of water near the lunar south pole.", { exact: true })).toHaveCount(0);
       await expect(page.getByRole("button", { name: "Cancel sector summary" })).toHaveCount(0);
       if (pending) {
@@ -140,6 +175,7 @@ test("sector preview failure can be retried without sending stories to AI", asyn
   await openBriefing(page);
   await page.evaluate(() => { (window as any).__FAIL_OP__ = "sector_summary_preview"; });
   await page.getByRole("button", { name: "Reload briefing" }).click();
+  await reviewAllSectors(page);
   const panel = combined(page);
   await expect(panel.getByRole("alert")).toContainText("Source preview unavailable");
   await expect(panel.getByRole("button", { name: "Generate sector summary" })).toBeDisabled();
@@ -224,10 +260,12 @@ test("sector preview identifies sampled inputs without claiming distinct publish
     w.__SECTOR_PREVIEW_PATCH__ = { eligibleCount: 3, excludedCount: 2 };
   });
   await page.getByRole("button", { name: "Reload briefing" }).click();
+  await reviewAllSectors(page);
   const panel = combined(page);
   await expect(panel.getByText("2 source stories selected · 3 eligible · 2 excluded", { exact: true })).toBeVisible();
   await expect(panel.getByText("Sampled input: 2 of 3 eligible stories selected.")).toBeVisible();
-  await panel.getByText("Review selected source inputs", { exact: true }).click();
+  // reviewAllSectors already expanded this disclosure; clicking the summary
+  // again would toggle it shut and hide the inputs this test asserts on.
   await expect(panel.getByText("Headline-only input", { exact: true })).toBeVisible();
   await expect(panel.getByText("Feed excerpt input", { exact: true })).toBeVisible();
   await expect(panel.getByText("Fixture generated analysis; not an official agency product.", { exact: true })).toHaveCount(2);
@@ -277,6 +315,8 @@ test("sector generated view stays usable across desktop narrow and zoomed layout
 
 test("sector preview discloses authoritative selection without generating", async ({ page }) => {
   await openBriefing(page, false);
+  // ready=false skips the helper, but this test asserts on preview contents.
+  await reviewAllSectors(page);
   const panel = combined(page);
   await expect(panel.getByRole("heading", { name: "Sector source quotations" })).toBeVisible();
   await expect(panel.getByText("2 source stories selected · 2 eligible · 0 excluded", { exact: true })).toBeVisible();

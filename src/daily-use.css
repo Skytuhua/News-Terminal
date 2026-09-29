@@ -72,10 +72,12 @@ nav button.chosen .nav-count { color: var(--foreground); }
    short viewports the chrome compacts to give it back the space. Nothing is
    hidden: every control stays present, reachable and at the 12px floor. */
 @media (max-height: 600px) {
-  .list-heading { padding: 6px 12px; gap: 6px; flex-wrap: nowrap; align-items: center; }
-  .list-heading h2 { font-size: 12px; }
-  .list-heading > div { min-width: 0; }
-  .list-heading p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Scoped to the headlines pane: the Hidden stories view has its own
+     short-height layout and paging tests, and must not shift underneath it. */
+  main.headlines .list-heading { padding: 6px 12px; gap: 6px; flex-wrap: nowrap; align-items: center; }
+  main.headlines .list-heading h2 { font-size: 12px; }
+  main.headlines .list-heading > div { min-width: 0; }
+  main.headlines .list-heading p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .search, .filters { padding: 6px 12px; }
   .image-controls { padding: 4px 12px; max-height: 44px; }
 }

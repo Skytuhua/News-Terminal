@@ -1141,7 +1141,7 @@ export default function App() {
                 ),
               )}
             </select>
-            <label className="field">
+            <label className="check">
               Read
               <select
                 value={readingStatus}
