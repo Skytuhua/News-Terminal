@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
@@ -8,7 +9,10 @@ import {
 import { X } from "lucide-react";
 import type { Snapshot, Source, Watchlist } from "./types";
 import { dispatch, type Request } from "./ipc";
-import { list, date, sourceFailed, sourceEligibleAt } from "./model";
+import {
+  list, date, sourceFailed, sourceEligibleAt,
+  filterSources, sourceFilterCount, type SourceFilter,
+} from "./model";
 import Connections from "./Connections";
 import MonitorControls from "./MonitorControls";
 import { ImageControls } from "./MediaSession";
@@ -46,6 +50,15 @@ function sourceAdapterLabel(source: Source) {
   if (source.sourceAdapter === "external-link") return "External website";
   return source.sourceAdapter || "Feed adapter";
 }
+// 0.5 source search and filter. Chips state their count in text so the filter
+// is not colour-only, and the counts deliberately ignore the query so each
+// state keeps showing its true size while a search is typed.
+const SOURCE_FILTER_LABELS: Record<SourceFilter, string> = {
+  all: "All",
+  enabled: "Enabled",
+  disabled: "Disabled",
+  failing: "Failing",
+};
 export function Field({
   label,
   children,
@@ -121,6 +134,13 @@ export default function Settings({
       setBusy(false);
     }
   }
+  // 0.5 source search and filter state. Local to the panel, never persisted:
+  // a source search is a momentary lookup, not a workspace preference.
+  const [sourceQuery, setSourceQuery] = useState("");
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
+  const visibleSources = useMemo(
+    () => filterSources(data.sources, sourceQuery, sourceFilter),
+    [data.sources, sourceQuery, sourceFilter]);
   const sourceSummary = {
     total: data.sources.length,
     enabled: data.sources.filter((s) => s.enabled).length,
@@ -566,8 +586,40 @@ export default function Settings({
                 remove its cached stories. Review the publisher’s terms before
                 adding a feed.
               </p>
+              <div className="source-filter" role="search">
+                <input
+                  type="search"
+                  aria-label="Search sources"
+                  placeholder="Search name, publisher, kind or region"
+                  value={sourceQuery}
+                  onChange={(e) => setSourceQuery(e.target.value)}
+                />
+                <div className="source-filter-chips" role="group" aria-label="Filter sources by state">
+                  {(["all", "enabled", "disabled", "failing"] as SourceFilter[]).map((f) => (
+                    <button
+                      key={f}
+                      className={sourceFilter === f ? "chosen" : ""}
+                      aria-pressed={sourceFilter === f}
+                      onClick={() => setSourceFilter(f)}
+                    >
+                      {SOURCE_FILTER_LABELS[f]}{" "}
+                      <span className="nav-count">{sourceFilterCount(data.sources, f)}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="fine" role="status">
+                  {visibleSources.length} of {data.sources.length} sources shown
+                </p>
+              </div>
+              {visibleSources.length === 0 ? (
+                <p className="intro">
+                  No sources match the current search and filter. Clear the
+                  search or pick another filter to see all {data.sources.length}{" "}
+                  configured sources.
+                </p>
+              ) : null}
               <div className="setting-rows">
-                {data.sources.map((s) => (
+                {visibleSources.map((s) => (
                   <div className="source-row" key={s.id}>
                     <div className="setting-row">
                       <div>

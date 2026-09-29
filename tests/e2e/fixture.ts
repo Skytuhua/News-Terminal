@@ -6,6 +6,7 @@ export async function fixture(
     savedProfile?: boolean;
     v02?: boolean;
     alertReceipts?: { profileId: string; articleId: string; at: string; title: string | null }[];
+    sources?: any[];
   } = {},
 ) {
   await page.addInitScript((options) => {
@@ -75,7 +76,7 @@ export async function fixture(
     const initial = {
       profiles: [profile],
       profile,
-      sources: [source],
+      sources: options.sources || [source],
       articles: [
         article,
         {

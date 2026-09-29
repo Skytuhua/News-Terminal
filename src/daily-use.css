@@ -22,6 +22,34 @@
 nav button.chosen .nav-count { color: var(--foreground); }
 /* 0.5 bulk triage bar. Appears only with a non-empty selection, states the
    count in text, and sits above the list rather than floating over it. */
+/* 0.5 source search and filter. */
+.source-filter { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.source-filter input[type="search"] { width: 100%; box-sizing: border-box; }
+.source-filter-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.source-filter-chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  padding: 3px 8px;
+}
+.source-filter-chips button.chosen { border-color: var(--accent); color: var(--foreground); }
+/* The audit found 13x13px source checkboxes, below a usable pointer target.
+   The visual box stays 13px; the hit area is enlarged instead, so the list
+   keeps its density while the control is actually clickable. */
+.source-row .check {
+  position: relative;
+  min-width: 24px;
+  min-height: 24px;
+  justify-content: center;
+  cursor: pointer;
+}
+.source-row .check input[type="checkbox"] {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  cursor: pointer;
+}
 /* 0.5 alert delivery failure banner. Sits above the list, never over it, so it
    cannot cover a headline the way a floating toast would. */
 .alert-warning {

@@ -1,5 +1,34 @@
 import type { Article, FocusSection, Source, Tab, Watchlist } from "./types";
 export const sourceFailed = (source: Source) => source.enabled && Number.isFinite(source.failures) && (source.failures ?? 0) > 0;
+// 0.5 source search and filter. Thirty sources with no way to find one is a
+// real daily-use cost, so the matching lives in the model layer where it can be
+// tested without a browser rather than inside a component.
+export type SourceFilter = "all" | "enabled" | "disabled" | "failing";
+
+export function filterSources(sources: Source[], query: string, filter: SourceFilter): Source[] {
+  const q = query.trim().toLowerCase();
+  return sources.filter((s) => {
+    if (filter === "enabled" && !s.enabled) return false;
+    // A disabled source is not "failing": it is switched off, which is a
+    // deliberate state rather than a delivery problem.
+    if (filter === "disabled" && s.enabled) return false;
+    if (filter === "failing" && !sourceFailed(s)) return false;
+    if (!q) return true;
+    return (
+      s.name.toLowerCase().includes(q) ||
+      (s.publisher || "").toLowerCase().includes(q) ||
+      s.kind.toLowerCase().includes(q) ||
+      s.region.toLowerCase().includes(q) ||
+      s.language.toLowerCase().includes(q)
+    );
+  });
+}
+
+// Counts describe the whole list under a filter, ignoring the query, so the
+// chips keep showing how many sources each state holds while a search is typed.
+export function sourceFilterCount(sources: Source[], filter: SourceFilter): number {
+  return filterSources(sources, "", filter).length;
+}
 export function sourceEligibleAt(source: Source) {
   // Match the host scheduler, not publication age. Legacy status text is not a clock.
   const last = Number.isInteger(source.lastAttempt) ? source.lastAttempt! : undefined;
