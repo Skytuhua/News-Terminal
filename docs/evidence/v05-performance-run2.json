@@ -1,0 +1,3828 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-09-26T07:46:11.111Z",
+  "kind": "synthetic browser fixture against the current production frontend build; not native Tauri/SQLite/feed/AI latency",
+  "measures": [
+    "production bundle bytes (raw + gzip)",
+    "cold first paint / first story rows (fresh browser context, empty HTTP cache)",
+    "synthetic fixture construction cost, reported separately because it runs before app code in the same main-thread task",
+    "cached same-context reload",
+    "tab switch",
+    "profile switch",
+    "per-keystroke main-thread input-to-paint latency while typing in the search box",
+    "open a story (reader pane mount)",
+    "reader pane content switch (second story)",
+    "switch to Daily briefing (many sectors)",
+    "switch to Live discussion",
+    "repeat no-op refresh cycle (3 consecutive)",
+    "main-thread long tasks and DOM element counts per step"
+  ],
+  "environment": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "arch": "x64",
+    "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M",
+    "logicalCpus": 24,
+    "totalMemoryBytes": 33412722688,
+    "freeMemoryBytesAtStart": 5840920576,
+    "node": "v26.7.0",
+    "gitHead": "74c36cce3f4859f459ae602a2a7bddf1b27b53a2",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "reducedMotion": "reduce",
+    "cpuThrottle": "none",
+    "mode": "Vite in-memory builds; production React, minified, sourcemaps off; nothing written to dist",
+    "builds": {
+      "production": "mode=production, seam compiled away, measured for bytes only",
+      "instrumented": "mode=test, same config plus the ipc.ts injection seam"
+    },
+    "port": 4183,
+    "trialIsolation": "one freshly launched headless Chromium process per trial; fresh context (empty HTTP cache) for the cold measurement, second fresh context for the interaction battery",
+    "chromium": "153.0.8010.12"
+  },
+  "productionAssets": [
+    {
+      "file": "assets/index-BOZq3BTs.js",
+      "rawBytes": 350047,
+      "gzipBytes": 104842
+    },
+    {
+      "file": "assets/index-gqOWMtcv.css",
+      "rawBytes": 25237,
+      "gzipBytes": 5572
+    },
+    {
+      "file": "index.html",
+      "rawBytes": 446,
+      "gzipBytes": 281
+    }
+  ],
+  "sourceHashesAtStart": {
+    "src/App.tsx": "47648d2391750cd7bf4d669d3c15e9f9c7e9dcea5d0ebe13abac30e752672d1e",
+    "src/model.ts": "cdb43bf8107bdb619ab77ef5e9a0895bb2e8c9b8aac80867ba762d3c046ee517",
+    "src/ipc.ts": "ae70efb1c211c391f1d7ab85cbd6301066493fc108081cd0ec9a3b1278b5fa21",
+    "src/coalescedRead.ts": "1716a057c6806ca04801d034f257da222de78be349765b0e0318d87b3844251f",
+    "src/HeadlineRow.tsx": "6f042be2d9bbb89d0f4e10f735a21fdf1af23ef380db2514acd0bdf6c78e3b9c",
+    "src/Coverage.tsx": "1a66b75241e5c38974548f675b4c95dfe2e328a3d7fdbaaa251f6c271bf1f89e",
+    "src/Briefing.tsx": "908832424deea9b7ac143d0565fd2cec4b9685221f45d7d79a2a1fb4e1ecc6ba",
+    "src/SectorSummary.tsx": "64aa2c7adfce68c6d349fc626666acc4801858ad7531cbe81c74ba1c6b1c1c75",
+    "src/LiveDiscussion.tsx": "4d58b58c58b718a6ebe69d6179396e69e6a9ef046167519d1e8d19747131338c",
+    "src/HiddenStories.tsx": "e82b2bc725dd05729955198955ec5bbf909a2abb17bfea26c94a3d1b8c39eb14",
+    "src/Summary.tsx": "69b63b494992b39fffafa38f36925f6f926bc524e78d22a7e271242263c1ff9e",
+    "src/StoryThumbnail.tsx": "6b78cb9d4d8058a394630ffece4601f7e4011c6dddb019ebc457758c4c3f588a",
+    "src/MediaSession.tsx": "3f90a75b540ab173a5f9036cd296b0614c6b9666a0bb79d825416387771f4c46",
+    "src/types.ts": "990e654adc879250cf25f9cfe00cab71c53dc2a036655359785258fd9a54f48b",
+    "src/main.tsx": "6c2ca5004122cdf590685261371a807fcaaaac7e5f00f82cb74967d49817a79f",
+    "package.json": "24abb6853999610305c82dd5b39d0cf5abcc3b12f98fee5b90a123cd57af618a",
+    "package-lock.json": "c94f9691b3322d4f3767ab1a45a01eb8b72af237ffc1810bf93ede606273baee",
+    "vite.config.ts": "d258e749dac1dd181cc0a1457f754a6e907444a2e320f5a27a62c9603898cac4",
+    "index.html": "4ff8ba81aab0770f5e4fd54bb186058bc34cd2ba77826f13c592c3d52be4264d"
+  },
+  "config": {
+    "stories": 5000,
+    "trials": 9,
+    "sources": 19,
+    "sectors": 14,
+    "liveItems": 100,
+    "tabs": 3,
+    "profiles": 2
+  },
+  "expectedCounts": {
+    "all": 4864,
+    "saved": 194,
+    "brief": 1401,
+    "needle": 486
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "startedAt": "2026-09-26T07:46:12.868Z",
+      "cold": {
+        "domContentLoaded": 828.1347999999998,
+        "rowsReady": 1252.0178000000014,
+        "navigationToPaintedFrames": 1274.0756000000038,
+        "paints": [
+          {
+            "name": "first-paint",
+            "start": 640
+          },
+          {
+            "name": "first-contentful-paint",
+            "start": 736
+          }
+        ],
+        "lcp": [
+          {
+            "start": 1188,
+            "size": 32000
+          }
+        ],
+        "domElements": 1494,
+        "storyRows": 100,
+        "longTasks": 2,
+        "longTaskTotalMs": 155,
+        "longestTaskMs": 90,
+        "snapshotBytes": 5721434,
+        "liveBytes": 47835,
+        "fixtureInstallMs": 80.40000000596046,
+        "resources": [
+          {
+            "name": "/assets/index-7lO02Cp6.js",
+            "transferSize": 350620,
+            "decodedBodySize": 350320
+          },
+          {
+            "name": "/assets/index-gqOWMtcv.css",
+            "transferSize": 25537,
+            "decodedBodySize": 25237
+          }
+        ],
+        "opCounts": {
+          "window_context": 2,
+          "visit": 1,
+          "snapshot": 2,
+          "media_preferences": 1
+        }
+      },
+      "interactions": {
+        "steps": [
+          {
+            "label": "cached-reload-same-context",
+            "ms": 590.1580000000031,
+            "timingBasis": "driver wall time across a navigation; in-page performance.now() is not comparable across documents",
+            "opCountsAfterReload": {
+              "window_context": 2,
+              "visit": 1,
+              "snapshot": 2,
+              "media_preferences": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-brief-desk",
+            "ms": 262.70000000298023,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 108,
+            "longestTaskMs": 108,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines",
+            "ms": 175.40000000596046,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 77,
+            "longestTaskMs": 77,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-saved-desk",
+            "ms": 175.29999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 77,
+            "longestTaskMs": 77,
+            "domElements": 1670,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines-2",
+            "ms": 150,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 68,
+            "longestTaskMs": 68,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-to-desk-b",
+            "ms": 155.19999998807907,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 1,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 66,
+            "longestTaskMs": 66,
+            "domElements": 1495,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-back-to-default",
+            "ms": 96.29999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "clear-search-full-list",
+            "ms": 135,
+            "opDelta": {
+              "window_context": 0,
+              "visit": 0,
+              "snapshot": 0,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "open-first-story-reader-pane",
+            "ms": 412.6000000089407,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 313,
+            "longestTaskMs": 313,
+            "domElements": 1551,
+            "storyRows": 100
+          },
+          {
+            "label": "reader-content-switch-to-third-story",
+            "ms": 371.3999999910593,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 306,
+            "longestTaskMs": 306,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "switch-to-daily-briefing",
+            "ms": 906,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 1,
+              "sector_summary_preview": 14
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 770,
+            "longestTaskMs": 770,
+            "domElements": 5233,
+            "storyRows": 0
+          },
+          {
+            "label": "switch-to-live-discussion",
+            "ms": 375,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 165,
+            "longestTaskMs": 165,
+            "domElements": 2120,
+            "storyRows": 0
+          },
+          {
+            "label": "back-to-all-headlines-from-live",
+            "ms": 401.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 272,
+            "longestTaskMs": 272,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "typing": {
+          "keystrokes": 6,
+          "latencyMedianMs": 20.599999994039536,
+          "latencyP90Ms": 28.599999994039536,
+          "latencyMaxMs": 28.599999994039536,
+          "latencyOver16ms": 4,
+          "latencyOver50ms": 0,
+          "longTasks": 2,
+          "longTaskTotalMs": 220,
+          "longestTaskMs": 170,
+          "opCounts": {
+            "window_context": 9,
+            "visit": 2,
+            "snapshot": 9,
+            "media_preferences": 3,
+            "workspace_get": 5,
+            "workspace_save": 5,
+            "window_set_profile": 2,
+            "search": 1
+          },
+          "domElements": 1472
+        },
+        "refreshes": [
+          {
+            "label": "noop-refresh-cycle-1",
+            "ms": 220.70000000298023,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 122,
+            "longestTaskMs": 122,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-2",
+            "ms": 198.30000001192093,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 119,
+            "longestTaskMs": 119,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-3",
+            "ms": 143.8999999910593,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 86,
+            "longestTaskMs": 86,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "final": {
+          "domElements": 1574,
+          "storyRows": 100,
+          "cachedArticles": 86,
+          "totalCalls": 86,
+          "longestTaskMs": 770
+        }
+      }
+    },
+    {
+      "trial": 2,
+      "startedAt": "2026-09-26T07:46:25.867Z",
+      "cold": {
+        "domContentLoaded": 138.67020000000775,
+        "rowsReady": 352.89740000000165,
+        "navigationToPaintedFrames": 379.9968999999983,
+        "paints": [
+          {
+            "name": "first-paint",
+            "start": 88
+          },
+          {
+            "name": "first-contentful-paint",
+            "start": 140
+          }
+        ],
+        "lcp": [
+          {
+            "start": 352,
+            "size": 32000
+          }
+        ],
+        "domElements": 1494,
+        "storyRows": 100,
+        "longTasks": 1,
+        "longTaskTotalMs": 56,
+        "longestTaskMs": 56,
+        "snapshotBytes": 5721434,
+        "liveBytes": 47835,
+        "fixtureInstallMs": 55.79999999701977,
+        "resources": [
+          {
+            "name": "/assets/index-7lO02Cp6.js",
+            "transferSize": 350620,
+            "decodedBodySize": 350320
+          },
+          {
+            "name": "/assets/index-gqOWMtcv.css",
+            "transferSize": 25537,
+            "decodedBodySize": 25237
+          }
+        ],
+        "opCounts": {
+          "window_context": 2,
+          "visit": 1,
+          "snapshot": 2,
+          "media_preferences": 1
+        }
+      },
+      "interactions": {
+        "steps": [
+          {
+            "label": "cached-reload-same-context",
+            "ms": 275.97119999999995,
+            "timingBasis": "driver wall time across a navigation; in-page performance.now() is not comparable across documents",
+            "opCountsAfterReload": {
+              "window_context": 2,
+              "visit": 1,
+              "snapshot": 2,
+              "media_preferences": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 67,
+            "longestTaskMs": 67,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-brief-desk",
+            "ms": 110.29999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 70,
+            "longestTaskMs": 70,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines",
+            "ms": 126.69999998807907,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 62,
+            "longestTaskMs": 62,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-saved-desk",
+            "ms": 149.6000000089407,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 83,
+            "longestTaskMs": 83,
+            "domElements": 1670,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines-2",
+            "ms": 135,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 69,
+            "longestTaskMs": 69,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-to-desk-b",
+            "ms": 110.80000001192093,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 1,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1495,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-back-to-default",
+            "ms": 109.29999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "clear-search-full-list",
+            "ms": 64.79999999701977,
+            "opDelta": {
+              "window_context": 0,
+              "visit": 0,
+              "snapshot": 0,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "open-first-story-reader-pane",
+            "ms": 262.40000000596046,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 180,
+            "longestTaskMs": 180,
+            "domElements": 1551,
+            "storyRows": 100
+          },
+          {
+            "label": "reader-content-switch-to-third-story",
+            "ms": 241.3999999910593,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 176,
+            "longestTaskMs": 176,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "switch-to-daily-briefing",
+            "ms": 653.1999999880791,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 1,
+              "sector_summary_preview": 14
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 538,
+            "longestTaskMs": 538,
+            "domElements": 5233,
+            "storyRows": 0
+          },
+          {
+            "label": "switch-to-live-discussion",
+            "ms": 354,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 245,
+            "longestTaskMs": 245,
+            "domElements": 2120,
+            "storyRows": 0
+          },
+          {
+            "label": "back-to-all-headlines-from-live",
+            "ms": 215.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 120,
+            "longestTaskMs": 120,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "typing": {
+          "keystrokes": 6,
+          "latencyMedianMs": 14.700000002980232,
+          "latencyP90Ms": 31.099999994039536,
+          "latencyMaxMs": 31.099999994039536,
+          "latencyOver16ms": 2,
+          "latencyOver50ms": 0,
+          "longTasks": 1,
+          "longTaskTotalMs": 65,
+          "longestTaskMs": 65,
+          "opCounts": {
+            "window_context": 9,
+            "visit": 2,
+            "snapshot": 9,
+            "media_preferences": 3,
+            "workspace_get": 5,
+            "workspace_save": 5,
+            "window_set_profile": 2,
+            "search": 1
+          },
+          "domElements": 1472
+        },
+        "refreshes": [
+          {
+            "label": "noop-refresh-cycle-1",
+            "ms": 121.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 69,
+            "longestTaskMs": 69,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-2",
+            "ms": 142,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 78,
+            "longestTaskMs": 78,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-3",
+            "ms": 133.20000000298023,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 80,
+            "longestTaskMs": 80,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "final": {
+          "domElements": 1574,
+          "storyRows": 100,
+          "cachedArticles": 86,
+          "totalCalls": 86,
+          "longestTaskMs": 538
+        }
+      }
+    },
+    {
+      "trial": 3,
+      "startedAt": "2026-09-26T07:46:35.838Z",
+      "cold": {
+        "domContentLoaded": 7826.290599999993,
+        "rowsReady": 7845.629399999991,
+        "navigationToPaintedFrames": 7852.314199999993,
+        "paints": [
+          {
+            "name": "first-paint",
+            "start": 7840
+          },
+          {
+            "name": "first-contentful-paint",
+            "start": 7840
+          }
+        ],
+        "lcp": [
+          {
+            "start": 7840,
+            "size": 32000
+          }
+        ],
+        "domElements": 1494,
+        "storyRows": 100,
+        "longTasks": 0,
+        "longTaskTotalMs": 0,
+        "longestTaskMs": 0,
+        "snapshotBytes": 5721434,
+        "liveBytes": 47835,
+        "fixtureInstallMs": 54.79999999701977,
+        "resources": [
+          {
+            "name": "/assets/index-7lO02Cp6.js",
+            "transferSize": 350620,
+            "decodedBodySize": 350320
+          },
+          {
+            "name": "/assets/index-gqOWMtcv.css",
+            "transferSize": 25537,
+            "decodedBodySize": 25237
+          }
+        ],
+        "opCounts": {
+          "window_context": 2,
+          "visit": 1,
+          "snapshot": 2,
+          "media_preferences": 1
+        }
+      },
+      "interactions": {
+        "steps": [
+          {
+            "label": "cached-reload-same-context",
+            "ms": 190.74770000000717,
+            "timingBasis": "driver wall time across a navigation; in-page performance.now() is not comparable across documents",
+            "opCountsAfterReload": {
+              "window_context": 2,
+              "visit": 1,
+              "snapshot": 2,
+              "media_preferences": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-brief-desk",
+            "ms": 115.80000001192093,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 62,
+            "longestTaskMs": 62,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines",
+            "ms": 127.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 66,
+            "longestTaskMs": 66,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-saved-desk",
+            "ms": 127.6000000089407,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 63,
+            "longestTaskMs": 63,
+            "domElements": 1670,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines-2",
+            "ms": 129.20000000298023,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 70,
+            "longestTaskMs": 70,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-to-desk-b",
+            "ms": 112.29999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 1,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1495,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-back-to-default",
+            "ms": 95,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "clear-search-full-list",
+            "ms": 69.3999999910593,
+            "opDelta": {
+              "window_context": 0,
+              "visit": 0,
+              "snapshot": 0,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "open-first-story-reader-pane",
+            "ms": 176,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 97,
+            "longestTaskMs": 97,
+            "domElements": 1551,
+            "storyRows": 100
+          },
+          {
+            "label": "reader-content-switch-to-third-story",
+            "ms": 178.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 105,
+            "longestTaskMs": 105,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "switch-to-daily-briefing",
+            "ms": 510.6000000089407,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 1,
+              "sector_summary_preview": 14
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 404,
+            "longestTaskMs": 404,
+            "domElements": 5233,
+            "storyRows": 0
+          },
+          {
+            "label": "switch-to-live-discussion",
+            "ms": 265.69999998807907,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 133,
+            "longestTaskMs": 133,
+            "domElements": 2120,
+            "storyRows": 0
+          },
+          {
+            "label": "back-to-all-headlines-from-live",
+            "ms": 306.6000000089407,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 176,
+            "longestTaskMs": 176,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "typing": {
+          "keystrokes": 6,
+          "latencyMedianMs": 15.900000005960464,
+          "latencyP90Ms": 19.700000002980232,
+          "latencyMaxMs": 19.700000002980232,
+          "latencyOver16ms": 2,
+          "latencyOver50ms": 0,
+          "longTasks": 0,
+          "longTaskTotalMs": 0,
+          "longestTaskMs": 0,
+          "opCounts": {
+            "window_context": 9,
+            "visit": 2,
+            "snapshot": 9,
+            "media_preferences": 3,
+            "workspace_get": 5,
+            "workspace_save": 5,
+            "window_set_profile": 2,
+            "search": 1
+          },
+          "domElements": 1472
+        },
+        "refreshes": [
+          {
+            "label": "noop-refresh-cycle-1",
+            "ms": 154,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 91,
+            "longestTaskMs": 91,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-2",
+            "ms": 158.40000000596046,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 103,
+            "longestTaskMs": 103,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-3",
+            "ms": 151.6000000089407,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 92,
+            "longestTaskMs": 92,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "final": {
+          "domElements": 1574,
+          "storyRows": 100,
+          "cachedArticles": 86,
+          "totalCalls": 86,
+          "longestTaskMs": 404
+        }
+      }
+    },
+    {
+      "trial": 4,
+      "startedAt": "2026-09-26T07:46:52.746Z",
+      "cold": {
+        "domContentLoaded": 116.46699999998964,
+        "rowsReady": 294.48979999999574,
+        "navigationToPaintedFrames": 320.22589999999036,
+        "paints": [
+          {
+            "name": "first-paint",
+            "start": 92
+          },
+          {
+            "name": "first-contentful-paint",
+            "start": 92
+          }
+        ],
+        "lcp": [
+          {
+            "start": 288,
+            "size": 32000
+          }
+        ],
+        "domElements": 1494,
+        "storyRows": 100,
+        "longTasks": 0,
+        "longTaskTotalMs": 0,
+        "longestTaskMs": 0,
+        "snapshotBytes": 5721434,
+        "liveBytes": 47835,
+        "fixtureInstallMs": 39.1000000089407,
+        "resources": [
+          {
+            "name": "/assets/index-7lO02Cp6.js",
+            "transferSize": 350620,
+            "decodedBodySize": 350320
+          },
+          {
+            "name": "/assets/index-gqOWMtcv.css",
+            "transferSize": 25537,
+            "decodedBodySize": 25237
+          }
+        ],
+        "opCounts": {
+          "window_context": 2,
+          "visit": 1,
+          "snapshot": 2,
+          "media_preferences": 1
+        }
+      },
+      "interactions": {
+        "steps": [
+          {
+            "label": "cached-reload-same-context",
+            "ms": 264.2756000000081,
+            "timingBasis": "driver wall time across a navigation; in-page performance.now() is not comparable across documents",
+            "opCountsAfterReload": {
+              "window_context": 2,
+              "visit": 1,
+              "snapshot": 2,
+              "media_preferences": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 70,
+            "longestTaskMs": 70,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-brief-desk",
+            "ms": 147.8999999910593,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 80,
+            "longestTaskMs": 80,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines",
+            "ms": 110.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 54,
+            "longestTaskMs": 54,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-saved-desk",
+            "ms": 149.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 80,
+            "longestTaskMs": 80,
+            "domElements": 1670,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines-2",
+            "ms": 152.40000000596046,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 86,
+            "longestTaskMs": 86,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-to-desk-b",
+            "ms": 113,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 1,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1495,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-back-to-default",
+            "ms": 112.40000000596046,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "clear-search-full-list",
+            "ms": 84.90000000596046,
+            "opDelta": {
+              "window_context": 0,
+              "visit": 0,
+              "snapshot": 0,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "open-first-story-reader-pane",
+            "ms": 126.29999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 83,
+            "longestTaskMs": 83,
+            "domElements": 1551,
+            "storyRows": 100
+          },
+          {
+            "label": "reader-content-switch-to-third-story",
+            "ms": 146.40000000596046,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 84,
+            "longestTaskMs": 84,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "switch-to-daily-briefing",
+            "ms": 363.09999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 1,
+              "sector_summary_preview": 14
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 291,
+            "longestTaskMs": 291,
+            "domElements": 5233,
+            "storyRows": 0
+          },
+          {
+            "label": "switch-to-live-discussion",
+            "ms": 202.09999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 118,
+            "longestTaskMs": 118,
+            "domElements": 2120,
+            "storyRows": 0
+          },
+          {
+            "label": "back-to-all-headlines-from-live",
+            "ms": 136.90000000596046,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 88,
+            "longestTaskMs": 88,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "typing": {
+          "keystrokes": 6,
+          "latencyMedianMs": 15.399999991059303,
+          "latencyP90Ms": 18.200000002980232,
+          "latencyMaxMs": 18.200000002980232,
+          "latencyOver16ms": 2,
+          "latencyOver50ms": 0,
+          "longTasks": 0,
+          "longTaskTotalMs": 0,
+          "longestTaskMs": 0,
+          "opCounts": {
+            "window_context": 9,
+            "visit": 2,
+            "snapshot": 9,
+            "media_preferences": 3,
+            "workspace_get": 5,
+            "workspace_save": 5,
+            "window_set_profile": 2,
+            "search": 1
+          },
+          "domElements": 1472
+        },
+        "refreshes": [
+          {
+            "label": "noop-refresh-cycle-1",
+            "ms": 122.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 72,
+            "longestTaskMs": 72,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-2",
+            "ms": 123,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 72,
+            "longestTaskMs": 72,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-3",
+            "ms": 114.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 68,
+            "longestTaskMs": 68,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "final": {
+          "domElements": 1574,
+          "storyRows": 100,
+          "cachedArticles": 86,
+          "totalCalls": 86,
+          "longestTaskMs": 291
+        }
+      }
+    },
+    {
+      "trial": 5,
+      "startedAt": "2026-09-26T07:47:05.967Z",
+      "cold": {
+        "domContentLoaded": 116.46570000000065,
+        "rowsReady": 449.2627999999968,
+        "navigationToPaintedFrames": 480.6045000000013,
+        "paints": [
+          {
+            "name": "first-paint",
+            "start": 120
+          },
+          {
+            "name": "first-contentful-paint",
+            "start": 120
+          }
+        ],
+        "lcp": [
+          {
+            "start": 452,
+            "size": 32000
+          }
+        ],
+        "domElements": 1494,
+        "storyRows": 100,
+        "longTasks": 0,
+        "longTaskTotalMs": 0,
+        "longestTaskMs": 0,
+        "snapshotBytes": 5721434,
+        "liveBytes": 47835,
+        "fixtureInstallMs": 38.5,
+        "resources": [
+          {
+            "name": "/assets/index-7lO02Cp6.js",
+            "transferSize": 350620,
+            "decodedBodySize": 350320
+          },
+          {
+            "name": "/assets/index-gqOWMtcv.css",
+            "transferSize": 25537,
+            "decodedBodySize": 25237
+          }
+        ],
+        "opCounts": {
+          "window_context": 2,
+          "visit": 1,
+          "snapshot": 2,
+          "media_preferences": 1
+        }
+      },
+      "interactions": {
+        "steps": [
+          {
+            "label": "cached-reload-same-context",
+            "ms": 195.65630000000237,
+            "timingBasis": "driver wall time across a navigation; in-page performance.now() is not comparable across documents",
+            "opCountsAfterReload": {
+              "window_context": 2,
+              "visit": 1,
+              "snapshot": 2,
+              "media_preferences": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-brief-desk",
+            "ms": 97.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 54,
+            "longestTaskMs": 54,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines",
+            "ms": 112.8999999910593,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-saved-desk",
+            "ms": 129.70000000298023,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 64,
+            "longestTaskMs": 64,
+            "domElements": 1670,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines-2",
+            "ms": 129.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 65,
+            "longestTaskMs": 65,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-to-desk-b",
+            "ms": 96.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 1,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1495,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-back-to-default",
+            "ms": 82.09999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "clear-search-full-list",
+            "ms": 80,
+            "opDelta": {
+              "window_context": 0,
+              "visit": 0,
+              "snapshot": 0,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "open-first-story-reader-pane",
+            "ms": 270.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 184,
+            "longestTaskMs": 184,
+            "domElements": 1551,
+            "storyRows": 100
+          },
+          {
+            "label": "reader-content-switch-to-third-story",
+            "ms": 308,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 236,
+            "longestTaskMs": 236,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "switch-to-daily-briefing",
+            "ms": 809.2000000029802,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 1,
+              "sector_summary_preview": 14
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 701,
+            "longestTaskMs": 701,
+            "domElements": 5233,
+            "storyRows": 0
+          },
+          {
+            "label": "switch-to-live-discussion",
+            "ms": 392.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 219,
+            "longestTaskMs": 219,
+            "domElements": 2120,
+            "storyRows": 0
+          },
+          {
+            "label": "back-to-all-headlines-from-live",
+            "ms": 291.6000000089407,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 198,
+            "longestTaskMs": 198,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "typing": {
+          "keystrokes": 6,
+          "latencyMedianMs": 17.399999991059303,
+          "latencyP90Ms": 24.899999991059303,
+          "latencyMaxMs": 24.899999991059303,
+          "latencyOver16ms": 3,
+          "latencyOver50ms": 0,
+          "longTasks": 0,
+          "longTaskTotalMs": 0,
+          "longestTaskMs": 0,
+          "opCounts": {
+            "window_context": 9,
+            "visit": 2,
+            "snapshot": 9,
+            "media_preferences": 3,
+            "workspace_get": 5,
+            "workspace_save": 5,
+            "window_set_profile": 2,
+            "search": 1
+          },
+          "domElements": 1472
+        },
+        "refreshes": [
+          {
+            "label": "noop-refresh-cycle-1",
+            "ms": 232.1000000089407,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 156,
+            "longestTaskMs": 156,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-2",
+            "ms": 327.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 210,
+            "longestTaskMs": 210,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-3",
+            "ms": 233.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 135,
+            "longestTaskMs": 135,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "final": {
+          "domElements": 1574,
+          "storyRows": 100,
+          "cachedArticles": 86,
+          "totalCalls": 86,
+          "longestTaskMs": 701
+        }
+      }
+    },
+    {
+      "trial": 6,
+      "startedAt": "2026-09-26T07:47:16.135Z",
+      "cold": {
+        "domContentLoaded": 222.23559999999998,
+        "rowsReady": 478.6640999999945,
+        "navigationToPaintedFrames": 505.7890999999945,
+        "paints": [
+          {
+            "name": "first-paint",
+            "start": 156
+          },
+          {
+            "name": "first-contentful-paint",
+            "start": 188
+          }
+        ],
+        "lcp": [
+          {
+            "start": 476,
+            "size": 32000
+          }
+        ],
+        "domElements": 1494,
+        "storyRows": 100,
+        "longTasks": 2,
+        "longTaskTotalMs": 132,
+        "longestTaskMs": 72,
+        "snapshotBytes": 5721434,
+        "liveBytes": 47835,
+        "fixtureInstallMs": 133.3999999910593,
+        "resources": [
+          {
+            "name": "/assets/index-7lO02Cp6.js",
+            "transferSize": 350620,
+            "decodedBodySize": 350320
+          },
+          {
+            "name": "/assets/index-gqOWMtcv.css",
+            "transferSize": 25537,
+            "decodedBodySize": 25237
+          }
+        ],
+        "opCounts": {
+          "window_context": 2,
+          "visit": 1,
+          "snapshot": 2,
+          "media_preferences": 1
+        }
+      },
+      "interactions": {
+        "steps": [
+          {
+            "label": "cached-reload-same-context",
+            "ms": 222.886599999998,
+            "timingBasis": "driver wall time across a navigation; in-page performance.now() is not comparable across documents",
+            "opCountsAfterReload": {
+              "window_context": 2,
+              "visit": 1,
+              "snapshot": 2,
+              "media_preferences": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 59,
+            "longestTaskMs": 59,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-brief-desk",
+            "ms": 137,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 61,
+            "longestTaskMs": 61,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines",
+            "ms": 127.6000000089407,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 60,
+            "longestTaskMs": 60,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-saved-desk",
+            "ms": 176.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 73,
+            "longestTaskMs": 73,
+            "domElements": 1670,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines-2",
+            "ms": 145.29999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 74,
+            "longestTaskMs": 74,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-to-desk-b",
+            "ms": 145.09999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 1,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1495,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-back-to-default",
+            "ms": 125.80000001192093,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "clear-search-full-list",
+            "ms": 73.79999999701977,
+            "opDelta": {
+              "window_context": 0,
+              "visit": 0,
+              "snapshot": 0,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "open-first-story-reader-pane",
+            "ms": 184.70000000298023,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 126,
+            "longestTaskMs": 126,
+            "domElements": 1551,
+            "storyRows": 100
+          },
+          {
+            "label": "reader-content-switch-to-third-story",
+            "ms": 630.0999999940395,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 558,
+            "longestTaskMs": 558,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "switch-to-daily-briefing",
+            "ms": 3367.1000000089407,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 1,
+              "sector_summary_preview": 14
+            },
+            "longTasks": 2,
+            "longTaskTotalMs": 2284,
+            "longestTaskMs": 2153,
+            "domElements": 5233,
+            "storyRows": 0
+          },
+          {
+            "label": "switch-to-live-discussion",
+            "ms": 886.7999999970198,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 620,
+            "longestTaskMs": 620,
+            "domElements": 2120,
+            "storyRows": 0
+          },
+          {
+            "label": "back-to-all-headlines-from-live",
+            "ms": 246.3999999910593,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 97,
+            "longestTaskMs": 97,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "typing": {
+          "keystrokes": 6,
+          "latencyMedianMs": 17.399999991059303,
+          "latencyP90Ms": 30.899999991059303,
+          "latencyMaxMs": 30.899999991059303,
+          "latencyOver16ms": 3,
+          "latencyOver50ms": 0,
+          "longTasks": 1,
+          "longTaskTotalMs": 52,
+          "longestTaskMs": 52,
+          "opCounts": {
+            "window_context": 9,
+            "visit": 2,
+            "snapshot": 9,
+            "media_preferences": 3,
+            "workspace_get": 5,
+            "workspace_save": 5,
+            "window_set_profile": 2,
+            "search": 1
+          },
+          "domElements": 1472
+        },
+        "refreshes": [
+          {
+            "label": "noop-refresh-cycle-1",
+            "ms": 738,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 2,
+            "longTaskTotalMs": 144,
+            "longestTaskMs": 78,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-2",
+            "ms": 351.69999998807907,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 63,
+            "longestTaskMs": 63,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-3",
+            "ms": 518.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 327,
+            "longestTaskMs": 327,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "final": {
+          "domElements": 1574,
+          "storyRows": 100,
+          "cachedArticles": 86,
+          "totalCalls": 86,
+          "longestTaskMs": 2153
+        }
+      }
+    },
+    {
+      "trial": 7,
+      "startedAt": "2026-09-26T07:47:31.335Z",
+      "cold": {
+        "domContentLoaded": 793.1615000000165,
+        "rowsReady": 834.8428000000131,
+        "navigationToPaintedFrames": 851.6126000000222,
+        "paints": [
+          {
+            "name": "first-paint",
+            "start": 264
+          },
+          {
+            "name": "first-contentful-paint",
+            "start": 396
+          }
+        ],
+        "lcp": [
+          {
+            "start": 780,
+            "size": 32000
+          }
+        ],
+        "domElements": 1494,
+        "storyRows": 100,
+        "longTasks": 2,
+        "longTaskTotalMs": 126,
+        "longestTaskMs": 70,
+        "snapshotBytes": 5721434,
+        "liveBytes": 47835,
+        "fixtureInstallMs": 55.6000000089407,
+        "resources": [
+          {
+            "name": "/assets/index-7lO02Cp6.js",
+            "transferSize": 350620,
+            "decodedBodySize": 350320
+          },
+          {
+            "name": "/assets/index-gqOWMtcv.css",
+            "transferSize": 25537,
+            "decodedBodySize": 25237
+          }
+        ],
+        "opCounts": {
+          "window_context": 2,
+          "visit": 1,
+          "snapshot": 2,
+          "media_preferences": 1
+        }
+      },
+      "interactions": {
+        "steps": [
+          {
+            "label": "cached-reload-same-context",
+            "ms": 304.8896999999997,
+            "timingBasis": "driver wall time across a navigation; in-page performance.now() is not comparable across documents",
+            "opCountsAfterReload": {
+              "window_context": 2,
+              "visit": 1,
+              "snapshot": 2,
+              "media_preferences": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 70,
+            "longestTaskMs": 70,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-brief-desk",
+            "ms": 121.3999999910593,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 65,
+            "longestTaskMs": 65,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines",
+            "ms": 111.40000000596046,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 54,
+            "longestTaskMs": 54,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-saved-desk",
+            "ms": 130.40000000596046,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 69,
+            "longestTaskMs": 69,
+            "domElements": 1670,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines-2",
+            "ms": 213.19999998807907,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 65,
+            "longestTaskMs": 65,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-to-desk-b",
+            "ms": 96.40000000596046,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 1,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1495,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-back-to-default",
+            "ms": 96.20000000298023,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "clear-search-full-list",
+            "ms": 333.3999999910593,
+            "opDelta": {
+              "window_context": 0,
+              "visit": 0,
+              "snapshot": 0,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 154,
+            "longestTaskMs": 154,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "open-first-story-reader-pane",
+            "ms": 269.20000000298023,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 124,
+            "longestTaskMs": 124,
+            "domElements": 1551,
+            "storyRows": 100
+          },
+          {
+            "label": "reader-content-switch-to-third-story",
+            "ms": 307.29999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 115,
+            "longestTaskMs": 115,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "switch-to-daily-briefing",
+            "ms": 813.5999999940395,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 1,
+              "sector_summary_preview": 14
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 592,
+            "longestTaskMs": 592,
+            "domElements": 5233,
+            "storyRows": 0
+          },
+          {
+            "label": "switch-to-live-discussion",
+            "ms": 355.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 104,
+            "longestTaskMs": 104,
+            "domElements": 2120,
+            "storyRows": 0
+          },
+          {
+            "label": "back-to-all-headlines-from-live",
+            "ms": 224.80000001192093,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 93,
+            "longestTaskMs": 93,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "typing": {
+          "keystrokes": 6,
+          "latencyMedianMs": 15.5,
+          "latencyP90Ms": 25.200000002980232,
+          "latencyMaxMs": 25.200000002980232,
+          "latencyOver16ms": 2,
+          "latencyOver50ms": 0,
+          "longTasks": 1,
+          "longTaskTotalMs": 50,
+          "longestTaskMs": 50,
+          "opCounts": {
+            "window_context": 9,
+            "visit": 2,
+            "snapshot": 9,
+            "media_preferences": 3,
+            "workspace_get": 5,
+            "workspace_save": 5,
+            "window_set_profile": 2,
+            "search": 1
+          },
+          "domElements": 1472
+        },
+        "refreshes": [
+          {
+            "label": "noop-refresh-cycle-1",
+            "ms": 294.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 76,
+            "longestTaskMs": 76,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-2",
+            "ms": 361.59999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 86,
+            "longestTaskMs": 86,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-3",
+            "ms": 333.09999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 89,
+            "longestTaskMs": 89,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "final": {
+          "domElements": 1574,
+          "storyRows": 100,
+          "cachedArticles": 86,
+          "totalCalls": 86,
+          "longestTaskMs": 592
+        }
+      }
+    },
+    {
+      "trial": 8,
+      "startedAt": "2026-09-26T07:47:44.104Z",
+      "cold": {
+        "domContentLoaded": 265.8494999999821,
+        "rowsReady": 711.8258999999962,
+        "navigationToPaintedFrames": 738.7171999999846,
+        "paints": [
+          {
+            "name": "first-paint",
+            "start": 168
+          },
+          {
+            "name": "first-contentful-paint",
+            "start": 268
+          }
+        ],
+        "lcp": [
+          {
+            "start": 700,
+            "size": 32000
+          }
+        ],
+        "domElements": 1494,
+        "storyRows": 100,
+        "longTasks": 3,
+        "longTaskTotalMs": 227,
+        "longestTaskMs": 98,
+        "snapshotBytes": 5721434,
+        "liveBytes": 47835,
+        "fixtureInstallMs": 135.40000000596046,
+        "resources": [
+          {
+            "name": "/assets/index-7lO02Cp6.js",
+            "transferSize": 350620,
+            "decodedBodySize": 350320
+          },
+          {
+            "name": "/assets/index-gqOWMtcv.css",
+            "transferSize": 25537,
+            "decodedBodySize": 25237
+          }
+        ],
+        "opCounts": {
+          "window_context": 2,
+          "visit": 1,
+          "snapshot": 2,
+          "media_preferences": 1
+        }
+      },
+      "interactions": {
+        "steps": [
+          {
+            "label": "cached-reload-same-context",
+            "ms": 433.57869999998366,
+            "timingBasis": "driver wall time across a navigation; in-page performance.now() is not comparable across documents",
+            "opCountsAfterReload": {
+              "window_context": 2,
+              "visit": 1,
+              "snapshot": 2,
+              "media_preferences": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 70,
+            "longestTaskMs": 70,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-brief-desk",
+            "ms": 193.29999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 111,
+            "longestTaskMs": 111,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines",
+            "ms": 206.09999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 141,
+            "longestTaskMs": 141,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-saved-desk",
+            "ms": 231.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 107,
+            "longestTaskMs": 107,
+            "domElements": 1670,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines-2",
+            "ms": 229.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 130,
+            "longestTaskMs": 130,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-to-desk-b",
+            "ms": 159.09999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 1,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 68,
+            "longestTaskMs": 68,
+            "domElements": 1495,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-back-to-default",
+            "ms": 161.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 69,
+            "longestTaskMs": 69,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "clear-search-full-list",
+            "ms": 79.3999999910593,
+            "opDelta": {
+              "window_context": 0,
+              "visit": 0,
+              "snapshot": 0,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "open-first-story-reader-pane",
+            "ms": 488.6000000089407,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 335,
+            "longestTaskMs": 335,
+            "domElements": 1551,
+            "storyRows": 100
+          },
+          {
+            "label": "reader-content-switch-to-third-story",
+            "ms": 484.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 331,
+            "longestTaskMs": 331,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "switch-to-daily-briefing",
+            "ms": 1267.0999999940395,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 1,
+              "sector_summary_preview": 14
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 1041,
+            "longestTaskMs": 1041,
+            "domElements": 5233,
+            "storyRows": 0
+          },
+          {
+            "label": "switch-to-live-discussion",
+            "ms": 399.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 244,
+            "longestTaskMs": 244,
+            "domElements": 2120,
+            "storyRows": 0
+          },
+          {
+            "label": "back-to-all-headlines-from-live",
+            "ms": 226.09999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 128,
+            "longestTaskMs": 128,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "typing": {
+          "keystrokes": 6,
+          "latencyMedianMs": 12.599999994039536,
+          "latencyP90Ms": 18.399999991059303,
+          "latencyMaxMs": 18.399999991059303,
+          "latencyOver16ms": 1,
+          "latencyOver50ms": 0,
+          "longTasks": 1,
+          "longTaskTotalMs": 94,
+          "longestTaskMs": 94,
+          "opCounts": {
+            "window_context": 9,
+            "visit": 2,
+            "snapshot": 9,
+            "media_preferences": 3,
+            "workspace_get": 5,
+            "workspace_save": 5,
+            "window_set_profile": 2,
+            "search": 1
+          },
+          "domElements": 1472
+        },
+        "refreshes": [
+          {
+            "label": "noop-refresh-cycle-1",
+            "ms": 445.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 116,
+            "longestTaskMs": 116,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-2",
+            "ms": 706.0999999940395,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 250,
+            "longestTaskMs": 250,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-3",
+            "ms": 479.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 168,
+            "longestTaskMs": 168,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "final": {
+          "domElements": 1574,
+          "storyRows": 100,
+          "cachedArticles": 86,
+          "totalCalls": 86,
+          "longestTaskMs": 1041
+        }
+      }
+    },
+    {
+      "trial": 9,
+      "startedAt": "2026-09-26T07:48:00.958Z",
+      "cold": {
+        "domContentLoaded": 135.1769000000204,
+        "rowsReady": 353.28410000001895,
+        "navigationToPaintedFrames": 467.7830000000249,
+        "paints": [
+          {
+            "name": "first-paint",
+            "start": 104
+          },
+          {
+            "name": "first-contentful-paint",
+            "start": 148
+          }
+        ],
+        "lcp": [
+          {
+            "start": 356,
+            "size": 32000
+          }
+        ],
+        "domElements": 1494,
+        "storyRows": 100,
+        "longTasks": 1,
+        "longTaskTotalMs": 55,
+        "longestTaskMs": 55,
+        "snapshotBytes": 5721434,
+        "liveBytes": 47835,
+        "fixtureInstallMs": 47.400000005960464,
+        "resources": [
+          {
+            "name": "/assets/index-7lO02Cp6.js",
+            "transferSize": 350620,
+            "decodedBodySize": 350320
+          },
+          {
+            "name": "/assets/index-gqOWMtcv.css",
+            "transferSize": 25537,
+            "decodedBodySize": 25237
+          }
+        ],
+        "opCounts": {
+          "window_context": 2,
+          "visit": 1,
+          "snapshot": 2,
+          "media_preferences": 1
+        }
+      },
+      "interactions": {
+        "steps": [
+          {
+            "label": "cached-reload-same-context",
+            "ms": 806.9401000000071,
+            "timingBasis": "driver wall time across a navigation; in-page performance.now() is not comparable across documents",
+            "opCountsAfterReload": {
+              "window_context": 2,
+              "visit": 1,
+              "snapshot": 2,
+              "media_preferences": 1
+            },
+            "longTasks": 2,
+            "longTaskTotalMs": 306,
+            "longestTaskMs": 155,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-brief-desk",
+            "ms": 156.09999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 79,
+            "longestTaskMs": 79,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines",
+            "ms": 130.1000000089407,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 70,
+            "longestTaskMs": 70,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-to-saved-desk",
+            "ms": 164.70000000298023,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 88,
+            "longestTaskMs": 88,
+            "domElements": 1670,
+            "storyRows": 100
+          },
+          {
+            "label": "tab-switch-back-to-all-headlines-2",
+            "ms": 159.80000001192093,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 86,
+            "longestTaskMs": 86,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-to-desk-b",
+            "ms": 162.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 1,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1495,
+            "storyRows": 100
+          },
+          {
+            "label": "profile-switch-back-to-default",
+            "ms": 157.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 1,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 1
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "clear-search-full-list",
+            "ms": 73.40000000596046,
+            "opDelta": {
+              "window_context": 0,
+              "visit": 0,
+              "snapshot": 0,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0
+            },
+            "longTasks": 0,
+            "longTaskTotalMs": 0,
+            "longestTaskMs": 0,
+            "domElements": 1494,
+            "storyRows": 100
+          },
+          {
+            "label": "open-first-story-reader-pane",
+            "ms": 226.79999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 123,
+            "longestTaskMs": 123,
+            "domElements": 1551,
+            "storyRows": 100
+          },
+          {
+            "label": "reader-content-switch-to-third-story",
+            "ms": 212.20000000298023,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 150,
+            "longestTaskMs": 150,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "switch-to-daily-briefing",
+            "ms": 362.29999999701977,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 1,
+              "sector_summary_preview": 14
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 284,
+            "longestTaskMs": 284,
+            "domElements": 5233,
+            "storyRows": 0
+          },
+          {
+            "label": "switch-to-live-discussion",
+            "ms": 229.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 113,
+            "longestTaskMs": 113,
+            "domElements": 2120,
+            "storyRows": 0
+          },
+          {
+            "label": "back-to-all-headlines-from-live",
+            "ms": 196.09999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 1,
+              "workspace_save": 1,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 130,
+            "longestTaskMs": 130,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "typing": {
+          "keystrokes": 6,
+          "latencyMedianMs": 14.5,
+          "latencyP90Ms": 27.599999994039536,
+          "latencyMaxMs": 27.599999994039536,
+          "latencyOver16ms": 2,
+          "latencyOver50ms": 0,
+          "longTasks": 1,
+          "longTaskTotalMs": 52,
+          "longestTaskMs": 52,
+          "opCounts": {
+            "window_context": 9,
+            "visit": 2,
+            "snapshot": 9,
+            "media_preferences": 3,
+            "workspace_get": 5,
+            "workspace_save": 5,
+            "window_set_profile": 2,
+            "search": 1
+          },
+          "domElements": 1472
+        },
+        "refreshes": [
+          {
+            "label": "noop-refresh-cycle-1",
+            "ms": 180.59999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 107,
+            "longestTaskMs": 107,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-2",
+            "ms": 168.5,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 92,
+            "longestTaskMs": 92,
+            "domElements": 1574,
+            "storyRows": 100
+          },
+          {
+            "label": "noop-refresh-cycle-3",
+            "ms": 142.59999999403954,
+            "opDelta": {
+              "window_context": 1,
+              "visit": 0,
+              "snapshot": 1,
+              "media_preferences": 0,
+              "workspace_get": 0,
+              "workspace_save": 0,
+              "window_set_profile": 0,
+              "search": 0,
+              "article_state": 0,
+              "daily_brief": 0,
+              "sector_summary_preview": 0,
+              "live_status": 0,
+              "refresh": 1
+            },
+            "longTasks": 1,
+            "longTaskTotalMs": 88,
+            "longestTaskMs": 88,
+            "domElements": 1574,
+            "storyRows": 100
+          }
+        ],
+        "final": {
+          "domElements": 1574,
+          "storyRows": 100,
+          "cachedArticles": 86,
+          "totalCalls": 86,
+          "longestTaskMs": 284
+        }
+      }
+    }
+  ],
+  "typedQuery": "needle",
+  "microbenchmarks": [
+    {
+      "articleCount": 5000,
+      "isolatedExpressionCosts": [
+        {
+          "label": "App.tsx briefingInput full-cache JSON fingerprint (per load)",
+          "medianMs": 8.800000011920929,
+          "minMs": 8.199999988079071,
+          "maxMs": 18.5,
+          "checksum": 2997563
+        },
+        {
+          "label": "App.tsx searchRevision JSON fingerprint (per data change)",
+          "medianMs": 21.700000002980232,
+          "minMs": 14.200000002980232,
+          "maxMs": 34.5,
+          "checksum": 4955147
+        },
+        {
+          "label": "model.ts reconcileArticles double JSON.stringify over all rows",
+          "medianMs": 31.399999991059303,
+          "minMs": 24.599999994039536,
+          "maxMs": 40.80000001192093,
+          "checksum": 5000
+        },
+        {
+          "label": "App.tsx per-render navigationRows filter + Set rebuild (5 renders)",
+          "medianMs": 3.7000000029802322,
+          "minMs": 3.1000000089406967,
+          "maxMs": 6.399999991059303,
+          "checksum": 24320
+        },
+        {
+          "label": "Coverage.tsx related scan over all rows (5 renders)",
+          "medianMs": 0.9000000059604645,
+          "minMs": 0.7000000029802322,
+          "maxMs": 1.0999999940395355,
+          "checksum": 10
+        },
+        {
+          "label": "model.ts date()+compactDate() for 100 mounted rows",
+          "medianMs": 18.799999997019768,
+          "minMs": 4.299999997019768,
+          "maxMs": 19.5,
+          "checksum": 2621
+        }
+      ],
+      "note": "Isolated in-page expression costs on the live synthetic fixture. NOT application speedups and NOT additive.",
+      "briefingFanout": {
+        "label": "briefing open: 1x daily_brief then N parallel sector_summary_preview",
+        "sectors": 14,
+        "briefMedianMs": 0.5,
+        "fanoutMedianMs": 0.29999999701976776,
+        "combinedMedianMs": 0.7999999970197678,
+        "note": "Fixture dispatch cost only. The real host answers these from SQLite; this is not a prediction of native latency."
+      }
+    }
+  ],
+  "errors": [],
+  "sourceHashesAtEnd": {
+    "src/App.tsx": "47648d2391750cd7bf4d669d3c15e9f9c7e9dcea5d0ebe13abac30e752672d1e",
+    "src/model.ts": "cdb43bf8107bdb619ab77ef5e9a0895bb2e8c9b8aac80867ba762d3c046ee517",
+    "src/ipc.ts": "ae70efb1c211c391f1d7ab85cbd6301066493fc108081cd0ec9a3b1278b5fa21",
+    "src/coalescedRead.ts": "1716a057c6806ca04801d034f257da222de78be349765b0e0318d87b3844251f",
+    "src/HeadlineRow.tsx": "6f042be2d9bbb89d0f4e10f735a21fdf1af23ef380db2514acd0bdf6c78e3b9c",
+    "src/Coverage.tsx": "1a66b75241e5c38974548f675b4c95dfe2e328a3d7fdbaaa251f6c271bf1f89e",
+    "src/Briefing.tsx": "908832424deea9b7ac143d0565fd2cec4b9685221f45d7d79a2a1fb4e1ecc6ba",
+    "src/SectorSummary.tsx": "64aa2c7adfce68c6d349fc626666acc4801858ad7531cbe81c74ba1c6b1c1c75",
+    "src/LiveDiscussion.tsx": "4d58b58c58b718a6ebe69d6179396e69e6a9ef046167519d1e8d19747131338c",
+    "src/HiddenStories.tsx": "e82b2bc725dd05729955198955ec5bbf909a2abb17bfea26c94a3d1b8c39eb14",
+    "src/Summary.tsx": "69b63b494992b39fffafa38f36925f6f926bc524e78d22a7e271242263c1ff9e",
+    "src/StoryThumbnail.tsx": "6b78cb9d4d8058a394630ffece4601f7e4011c6dddb019ebc457758c4c3f588a",
+    "src/MediaSession.tsx": "3f90a75b540ab173a5f9036cd296b0614c6b9666a0bb79d825416387771f4c46",
+    "src/types.ts": "990e654adc879250cf25f9cfe00cab71c53dc2a036655359785258fd9a54f48b",
+    "src/main.tsx": "6c2ca5004122cdf590685261371a807fcaaaac7e5f00f82cb74967d49817a79f",
+    "package.json": "24abb6853999610305c82dd5b39d0cf5abcc3b12f98fee5b90a123cd57af618a",
+    "package-lock.json": "c94f9691b3322d4f3767ab1a45a01eb8b72af237ffc1810bf93ede606273baee",
+    "vite.config.ts": "d258e749dac1dd181cc0a1457f754a6e907444a2e320f5a27a62c9603898cac4",
+    "index.html": "4ff8ba81aab0770f5e4fd54bb186058bc34cd2ba77826f13c592c3d52be4264d"
+  },
+  "changedDuringRun": [],
+  "finishedAt": "2026-09-26T07:48:17.767Z"
+}
