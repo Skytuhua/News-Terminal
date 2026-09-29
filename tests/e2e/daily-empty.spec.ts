@@ -23,7 +23,7 @@ test('empty Saved and filtered Saved have different truthful recovery actions', 
   await page.getByLabel('Save story',{exact:true}).click();
   await page.getByLabel('Unsave story',{exact:true}).waitFor();
   await page.getByRole('button',{name:'Saved stories',exact:true}).click();
-  await page.getByLabel('Unread',{exact:true}).check();
+  await page.getByLabel('Reading status',{exact:true}).selectOption('unread');
   await expect(page.getByRole('heading',{name:'No saved stories match these filters'})).toBeVisible();
   await page.getByRole('button',{name:'Clear filters',exact:true}).click();
   await expect(page.getByTestId('story-row')).toHaveCount(1);
@@ -58,7 +58,7 @@ test('caught-up Unread resolves in one action; delayed search never claims an em
     window.dispatchEvent(new Event('data-changed'));
     (window as any).__TEST_BEFORE_DISPATCH__ = async (r:any) => { if(r.op === 'search') await new Promise(resolve => { (window as any).__RELEASE_SEARCH__ = resolve; }); };
   });
-  await page.getByLabel('Unread',{exact:true}).check();
+  await page.getByLabel('Reading status',{exact:true}).selectOption('unread');
   await expect(page.getByRole('heading',{name:'You’re caught up'})).toBeVisible();
   await page.getByRole('button',{name:'Show all stories',exact:true}).click();
   await expect(page.getByTestId('story-row')).toHaveCount(3);

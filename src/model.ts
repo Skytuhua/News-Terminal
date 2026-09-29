@@ -42,6 +42,65 @@ export function filterArticles(
             watchlist.sources.includes(a.sourceId)))),
   );
 }
+export type ReadingStatus = "all" | "unread" | "read";
+export const matchesReadingStatus = (
+  article: { read: boolean },
+  status: ReadingStatus,
+) =>
+  status === "all" || (status === "unread" ? !article.read : article.read);
+
+export type UnreadCounts = {
+  all: number;
+  brief: number;
+  saved: number;
+  hidden: number;
+  sections: Record<FocusSection, number>;
+  watchlists: Record<string, number>;
+};
+
+/**
+ * One projection for every navigation badge.
+ *
+ * Each count is the unread row count of the destination's own
+ * `filterArticles` call, so a badge can never disagree with what the
+ * destination lists. Unread only; hidden rows are excluded everywhere
+ * except the Hidden stories destination itself.
+ */
+export function unreadCounts(
+  rows: readonly Article[],
+  previousVisit: number,
+  watchlists: readonly Watchlist[],
+): UnreadCounts {
+  const tab = (patch: Partial<Tab>): Tab =>
+    ({ id: "", title: "", topic: "", query: "", mode: "all", ...patch }) as Tab;
+  const unread = (patch: Partial<Tab>, watchlist?: Watchlist) =>
+    filterArticles(
+      rows as Article[],
+      tab(patch),
+      previousVisit,
+      watchlist,
+    ).filter((a) => !a.read).length;
+  const sections = {} as Record<FocusSection, number>;
+  for (const section of focusSections)
+    sections[section.id] = unread({ section: section.id });
+  const watchlistCounts: Record<string, number> = {};
+  for (const watchlist of watchlists)
+    watchlistCounts[watchlist.id] = unread(
+      { mode: "watchlist", watchlistId: watchlist.id },
+      watchlist,
+    );
+  return {
+    all: unread({ mode: "all" }),
+    brief: unread({ mode: "brief" }),
+    saved: unread({ mode: "saved" }),
+    // Hidden stories live in their own view, so count them directly rather
+    // than through the headline predicate that deliberately excludes them.
+    hidden: rows.filter((a) => a.hidden && !a.read).length,
+    sections,
+    watchlists: watchlistCounts,
+  };
+}
+
 export function reconcileArticles(previous: Article[], next: Article[]) {
   const byId = new Map(previous.map(article => [article.id, article]));
   const reconciled = next.map(article => {
