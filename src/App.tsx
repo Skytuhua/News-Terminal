@@ -26,7 +26,7 @@ import {
   type Request,
   type WindowContext,
 } from "./ipc";
-import { date, sourceFailed, filterArticles, focusSections, relatedCounts, reconcileArticles, topics } from "./model";
+import { date, sourceFailed, filterArticles, focusSections, relatedCounts, reconcileArticles, topics, matchesReadingStatus, unreadCounts, type ReadingStatus } from "./model";
 import { coalescedRead } from "./coalescedRead";
 import SettingsPanel from "./Settings";
 import Coverage from "./Coverage";
@@ -104,7 +104,9 @@ export default function App() {
   const [searchAttempt, setSearchAttempt] = useState(0);
   const [selectedId, setSelectedId] = useState<string>();
   const [kind, setKind] = useState("");
-  const [unread, setUnread] = useState(false);
+  // 0.5: replaces the old Unread checkbox. All/Unread/Read, defaults to All,
+  // and writes no article state - it only narrows what is listed.
+  const [readingStatus, setReadingStatus] = useState<ReadingStatus>("all");
   const [page, setPage] = useState(0);
   const pageFromControl = useRef(false);
   const [pending, setPending] = useState<Article[]>([]);
@@ -247,7 +249,7 @@ export default function App() {
     setQuery("");
     setPending([]);
     setKind("");
-    setUnread(false);
+    setReadingStatus("all");
     setError("");
     setNotice("");
   }
@@ -382,7 +384,7 @@ export default function App() {
     setQuery(active?.query || "");
     setResults(undefined);
     setKind("");
-    setUnread(false);
+    setReadingStatus("all");
   }, [active?.id, profileId]);
   function patchTab(patch: Partial<Tab>) {
     if (active)
@@ -398,7 +400,7 @@ export default function App() {
     setQuery("");
     setResults(undefined);
     setKind("");
-    setUnread(false);
+    setReadingStatus("all");
     setNavOpen(false);
     patchTab({ query: "", topic: "", section: undefined, ...patch });
   }
@@ -522,20 +524,31 @@ export default function App() {
           data.watchlists.find((w) => w.id === active.watchlistId),
         ).filter((a) => !kind || a.kind === kind)
       : [], [active, data?.articles, data?.profile.previousVisit, data?.watchlists, reportView, results, acceptedArticles, kind]);
-  const rows = useMemo(() => collectionRows.filter(a => !unread || !a.read), [collectionRows, unread]);
+  const rows = useMemo(() => collectionRows.filter(a => matchesReadingStatus(a, readingStatus)), [collectionRows, readingStatus]);
+  // 0.5: one projection for every navigation badge, so a badge can never
+  // disagree with what its own destination lists. Unread only, never totals.
+  const badges = useMemo(
+    () => (data ? unreadCounts(data.articles, data.profile.previousVisit, data.watchlists) : null),
+    [data?.articles, data?.profile.previousVisit, data?.watchlists],
+  );
+  // Zero renders nothing. The count is never colour-only: the number is real
+  // text, and the badge names itself for assistive tech while the button keeps
+  // its own clean accessible name.
+  const badge = (n: number | undefined) =>
+    n && n > 0 ? <span className="nav-count" role="img" aria-label={`${n} unread`}>{n}</span> : null;
   // Reading marks an item read, but must not erase its place in J/K history.
   // Only the current collection may participate: hidden/deleted/filtered items leave.
   const readingSequence = useRef({ key: '', ids: new Set<string>() });
-  const sequenceKey = JSON.stringify([profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, unread]);
+  const sequenceKey = JSON.stringify([profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, readingStatus]);
   if (readingSequence.current.key !== sequenceKey) readingSequence.current = {key: sequenceKey, ids: new Set()};
-  const navigationRows = collectionRows.filter(a => !unread || !a.read || readingSequence.current.ids.has(a.id));
+  const navigationRows = collectionRows.filter(a => matchesReadingStatus(a, readingStatus) || readingSequence.current.ids.has(a.id));
   readingSequence.current.ids = new Set(navigationRows.map(a => a.id));
   const pageSize = 100;
   const lastPage = Math.max(0, Math.ceil(rows.length / pageSize) - 1);
   const currentPage = Math.min(page, lastPage);
   const pageRows = rows.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
   function choosePage(value: number) { pageFromControl.current = true; setPage(value); }
-  useEffect(() => { setPage(0); }, [profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, unread]);
+  useEffect(() => { setPage(0); }, [profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, readingStatus]);
   useEffect(() => {
     const index = rows.findIndex(article => article.id === selectedId);
     if (index >= 0) setPage(Math.floor(index / pageSize));
@@ -944,6 +957,7 @@ export default function App() {
               <button
                 key={section.id}
                 className={active?.mode === "all" && active?.section === section.id ? "chosen" : ""}
+                aria-label={section.title}
                 onClick={() =>
                   navigate({
                     mode: "all",
@@ -955,10 +969,12 @@ export default function App() {
               >
                 <Newspaper size={16} />
                 {section.title}
+                {badge(badges?.sections[section.id])}
               </button>
             ))}
             <button
               className={active?.mode === "all" && active?.section === "others" && !active.topic ? "chosen" : ""}
+              aria-label="Others"
               aria-expanded={othersExpanded}
               aria-controls="other-topic-links"
               onClick={() => {
@@ -967,6 +983,7 @@ export default function App() {
               }}
             >
               <ChevronRight size={16} style={{ transform: othersExpanded ? "rotate(90deg)" : undefined }} />Others
+              {badge(badges?.sections.others)}
             </button>
             <div id="other-topic-links" hidden={!othersExpanded}>
               {Array.from(new Set([...topics, ...data.sources.flatMap(source => source.topics), ...data.workspace.tabs.map(tab => tab.topic).filter(Boolean)]))
@@ -991,28 +1008,34 @@ export default function App() {
               className={
                 active?.mode === "all" && !active.topic && !active.section ? "chosen" : ""
               }
+              aria-label="All headlines"
               onClick={() => navigate({ mode: "all", section: undefined, title: "All headlines" })}
             >
               <Newspaper size={16} />
               All headlines
+              {badge(badges?.all)}
             </button>
             <button
               className={active?.mode === "brief" ? "chosen" : ""}
+              aria-label="Your brief"
               onClick={() => navigate({ mode: "brief", title: "Your brief" })}
             >
               <Check size={16} />
               Your brief
+              {badge(badges?.brief)}
             </button>
             <button
               className={active?.mode === "saved" ? "chosen" : ""}
+              aria-label="Saved stories"
               onClick={() =>
                 navigate({ mode: "saved", title: "Saved stories" })
               }
             >
               <Bookmark size={16} />
               Saved stories
+              {badge(badges?.saved)}
             </button>
-            <button className={active?.mode === "hidden" ? "chosen" : ""} onClick={() => navigate({mode:"hidden", title:"Hidden stories"})}><ListFilter size={16} />Hidden stories</button>
+            <button className={active?.mode === "hidden" ? "chosen" : ""} aria-label="Hidden stories" onClick={() => navigate({mode:"hidden", title:"Hidden stories"})}><ListFilter size={16} />Hidden stories{badge(badges?.hidden)}</button>
             <div className="nav-heading">
               <span>Watchlists</span>
               <button
@@ -1031,6 +1054,7 @@ export default function App() {
                     ? "chosen"
                     : ""
                 }
+                aria-label={w.name}
                 onClick={() =>
                   navigate({
                     mode: "watchlist",
@@ -1041,6 +1065,7 @@ export default function App() {
               >
                 <ListFilter size={14} />
                 {w.name}
+                {badge(badges?.watchlists[w.id])}
               </button>
             ))}
             {!data.watchlists.length && (
@@ -1116,13 +1141,17 @@ export default function App() {
                 ),
               )}
             </select>
-            <label className="check">
-              <input
-                type="checkbox"
-                checked={unread}
-                onChange={(e) => setUnread(e.target.checked)}
-              />
-              Unread
+            <label className="field">
+              Read
+              <select
+                value={readingStatus}
+                aria-label="Reading status"
+                onChange={(e) => setReadingStatus(e.target.value as ReadingStatus)}
+              >
+                <option value="all">All</option>
+                <option value="unread">Unread</option>
+                <option value="read">Read</option>
+              </select>
             </label>
             <span className="spacer" />
             <span className="muted" role="status">
@@ -1177,9 +1206,9 @@ export default function App() {
           <ImageControls />
           <div className="story-list" aria-label="Cached stories">
             {pageRows.map(a => <HeadlineRow key={a.id} article={a} profileId={profileId} selected={a.id === selectedId} related={counts.get(a.groupId) || 0} onSelect={select} now={now} />)}
-            {active && !rows.length && <EmptyHeadlines hidden={() => navigate({mode:"hidden", title:"Hidden stories"})} data={data} tab={active} query={query} kind={kind} unread={unread}
+            {active && !rows.length && <EmptyHeadlines hidden={() => navigate({mode:"hidden", title:"Hidden stories"})} data={data} tab={active} query={query} kind={kind} readingStatus={readingStatus}
               retrySearch={() => { setError(''); setSearchFailed(false); setSearching(true); setSearchAttempt(value => value + 1); }}
-              failed={searchFailed} busy={searching || refreshing} clear={() => { editQuery(""); setKind(""); setUnread(false); if (active.topic) patchTab({topic:"", title: active.mode === 'saved' ? 'Saved stories' : 'Headlines'}); }}
+              failed={searchFailed} busy={searching || refreshing} clear={() => { editQuery(""); setKind(""); setReadingStatus("all"); if (active.topic) patchTab({topic:"", title: active.mode === 'saved' ? 'Saved stories' : 'Headlines'}); }}
               browse={() => navigate({mode:"all", title:"Headlines"})} refresh={() => void refresh()} sources={() => setPanel("sources")} watchlists={() => setPanel("watchlists")} />}
           </div>
           {rows.length > pageSize && <nav className="headline-pages" aria-label="Headline pages">

@@ -3,7 +3,7 @@ import { fixture } from './fixture';
 
 test('Unread J J K returns to the previous story without consuming C', async ({page}) => {
   await fixture(page);
-  await page.getByLabel('Unread', {exact:true}).check();
+  await page.getByLabel('Reading status', {exact:true}).selectOption('unread');
   await page.locator('.list-heading h2').click();
   await page.keyboard.press('j');
   await expect(page.locator('.detail h2')).toHaveText('Researchers map a new lunar water reserve');
