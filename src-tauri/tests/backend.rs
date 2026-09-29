@@ -800,10 +800,618 @@ fn workspace_revision_checked_increment_stops_at_safe_boundary() {
         .is_ok());
 }
 
+#[test]
+fn article_state_many_matches_single_article_state_for_one_item() {
+    let mut db = Database::memory().unwrap();
+    let src = source(&mut db);
+    let sid = src["id"].as_str().unwrap();
+    let now = 1_800_000_000;
+    for (n, id) in ["solo-single", "solo-many"].into_iter().enumerate() {
+        db.ingest(
+            sid,
+            &json!({"notModified":false,"etag":format!("v{n}"),"articles":[{"id":id,"title":format!("Story {n}"),"url":format!("https://example.org/{id}"),"excerpt":"Permitted science excerpt","publishedAt":1_799_999_000}]}),
+            now,
+        )
+        .unwrap();
+    }
+    let articles = call(&mut db, json!({"op":"snapshot"}))["articles"].clone();
+    let single = articles[0]["id"].clone();
+    let many = articles[1]["id"].clone();
+    // The batched item carries every documented key, including an explicit false
+    // alongside true, so equivalence cannot be satisfied by ignoring keys.
+    call(
+        &mut db,
+        json!({"op":"article_state","profileId":"default","articleId":single,"read":true,"saved":true,"hidden":true}),
+    );
+    assert_eq!(
+        call(
+            &mut db,
+            json!({"op":"article_state_many","profileId":"default","items":[
+                {"articleId":many,"read":true,"saved":true,"hidden":true}
+            ]}),
+        ),
+        json!(null)
+    );
+    let single_state = db.article("default", single.as_str().unwrap()).unwrap();
+    let many_state = db.article("default", many.as_str().unwrap()).unwrap();
+    for key in ["read", "saved", "hidden"] {
+        assert_eq!(
+            single_state[key], many_state[key],
+            "batch key {key} diverged from the single path"
+        );
+        assert_eq!(
+            single_state[key], true,
+            "single path must have written {key}"
+        );
+    }
+    // An absent key must leave the stored value alone in both paths.
+    call(
+        &mut db,
+        json!({"op":"article_state","profileId":"default","articleId":single,"read":false}),
+    );
+    call(
+        &mut db,
+        json!({"op":"article_state_many","profileId":"default","items":[{"articleId":many,"read":false}]}),
+    );
+    let a = db.article("default", single.as_str().unwrap()).unwrap();
+    let b = db.article("default", many.as_str().unwrap()).unwrap();
+    assert_eq!(a["read"], json!(false));
+    assert_eq!(a["saved"], json!(true));
+    assert_eq!(b["read"], json!(false));
+    assert_eq!(b["saved"], json!(true));
+}
+
+#[test]
+fn article_state_many_applies_multi_key_items_in_read_saved_hidden_order() {
+    let mut db = Database::memory().unwrap();
+    let ids = seed_articles(&mut db, &["order-a", "order-b", "order-c", "order-d"]);
+    // Each item carries all three keys with the JSON keys deliberately reversed.
+    // The single path validates and applies read, then saved, then hidden, so an
+    // item whose `read` is not a boolean must fail on `read` even though
+    // `hidden` is also invalid: that is the observable application order.
+    let error = request(
+        &mut db,
+        json!({"op":"article_state_many","profileId":"default","items":[
+            {"hidden":"nope","saved":true,"read":1,"articleId":ids[0]}
+        ]}),
+        1_800_000_000,
+    )
+    .unwrap_err();
+    assert_eq!(error, "Expected boolean", "read must be validated first");
+    assert_eq!(
+        db.article("default", ids[0].as_str().unwrap()).unwrap()["read"],
+        json!(false),
+        "a rejected item must not write any of its keys"
+    );
+    let hidden_error = request(
+        &mut db,
+        json!({"op":"article_state_many","profileId":"default","items":[
+            {"hidden":2,"saved":true,"read":true,"articleId":ids[0]}
+        ]}),
+        1_800_000_000,
+    )
+    .unwrap_err();
+    assert_eq!(hidden_error, "Expected boolean", "hidden is validated last");
+    // Now apply the three keys together, plus a partial item, and compare the
+    // stored result with what the single path produces for the same keys.
+    call(
+        &mut db,
+        json!({"op":"article_state_many","profileId":"default","items":[
+            {"hidden":true,"saved":true,"read":true,"articleId":ids[0]},
+            {"saved":true,"articleId":ids[1]},
+            {"hidden":true,"articleId":ids[2]}
+        ]}),
+    );
+    call(
+        &mut db,
+        json!({"op":"article_state","articleId":ids[3],"read":true,"saved":true,"hidden":true}),
+    );
+    let batched = db.article("default", ids[0].as_str().unwrap()).unwrap();
+    let single = db.article("default", ids[3].as_str().unwrap()).unwrap();
+    for key in ["read", "saved", "hidden"] {
+        assert_eq!(batched[key], single[key], "{key} diverged");
+    }
+    assert_eq!(batched["saved"], json!(true));
+    assert_eq!(batched["hidden"], json!(true));
+    assert_eq!(batched["read"], json!(true));
+    // A partial item sets only its own key; unmentioned keys keep their value.
+    let partial = db.article("default", ids[1].as_str().unwrap()).unwrap();
+    assert_eq!(partial["saved"], json!(true));
+    assert_eq!(partial["read"], json!(false));
+    assert_eq!(partial["hidden"], json!(false));
+    // A groupId written by the single-article split path must survive a batch.
+    call(&mut db, json!({"op":"group_split","articleId":ids[2]}));
+    let split = db.article("default", ids[2].as_str().unwrap()).unwrap()["groupId"].clone();
+    call(
+        &mut db,
+        json!({"op":"article_state_many","profileId":"default","items":[{"articleId":ids[2],"read":true}]}),
+    );
+    let after = db.article("default", ids[2].as_str().unwrap()).unwrap();
+    assert_eq!(after["groupId"], split, "batch must not drop groupId");
+    assert_eq!(
+        after["hidden"],
+        json!(true),
+        "unmentioned keys keep their value"
+    );
+    assert_eq!(after["read"], json!(true));
+}
+
+#[test]
+fn article_state_many_rejects_the_whole_batch_on_an_unknown_article() {
+    let mut db = Database::memory().unwrap();
+    let ids = seed_articles(&mut db, &["batch-a", "batch-b", "batch-c"]);
+    let before = db.export().unwrap();
+    // The unknown id sits in the middle, so a per-item commit would leave the
+    // first item written and the batch half applied.
+    let error = request(
+        &mut db,
+        json!({"op":"article_state_many","profileId":"default","items":[
+            {"articleId":ids[0],"read":true,"saved":true},
+            {"articleId":"not-a-real-article","read":true},
+            {"articleId":ids[2],"hidden":true}
+        ]}),
+        1_800_000_000,
+    )
+    .unwrap_err();
+    assert_eq!(error, "Unknown article");
+    for id in &ids {
+        let a = db.article("default", id.as_str().unwrap()).unwrap();
+        assert_eq!(a["read"], json!(false), "{id} must not be read");
+        assert_eq!(a["saved"], json!(false), "{id} must not be saved");
+        assert_eq!(a["hidden"], json!(false), "{id} must not be hidden");
+    }
+    assert_eq!(
+        db.export().unwrap(),
+        before,
+        "a rejected batch must leave no partial write"
+    );
+    // An unknown id anywhere, including last, still rejects the whole batch.
+    for position in [0usize, 2] {
+        let mut items = vec![
+            json!({"articleId":ids[0],"read":true}),
+            json!({"articleId":ids[1],"read":true}),
+        ];
+        items.insert(position, json!({"articleId":"missing-id","read":true}));
+        assert_eq!(
+            request(
+                &mut db,
+                json!({"op":"article_state_many","profileId":"default","items":items}),
+                1_800_000_000
+            )
+            .unwrap_err(),
+            "Unknown article",
+            "unknown id at position {position}"
+        );
+        assert_eq!(
+            db.export().unwrap(),
+            before,
+            "no partial write at {position}"
+        );
+    }
+    // The same batch without the unknown id commits completely.
+    call(
+        &mut db,
+        json!({"op":"article_state_many","profileId":"default","items":[
+            {"articleId":ids[0],"read":true},
+            {"articleId":ids[1],"saved":true},
+            {"articleId":ids[2],"hidden":true}
+        ]}),
+    );
+    for id in &ids {
+        assert!(
+            db.export().unwrap().contains(id.as_str().unwrap()),
+            "{id} must be stored"
+        );
+    }
+    assert_eq!(
+        db.article("default", ids[0].as_str().unwrap()).unwrap()["read"],
+        json!(true)
+    );
+    assert_eq!(
+        db.article("default", ids[1].as_str().unwrap()).unwrap()["saved"],
+        json!(true)
+    );
+    assert_eq!(
+        db.article("default", ids[2].as_str().unwrap()).unwrap()["hidden"],
+        json!(true)
+    );
+}
+
+#[test]
+fn article_state_many_is_profile_scoped_and_never_writes_another_profile() {
+    let mut db = Database::memory().unwrap();
+    let ids = seed_articles(&mut db, &["scope-a", "scope-b"]);
+    let other = call(&mut db, json!({"op":"profile_create","name":"Other"}));
+    let other_id = other["id"].clone();
+    call(
+        &mut db,
+        json!({"op":"article_state","profileId":"default","articleId":ids[0],"saved":true,"read":true}),
+    );
+    let default_before = db.export().unwrap();
+    // Profile A holds the state; a batch sent for profile B must never see it
+    // and must never reach back into A.
+    call(
+        &mut db,
+        json!({"op":"article_state_many","profileId":other_id,"items":[{"articleId":ids[0],"hidden":true}]}),
+    );
+    let a = db.article("default", ids[0].as_str().unwrap()).unwrap();
+    assert_eq!(a["hidden"], json!(false), "profile A must be untouched");
+    assert_eq!(a["saved"], json!(true));
+    let b = db
+        .article(other_id.as_str().unwrap(), ids[0].as_str().unwrap())
+        .unwrap();
+    assert_eq!(b["hidden"], json!(true));
+    assert_eq!(
+        b["saved"],
+        json!(false),
+        "profile B must not inherit A's state"
+    );
+    assert_eq!(b["read"], json!(false));
+    assert_ne!(
+        default_before,
+        db.export().unwrap(),
+        "profile A's own rows are unchanged, so only B's row may differ"
+    );
+    // The same article id batched for an unknown profile is rejected, not
+    // silently redirected to the default profile.
+    for bad in ["missing-profile".to_owned(), String::new(), "x".repeat(201)] {
+        assert!(
+            request(
+                &mut db,
+                json!({"op":"article_state_many","profileId":bad,"items":[{"articleId":ids[1],"read":true}]}),
+                1_800_000_000
+            )
+            .is_err(),
+            "accepted profile {bad}"
+        );
+    }
+    for bad in [Value::Null, json!(false), json!(1), json!([]), json!({})] {
+        assert!(
+            request(
+                &mut db,
+                json!({"op":"article_state_many","profileId":bad,"items":[{"articleId":ids[1],"read":true}]}),
+                1_800_000_000
+            )
+            .is_err(),
+            "accepted profile {bad}"
+        );
+    }
+    // A missing profileId must not fall back to `default`.
+    assert!(request(
+        &mut db,
+        json!({"op":"article_state_many","items":[{"articleId":ids[1],"read":true}]}),
+        1_800_000_000
+    )
+    .is_err());
+    assert_eq!(
+        db.article("default", ids[1].as_str().unwrap()).unwrap()["read"],
+        json!(false),
+        "a rejected batch must not write to the default profile"
+    );
+}
+
+#[test]
+fn article_state_many_fails_closed_on_a_stale_or_missing_replacement_token() {
+    let mut db = Database::memory().unwrap();
+    let ids = seed_articles(&mut db, &["token-a", "token-b"]);
+    let token = db
+        .request(
+            &json!({"op":"workspace_get","profileId":"default"}),
+            1_800_000_000,
+        )
+        .unwrap()["replacementToken"]
+        .clone();
+    // An import rotates the replacement token; the old one must not write.
+    let backup = db.export().unwrap();
+    db.import(&backup).unwrap();
+    let rotated = db
+        .request(
+            &json!({"op":"workspace_get","profileId":"default"}),
+            1_800_000_000,
+        )
+        .unwrap()["replacementToken"]
+        .clone();
+    assert_ne!(rotated, token, "import must rotate the token for this test");
+    fn batch(db: &mut Database, ids: &[Value], extra: Option<Value>) -> Result<Value, String> {
+        let mut r = json!({"op":"article_state_many","profileId":"default","items":[
+            {"articleId":ids[0],"read":true,"saved":true},
+            {"articleId":ids[1],"hidden":true}
+        ]});
+        if let Some(token) = extra {
+            r["replacementToken"] = token;
+        }
+        // Deliberately not the `request` helper: it injects the current token,
+        // which is exactly what this test must not do.
+        db.request(&r, 1_800_000_000)
+    }
+    for bad in [
+        Some(token.clone()),
+        Some(json!("")),
+        None,
+        Some(Value::Null),
+        Some(json!(7)),
+        Some(json!([])),
+    ] {
+        let error = batch(&mut db, &ids, bad.clone()).unwrap_err();
+        assert!(
+            error.contains("Database replaced"),
+            "unexpected error for {bad:?}: {error}"
+        );
+        for id in &ids {
+            let a = db.article("default", id.as_str().unwrap()).unwrap();
+            assert_eq!(a["read"], json!(false), "{id} must not be read");
+            assert_eq!(a["saved"], json!(false), "{id} must not be saved");
+            assert_eq!(a["hidden"], json!(false), "{id} must not be hidden");
+        }
+    }
+    // The single-article path rejects the same token with the same error, so the
+    // batch is not inventing a stricter or looser guard than its sibling.
+    assert_eq!(
+        db.request(
+            &json!({"op":"article_state","profileId":"default","articleId":ids[0],"read":true,"replacementToken":token}),
+            1_800_000_000
+        )
+        .unwrap_err(),
+        batch(&mut db, &ids, Some(token)).unwrap_err()
+    );
+    // The current token still commits the whole batch.
+    assert_eq!(batch(&mut db, &ids, Some(rotated)), Ok(json!(null)));
+    assert_eq!(
+        db.article("default", ids[0].as_str().unwrap()).unwrap()["read"],
+        json!(true)
+    );
+    assert_eq!(
+        db.article("default", ids[1].as_str().unwrap()).unwrap()["hidden"],
+        json!(true)
+    );
+}
+
+#[test]
+fn alert_receipts_returns_only_this_profiles_deliveries_newest_first() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("receipts.db");
+    let mut db = Database::open(&path).unwrap();
+    let now = 1_800_000_000;
+    let ids = seed_articles(&mut db, &["receipt-a", "receipt-b", "receipt-c"]);
+    let other = call(&mut db, json!({"op":"profile_create","name":"Other"}));
+    let other_id = other["id"].as_str().unwrap().to_owned();
+    // Deliveries are written directly so the fixture controls the timestamps
+    // exactly; the retention window is the one the host already prunes with.
+    {
+        let conn = rusqlite::Connection::open(&path).unwrap();
+        for (n, id) in ids.iter().enumerate() {
+            let at = now - (n as i64) * 60;
+            conn.execute(
+                "INSERT INTO alert_log(profile_id,article_id,at) VALUES('default',?1,?2)",
+                rusqlite::params![id.as_str(), at],
+            )
+            .unwrap();
+        }
+        // Same article id, another profile: must never appear in default's list.
+        conn.execute(
+            "INSERT INTO alert_log(profile_id,article_id,at) VALUES(?1,?2,?3)",
+            rusqlite::params![other_id.as_str(), ids[0].as_str(), now - 10],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO alert_log(profile_id,article_id,at) VALUES(?1,?2,?3)",
+            rusqlite::params![other_id.as_str(), "foreign-only", now - 5],
+        )
+        .unwrap();
+    }
+    let receipts = call(
+        &mut db,
+        json!({"op":"alert_receipts","profileId":"default"}),
+    );
+    let rows = receipts.as_array().unwrap();
+    assert_eq!(rows.len(), 3, "another profile's receipts must not appear");
+    // Receipts were inserted newest-first, so newest-first retrieval returns
+    // them in that same order regardless of how the snapshot happened to sort.
+    assert_eq!(
+        rows.iter()
+            .map(|r| r["articleId"].as_str().unwrap())
+            .collect::<Vec<_>>(),
+        vec![
+            ids[0].as_str().unwrap(),
+            ids[1].as_str().unwrap(),
+            ids[2].as_str().unwrap()
+        ],
+        "receipts must be newest first"
+    );
+    assert_eq!(rows[0]["at"], json!(now));
+    assert_eq!(rows[0]["profileId"], json!("default"));
+    // A receipt is a local delivery record: identity, time, and the title the
+    // user was shown. No other profile, no provider key, no URL, no credentials.
+    for row in rows {
+        let mut keys: Vec<&str> = row
+            .as_object()
+            .unwrap()
+            .keys()
+            .map(String::as_str)
+            .collect();
+        keys.sort_unstable();
+        assert_eq!(
+            keys,
+            vec!["articleId", "at", "profileId", "title"],
+            "unexpected receipt shape"
+        );
+    }
+    assert_eq!(
+        rows[0]["title"],
+        db.article("default", ids[0].as_str().unwrap()).unwrap()["title"]
+    );
+    assert!(
+        !rows[0].to_string().contains("example.org/story"),
+        "no source URL in a receipt"
+    );
+    // Bounded, with an explicit limit the caller can lower but not exceed.
+    assert_eq!(
+        call(
+            &mut db,
+            json!({"op":"alert_receipts","profileId":"default","limit":2})
+        )
+        .as_array()
+        .unwrap()
+        .len(),
+        2
+    );
+    assert_eq!(
+        call(
+            &mut db,
+            json!({"op":"alert_receipts","profileId":"default","limit":1})
+        )
+        .as_array()
+        .unwrap()[0]["articleId"],
+        ids[0]
+    );
+    // The other profile sees only its own rows.
+    let theirs = call(&mut db, json!({"op":"alert_receipts","profileId":other_id}));
+    assert_eq!(theirs.as_array().unwrap().len(), 2);
+    assert!(theirs
+        .as_array()
+        .unwrap()
+        .iter()
+        .all(|r| r["profileId"] == json!(other_id)));
+    assert_eq!(
+        theirs.as_array().unwrap()[0]["articleId"],
+        json!("foreign-only")
+    );
+    // A missing or unknown profile is rejected rather than defaulted.
+    let before = db.export().unwrap();
+    for bad in [
+        json!({"op":"alert_receipts"}),
+        json!({"op":"alert_receipts","profileId":"missing-profile"}),
+        json!({"op":"alert_receipts","profileId":""}),
+        json!({"op":"alert_receipts","profileId":Value::Null}),
+    ] {
+        assert!(
+            request(&mut db, bad.clone(), now).is_err(),
+            "accepted {bad}"
+        );
+    }
+    for bad in [json!(0), json!(-1), json!("3"), json!(null), json!(true)] {
+        assert!(
+            request(
+                &mut db,
+                json!({"op":"alert_receipts","profileId":"default","limit":bad}),
+                now
+            )
+            .is_err(),
+            "accepted limit {bad}"
+        );
+    }
+    assert_eq!(
+        call(
+            &mut db,
+            json!({"op":"alert_receipts","profileId":"default","limit":9000})
+        )
+        .as_array()
+        .unwrap()
+        .len(),
+        3,
+        "an over-large limit is clamped, not an error"
+    );
+    assert_eq!(
+        db.export().unwrap(),
+        before,
+        "reads must not mutate durable state"
+    );
+}
+
+#[test]
+fn alert_receipts_honour_the_existing_ninety_day_retention() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("receipt-retention.db");
+    let mut db = Database::open(&path).unwrap();
+    let now = 1_800_000_000;
+    let ids = seed_articles(&mut db, &["retained", "expired"]);
+    {
+        let conn = rusqlite::Connection::open(&path).unwrap();
+        conn.execute(
+            "INSERT INTO alert_log(profile_id,article_id,at) VALUES('default',?1,?2)",
+            rusqlite::params![ids[0].as_str(), now - 89 * 86400],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO alert_log(profile_id,article_id,at) VALUES('default',?1,?2)",
+            rusqlite::params![ids[1].as_str(), now - 91 * 86400],
+        )
+        .unwrap();
+    }
+    // Before pruning, retention is the host's own rule, not a read-time filter:
+    // the read must not surface a receipt the 90-day policy has already expired.
+    let receipts = call(
+        &mut db,
+        json!({"op":"alert_receipts","profileId":"default"}),
+    );
+    let rows = receipts.as_array().unwrap();
+    assert!(
+        rows.iter().all(|r| r["articleId"] != ids[1]),
+        "a receipt older than 90 days must not be surfaced"
+    );
+    db.retain(now).unwrap();
+    let after = call(
+        &mut db,
+        json!({"op":"alert_receipts","profileId":"default"}),
+    );
+    assert_eq!(after.as_array().unwrap().len(), rows.len());
+    assert!(
+        after
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|r| r["articleId"] == ids[0]),
+        "the retained receipt stays visible"
+    );
+    // A receipt whose article has been pruned is still an honest record: it
+    // reports the id and time without inventing a title.
+    {
+        let conn = rusqlite::Connection::open(&path).unwrap();
+        conn.execute(
+            "INSERT INTO alert_log(profile_id,article_id,at) VALUES('default','pruned-article',?1)",
+            rusqlite::params![now],
+        )
+        .unwrap();
+    }
+    let with_orphan = call(
+        &mut db,
+        json!({"op":"alert_receipts","profileId":"default"}),
+    );
+    let orphan = with_orphan
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["articleId"] == json!("pruned-article"))
+        .unwrap();
+    assert!(
+        orphan["title"].is_null(),
+        "a missing article must not fabricate a title"
+    );
+}
+
+fn seed_articles(db: &mut Database, keys: &[&str]) -> Vec<Value> {
+    let src = source(db);
+    let sid = src["id"].as_str().unwrap();
+    for key in keys {
+        db.ingest(
+            sid,
+            &json!({"notModified":false,"etag":format!("seed-{key}"),"articles":[{"id":key,"title":format!("Story {key}"),"url":format!("https://example.org/{key}"),"excerpt":"Permitted science excerpt","publishedAt":1_799_999_000}]}),
+            1_800_000_000,
+        )
+        .unwrap();
+    }
+    call(db, json!({"op":"snapshot"}))["articles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|a| a["id"].clone())
+        .collect()
+}
+
 fn request(db: &mut Database, mut r: Value, now: i64) -> Result<Value, String> {
     if matches!(
         r["op"].as_str(),
-        Some("workspace_save" | "article_state" | "group_split")
+        Some("workspace_save" | "article_state" | "group_split" | "article_state_many")
     ) {
         r["replacementToken"] = db
             .request(&json!({"op":"workspace_get","profileId":"default"}), now)?

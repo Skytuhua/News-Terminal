@@ -514,6 +514,18 @@ impl Backend {
                 self.provider_generation.fetch_add(1, Ordering::AcqRel);
                 Ok(result)
             }
+            // A batched hide invalidates an in-flight summary's grounding
+            // exactly as the single-article hide does; a read/save-only batch
+            // does not, so it must not cancel work needlessly.
+            "article_state_many"
+                if request["items"]
+                    .as_array()
+                    .is_some_and(|items| items.iter().any(|i| i.get("hidden").is_some())) =>
+            {
+                let _active = self.cancel_summaries()?;
+                self.database()?
+                    .request(&request, chrono::Utc::now().timestamp())
+            }
             "article_state" if request.get("hidden").is_some() => {
                 let _active = self.cancel_summaries()?;
                 self.database()?
@@ -916,6 +928,7 @@ fn changed(op: &str) -> bool {
         "hidden_stories",
         "workspace_get",
         "daily_brief",
+        "alert_receipts",
         "sector_summary_preview",
         "sector_summarize",
         "media_load",
