@@ -1,0 +1,1229 @@
+{
+  "viewport": "1280x800",
+  "dpr": 2,
+  "01-shell:viewport": {
+    "w": 1280,
+    "h": 800,
+    "dpr": 2
+  },
+  "01-shell:overflowX": false,
+  "01-shell:tiny": [
+    "button 11px \"Visual\"",
+    "button 11px \"Compact\"",
+    ".fine 11px \"For personal, noncommercial reading. Automat\"",
+    "button 11px \"Enable automatic images\""
+  ],
+  "01-shell:under24": [
+    "Navigation pane width 4x686",
+    "INPUT 13x13",
+    "Reading pane width 4x686"
+  ],
+  "01-shell:under44Count": 43,
+  "01-shell:targetCount": 45,
+  "01-shell:motion": {
+    "transitionedElements": 0,
+    "animatedElements": 0,
+    "sample": [],
+    "reducedMotionActive": false
+  },
+  "01-shell:controlHeights": {
+    "button": [
+      24,
+      30,
+      31,
+      32.8,
+      52
+    ],
+    "select": [
+      26,
+      35
+    ]
+  },
+  "01-shell:boxes": {
+    "list": {
+      "w": 677,
+      "h": 457.8,
+      "clientH": 458,
+      "scrollH": 458,
+      "scrollW": 677,
+      "clientW": 677
+    },
+    "headlines": {
+      "w": 677,
+      "h": 686,
+      "clientH": 686,
+      "scrollH": 686,
+      "scrollW": 677,
+      "clientW": 677
+    },
+    "detail": {
+      "w": 390,
+      "h": 686,
+      "clientH": 686,
+      "scrollH": 686,
+      "scrollW": 390,
+      "clientW": 390
+    },
+    "imageControls": {
+      "w": 677,
+      "h": 63.2,
+      "clientH": 62,
+      "scrollH": 62,
+      "scrollW": 677,
+      "clientW": 677
+    },
+    "sidebar": {
+      "w": 205,
+      "h": 686,
+      "clientH": 686,
+      "scrollH": 686,
+      "scrollW": 205,
+      "clientW": 205
+    },
+    "nav": {
+      "w": 185,
+      "h": 442,
+      "clientH": 442,
+      "scrollH": 471,
+      "scrollW": 185,
+      "clientW": 185
+    },
+    "tabbar": {
+      "w": 1280,
+      "h": 38,
+      "clientH": 37,
+      "scrollH": 37,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "statusbar": {
+      "w": 1280,
+      "h": 31,
+      "clientH": 30,
+      "scrollH": 30,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "topbar": {
+      "w": 1280,
+      "h": 45,
+      "clientH": 44,
+      "scrollH": 44,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "newItems": {
+      "w": 172.9,
+      "h": 30,
+      "clientH": 28,
+      "scrollH": 28,
+      "scrollW": 171,
+      "clientW": 171
+    }
+  },
+  "01-shell:fonts": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "02-reader:viewport": {
+    "w": 1280,
+    "h": 800,
+    "dpr": 2
+  },
+  "02-reader:overflowX": false,
+  "02-reader:tiny": [
+    "button 11px \"Visual\"",
+    "button 11px \"Compact\"",
+    ".fine 11px \"For personal, noncommercial reading. Automat\"",
+    "button 11px \"Enable automatic images\""
+  ],
+  "02-reader:under24": [
+    "Navigation pane width 4x686",
+    "INPUT 13x13",
+    "Reading pane width 4x686"
+  ],
+  "02-reader:under44Count": 53,
+  "02-reader:targetCount": 55,
+  "02-reader:motion": {
+    "transitionedElements": 0,
+    "animatedElements": 0,
+    "sample": [],
+    "reducedMotionActive": false
+  },
+  "02-reader:controlHeights": {
+    "button": [
+      24,
+      30,
+      31,
+      32.8,
+      52
+    ],
+    "select": [
+      26,
+      35
+    ]
+  },
+  "02-reader:boxes": {
+    "list": {
+      "w": 677,
+      "h": 457.8,
+      "clientH": 458,
+      "scrollH": 458,
+      "scrollW": 677,
+      "clientW": 677
+    },
+    "headlines": {
+      "w": 677,
+      "h": 686,
+      "clientH": 686,
+      "scrollH": 686,
+      "scrollW": 677,
+      "clientW": 677
+    },
+    "detail": {
+      "w": 390,
+      "h": 686,
+      "clientH": 686,
+      "scrollH": 1365,
+      "scrollW": 390,
+      "clientW": 390
+    },
+    "imageControls": {
+      "w": 677,
+      "h": 63.2,
+      "clientH": 62,
+      "scrollH": 62,
+      "scrollW": 677,
+      "clientW": 677
+    },
+    "sidebar": {
+      "w": 205,
+      "h": 686,
+      "clientH": 686,
+      "scrollH": 686,
+      "scrollW": 205,
+      "clientW": 205
+    },
+    "nav": {
+      "w": 185,
+      "h": 442,
+      "clientH": 442,
+      "scrollH": 471,
+      "scrollW": 185,
+      "clientW": 185
+    },
+    "tabbar": {
+      "w": 1280,
+      "h": 38,
+      "clientH": 37,
+      "scrollH": 37,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "statusbar": {
+      "w": 1280,
+      "h": 31,
+      "clientH": 30,
+      "scrollH": 30,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "topbar": {
+      "w": 1280,
+      "h": 45,
+      "clientH": 44,
+      "scrollH": 44,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "newItems": {
+      "w": 172.9,
+      "h": 30,
+      "clientH": 28,
+      "scrollH": 28,
+      "scrollW": 171,
+      "clientW": 171
+    }
+  },
+  "02-reader:fonts": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "focusRing": [
+    {
+      "name": "New chips improve battery efficiency under",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Reading pane width",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Unsave story",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Mark unread",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Hide story",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Close story",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Open original",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "https://example.org/b",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Configure AI",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Read source",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Compare coverage",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "3 enabled sources",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Screens",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Keyboard shortcuts",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Settings",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Headlines",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Close Headlines tab",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Close Long multilingual desk title that sh",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Close AI tab",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "New tab",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Switch tab",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Detach tab",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    },
+    {
+      "name": "Reading profileWorld deskManage profiles F",
+      "outline": "solid 2px oklch(0.82 0.14 78)",
+      "offset": "2px",
+      "inViewport": true,
+      "hasRing": true
+    }
+  ],
+  "focusRingSummary": {
+    "total": 23,
+    "withRing": 23,
+    "outOfViewport": []
+  },
+  "measure": {
+    "excerpt": {
+      "ch": 46.4,
+      "width": 350,
+      "font": "14px",
+      "lineHeight": "25.9px"
+    },
+    "readerHeadline": null,
+    "listHeadline": {
+      "ch": 82.5,
+      "width": 641,
+      "font": "14px",
+      "lineHeight": "21px"
+    }
+  },
+  "04-search-error:viewport": {
+    "w": 1280,
+    "h": 800,
+    "dpr": 2
+  },
+  "04-search-error:overflowX": false,
+  "04-search-error:tiny": [
+    "button 11px \"Visual\"",
+    "button 11px \"Compact\"",
+    ".fine 11px \"For personal, noncommercial reading. Automat\"",
+    "button 11px \"Enable automatic images\""
+  ],
+  "04-search-error:under24": [
+    "Navigation pane width 4x639",
+    "INPUT 13x13",
+    "Reading pane width 4x639"
+  ],
+  "04-search-error:under44Count": 54,
+  "04-search-error:targetCount": 55,
+  "04-search-error:motion": {
+    "transitionedElements": 0,
+    "animatedElements": 0,
+    "sample": [],
+    "reducedMotionActive": false
+  },
+  "04-search-error:controlHeights": {
+    "button": [
+      24,
+      30,
+      31,
+      32.8
+    ],
+    "select": [
+      26,
+      35
+    ]
+  },
+  "04-search-error:boxes": {
+    "list": {
+      "w": 677,
+      "h": 410.8,
+      "clientH": 411,
+      "scrollH": 411,
+      "scrollW": 677,
+      "clientW": 677
+    },
+    "headlines": {
+      "w": 677,
+      "h": 639,
+      "clientH": 639,
+      "scrollH": 639,
+      "scrollW": 677,
+      "clientW": 677
+    },
+    "detail": {
+      "w": 390,
+      "h": 639,
+      "clientH": 639,
+      "scrollH": 1365,
+      "scrollW": 390,
+      "clientW": 390
+    },
+    "imageControls": {
+      "w": 677,
+      "h": 63.2,
+      "clientH": 62,
+      "scrollH": 62,
+      "scrollW": 677,
+      "clientW": 677
+    },
+    "sidebar": {
+      "w": 205,
+      "h": 639,
+      "clientH": 639,
+      "scrollH": 639,
+      "scrollW": 205,
+      "clientW": 205
+    },
+    "nav": {
+      "w": 185,
+      "h": 395,
+      "clientH": 395,
+      "scrollH": 471,
+      "scrollW": 185,
+      "clientW": 185
+    },
+    "tabbar": {
+      "w": 1280,
+      "h": 38,
+      "clientH": 37,
+      "scrollH": 37,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "statusbar": {
+      "w": 1280,
+      "h": 31,
+      "clientH": 30,
+      "scrollH": 30,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "topbar": {
+      "w": 1280,
+      "h": 45,
+      "clientH": 44,
+      "scrollH": 44,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "newItems": {
+      "w": 172.9,
+      "h": 30,
+      "clientH": 28,
+      "scrollH": 28,
+      "scrollW": 171,
+      "clientW": 171
+    }
+  },
+  "04-search-error:fonts": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "bannerGeometry": {
+    "cls": "banner error",
+    "text": "Error: Fixture service unavailable",
+    "width": 1280,
+    "dismissGapPx": 16
+  },
+  "05-empty:viewport": {
+    "w": 1280,
+    "h": 800,
+    "dpr": 2
+  },
+  "05-empty:overflowX": false,
+  "05-empty:tiny": [
+    "button 11px \"Visual\"",
+    "button 11px \"Compact\"",
+    ".fine 11px \"For personal, noncommercial reading. Automat\"",
+    "button 11px \"Enable automatic images\""
+  ],
+  "05-empty:under24": [
+    "Navigation pane width 4x639",
+    "INPUT 13x13",
+    "Reading pane width 4x639"
+  ],
+  "05-empty:under44Count": 53,
+  "05-empty:targetCount": 54,
+  "05-empty:motion": {
+    "transitionedElements": 0,
+    "animatedElements": 0,
+    "sample": [],
+    "reducedMotionActive": false
+  },
+  "05-empty:controlHeights": {
+    "button": [
+      24,
+      30,
+      31,
+      32.8
+    ],
+    "select": [
+      26,
+      35
+    ]
+  },
+  "05-empty:boxes": {
+    "list": {
+      "w": 677,
+      "h": 410.8,
+      "clientH": 411,
+      "scrollH": 411,
+      "scrollW": 677,
+      "clientW": 677
+    },
+    "headlines": {
+      "w": 677,
+      "h": 639,
+      "clientH": 639,
+      "scrollH": 639,
+      "scrollW": 677,
+      "clientW": 677
+    },
+    "detail": {
+      "w": 390,
+      "h": 639,
+      "clientH": 639,
+      "scrollH": 1365,
+      "scrollW": 390,
+      "clientW": 390
+    },
+    "imageControls": {
+      "w": 677,
+      "h": 63.2,
+      "clientH": 62,
+      "scrollH": 62,
+      "scrollW": 677,
+      "clientW": 677
+    },
+    "sidebar": {
+      "w": 205,
+      "h": 639,
+      "clientH": 639,
+      "scrollH": 639,
+      "scrollW": 205,
+      "clientW": 205
+    },
+    "nav": {
+      "w": 185,
+      "h": 395,
+      "clientH": 395,
+      "scrollH": 471,
+      "scrollW": 185,
+      "clientW": 185
+    },
+    "tabbar": {
+      "w": 1280,
+      "h": 38,
+      "clientH": 37,
+      "scrollH": 37,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "statusbar": {
+      "w": 1280,
+      "h": 31,
+      "clientH": 30,
+      "scrollH": 30,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "topbar": {
+      "w": 1280,
+      "h": 45,
+      "clientH": 44,
+      "scrollH": 44,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "newItems": {
+      "w": 172.9,
+      "h": 30,
+      "clientH": 28,
+      "scrollH": 28,
+      "scrollW": 171,
+      "clientW": 171
+    }
+  },
+  "05-empty:fonts": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "06-live:viewport": {
+    "w": 1280,
+    "h": 800,
+    "dpr": 2
+  },
+  "06-live:overflowX": false,
+  "06-live:under24": [
+    "Navigation pane width 4x639"
+  ],
+  "06-live:under44Count": 36,
+  "06-live:targetCount": 37,
+  "06-live:motion": {
+    "transitionedElements": 0,
+    "animatedElements": 0,
+    "sample": [],
+    "reducedMotionActive": false
+  },
+  "06-live:controlHeights": {
+    "button": [
+      24,
+      30,
+      31,
+      32.8
+    ],
+    "select": [
+      26,
+      35
+    ]
+  },
+  "06-live:boxes": {
+    "list": null,
+    "headlines": null,
+    "detail": null,
+    "imageControls": null,
+    "sidebar": {
+      "w": 205,
+      "h": 639,
+      "clientH": 639,
+      "scrollH": 639,
+      "scrollW": 205,
+      "clientW": 205
+    },
+    "nav": {
+      "w": 185,
+      "h": 395,
+      "clientH": 395,
+      "scrollH": 471,
+      "scrollW": 185,
+      "clientW": 185
+    },
+    "tabbar": {
+      "w": 1280,
+      "h": 38,
+      "clientH": 37,
+      "scrollH": 37,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "statusbar": {
+      "w": 1280,
+      "h": 31,
+      "clientH": 30,
+      "scrollH": 30,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "topbar": {
+      "w": 1280,
+      "h": 45,
+      "clientH": 44,
+      "scrollH": 44,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "newItems": null
+  },
+  "06-live:fonts": [
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "07-briefing:viewport": {
+    "w": 1280,
+    "h": 800,
+    "dpr": 2
+  },
+  "07-briefing:overflowX": false,
+  "07-briefing:under24": [
+    "Navigation pane width 4x639"
+  ],
+  "07-briefing:under44Count": 46,
+  "07-briefing:targetCount": 48,
+  "07-briefing:motion": {
+    "transitionedElements": 0,
+    "animatedElements": 0,
+    "sample": [],
+    "reducedMotionActive": false
+  },
+  "07-briefing:controlHeights": {
+    "button": [
+      24,
+      30,
+      31,
+      32.8,
+      52
+    ],
+    "select": [
+      26,
+      35
+    ]
+  },
+  "07-briefing:boxes": {
+    "list": null,
+    "headlines": null,
+    "detail": null,
+    "imageControls": null,
+    "sidebar": {
+      "w": 205,
+      "h": 639,
+      "clientH": 639,
+      "scrollH": 639,
+      "scrollW": 205,
+      "clientW": 205
+    },
+    "nav": {
+      "w": 185,
+      "h": 395,
+      "clientH": 395,
+      "scrollH": 471,
+      "scrollW": 185,
+      "clientW": 185
+    },
+    "tabbar": {
+      "w": 1280,
+      "h": 38,
+      "clientH": 37,
+      "scrollH": 37,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "statusbar": {
+      "w": 1280,
+      "h": 31,
+      "clientH": 30,
+      "scrollH": 30,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "topbar": {
+      "w": 1280,
+      "h": 45,
+      "clientH": 44,
+      "scrollH": 44,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "newItems": null
+  },
+  "07-briefing:fonts": [
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "08-hidden:viewport": {
+    "w": 1280,
+    "h": 800,
+    "dpr": 2
+  },
+  "08-hidden:overflowX": false,
+  "08-hidden:under24": [
+    "Navigation pane width 4x639"
+  ],
+  "08-hidden:under44Count": 37,
+  "08-hidden:targetCount": 38,
+  "08-hidden:motion": {
+    "transitionedElements": 0,
+    "animatedElements": 0,
+    "sample": [],
+    "reducedMotionActive": false
+  },
+  "08-hidden:controlHeights": {
+    "button": [
+      24,
+      30,
+      31,
+      32.8,
+      36
+    ],
+    "select": [
+      26,
+      35
+    ]
+  },
+  "08-hidden:boxes": {
+    "list": null,
+    "headlines": null,
+    "detail": null,
+    "imageControls": null,
+    "sidebar": {
+      "w": 205,
+      "h": 639,
+      "clientH": 639,
+      "scrollH": 639,
+      "scrollW": 205,
+      "clientW": 205
+    },
+    "nav": {
+      "w": 185,
+      "h": 395,
+      "clientH": 395,
+      "scrollH": 471,
+      "scrollW": 185,
+      "clientW": 185
+    },
+    "tabbar": {
+      "w": 1280,
+      "h": 38,
+      "clientH": 37,
+      "scrollH": 37,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "statusbar": {
+      "w": 1280,
+      "h": 31,
+      "clientH": 30,
+      "scrollH": 30,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "topbar": {
+      "w": 1280,
+      "h": 45,
+      "clientH": 44,
+      "scrollH": 44,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "newItems": null
+  },
+  "08-hidden:fonts": [
+    12,
+    13,
+    15,
+    16
+  ],
+  "09-settings-sources:viewport": {
+    "w": 1280,
+    "h": 800,
+    "dpr": 2
+  },
+  "09-settings-sources:overflowX": false,
+  "09-settings-sources:under24": [
+    "Navigation pane width 4x639",
+    "Enable Science Wire 13x13",
+    "INPUT 13x13",
+    "Enable Global Wire Service 13x13",
+    "INPUT 13x13",
+    "Enable Slow Regional Bulletin 13x13",
+    "INPUT 13x13",
+    "INPUT 13x13",
+    "INPUT 13x13"
+  ],
+  "09-settings-sources:under44Count": 71,
+  "09-settings-sources:targetCount": 72,
+  "09-settings-sources:motion": {
+    "transitionedElements": 0,
+    "animatedElements": 0,
+    "sample": [],
+    "reducedMotionActive": false
+  },
+  "09-settings-sources:controlHeights": {
+    "button": [
+      24,
+      30,
+      31,
+      32.8,
+      36
+    ],
+    "select": [
+      26,
+      35
+    ]
+  },
+  "09-settings-sources:boxes": {
+    "list": null,
+    "headlines": null,
+    "detail": null,
+    "imageControls": null,
+    "sidebar": {
+      "w": 205,
+      "h": 639,
+      "clientH": 639,
+      "scrollH": 639,
+      "scrollW": 205,
+      "clientW": 205
+    },
+    "nav": {
+      "w": 185,
+      "h": 395,
+      "clientH": 395,
+      "scrollH": 471,
+      "scrollW": 185,
+      "clientW": 185
+    },
+    "tabbar": {
+      "w": 1280,
+      "h": 38,
+      "clientH": 37,
+      "scrollH": 37,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "statusbar": {
+      "w": 1280,
+      "h": 31,
+      "clientH": 30,
+      "scrollH": 30,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "topbar": {
+      "w": 1280,
+      "h": 45,
+      "clientH": 44,
+      "scrollH": 44,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "newItems": null
+  },
+  "09-settings-sources:fonts": [
+    12,
+    13,
+    15,
+    16
+  ],
+  "10-settings-preferences:viewport": {
+    "w": 1280,
+    "h": 800,
+    "dpr": 2
+  },
+  "10-settings-preferences:overflowX": false,
+  "10-settings-preferences:tiny": [
+    "button 11px \"Visual\"",
+    "button 11px \"Compact\"",
+    ".fine 11px \"For personal, noncommercial reading. Automat\"",
+    "button 11px \"Enable automatic images\""
+  ],
+  "10-settings-preferences:under24": [
+    "Navigation pane width 4x639",
+    "INPUT 13x13",
+    "INPUT 13x13",
+    "INPUT 13x13"
+  ],
+  "10-settings-preferences:under44Count": 62,
+  "10-settings-preferences:targetCount": 63,
+  "10-settings-preferences:motion": {
+    "transitionedElements": 0,
+    "animatedElements": 0,
+    "sample": [],
+    "reducedMotionActive": false
+  },
+  "10-settings-preferences:controlHeights": {
+    "button": [
+      24,
+      30,
+      31,
+      32.8,
+      36
+    ],
+    "select": [
+      26,
+      35
+    ]
+  },
+  "10-settings-preferences:boxes": {
+    "list": null,
+    "headlines": null,
+    "detail": null,
+    "imageControls": {
+      "w": 655,
+      "h": 63.2,
+      "clientH": 62,
+      "scrollH": 62,
+      "scrollW": 655,
+      "clientW": 655
+    },
+    "sidebar": {
+      "w": 205,
+      "h": 639,
+      "clientH": 639,
+      "scrollH": 639,
+      "scrollW": 205,
+      "clientW": 205
+    },
+    "nav": {
+      "w": 185,
+      "h": 395,
+      "clientH": 395,
+      "scrollH": 471,
+      "scrollW": 185,
+      "clientW": 185
+    },
+    "tabbar": {
+      "w": 1280,
+      "h": 38,
+      "clientH": 37,
+      "scrollH": 37,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "statusbar": {
+      "w": 1280,
+      "h": 31,
+      "clientH": 30,
+      "scrollH": 30,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "topbar": {
+      "w": 1280,
+      "h": 45,
+      "clientH": 44,
+      "scrollH": 44,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "newItems": null
+  },
+  "10-settings-preferences:fonts": [
+    11,
+    12,
+    13,
+    15,
+    16
+  ],
+  "11-settings-shortcuts:viewport": {
+    "w": 1280,
+    "h": 800,
+    "dpr": 2
+  },
+  "11-settings-shortcuts:overflowX": false,
+  "11-settings-shortcuts:under24": [
+    "Navigation pane width 4x639"
+  ],
+  "11-settings-shortcuts:under44Count": 48,
+  "11-settings-shortcuts:targetCount": 49,
+  "11-settings-shortcuts:motion": {
+    "transitionedElements": 0,
+    "animatedElements": 0,
+    "sample": [],
+    "reducedMotionActive": false
+  },
+  "11-settings-shortcuts:controlHeights": {
+    "button": [
+      24,
+      30,
+      31,
+      32.8,
+      36
+    ],
+    "select": [
+      26,
+      35
+    ]
+  },
+  "11-settings-shortcuts:boxes": {
+    "list": null,
+    "headlines": null,
+    "detail": null,
+    "imageControls": null,
+    "sidebar": {
+      "w": 205,
+      "h": 639,
+      "clientH": 639,
+      "scrollH": 639,
+      "scrollW": 205,
+      "clientW": 205
+    },
+    "nav": {
+      "w": 185,
+      "h": 395,
+      "clientH": 395,
+      "scrollH": 471,
+      "scrollW": 185,
+      "clientW": 185
+    },
+    "tabbar": {
+      "w": 1280,
+      "h": 38,
+      "clientH": 37,
+      "scrollH": 37,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "statusbar": {
+      "w": 1280,
+      "h": 31,
+      "clientH": 30,
+      "scrollH": 30,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "topbar": {
+      "w": 1280,
+      "h": 45,
+      "clientH": 44,
+      "scrollH": 44,
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "newItems": null
+  },
+  "11-settings-shortcuts:fonts": [
+    12,
+    13,
+    15,
+    16
+  ],
+  "errors": [],
+  "warnings": []
+}

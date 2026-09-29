@@ -1,0 +1,149 @@
+{
+  "navClientH": 410,
+  "navScrollH": 471,
+  "overflowing": true,
+  "overflowY": "auto",
+  "maskImage": "none",
+  "kids": [
+    {
+      "tag": "DIV",
+      "cls": "nav-heading",
+      "text": "Focus",
+      "top": 226,
+      "bottom": 248,
+      "pastNavBottom": -370,
+      "fullyHidden": false,
+      "partiallyClipped": false
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "",
+      "text": "AI",
+      "top": 255,
+      "bottom": 286,
+      "pastNavBottom": -332,
+      "fullyHidden": false,
+      "partiallyClipped": false
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "",
+      "text": "Technology",
+      "top": 288,
+      "bottom": 319,
+      "pastNavBottom": -299,
+      "fullyHidden": false,
+      "partiallyClipped": false
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "",
+      "text": "Stocks",
+      "top": 321,
+      "bottom": 352,
+      "pastNavBottom": -266,
+      "fullyHidden": false,
+      "partiallyClipped": false
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "",
+      "text": "Others",
+      "top": 354,
+      "bottom": 385,
+      "pastNavBottom": -233,
+      "fullyHidden": false,
+      "partiallyClipped": false
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "PoliticsBusinessScienceHealthWeatherClim",
+      "top": 0,
+      "bottom": 0,
+      "pastNavBottom": -618,
+      "fullyHidden": false,
+      "partiallyClipped": false
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "",
+      "text": "Daily briefing",
+      "top": 387,
+      "bottom": 418,
+      "pastNavBottom": -200,
+      "fullyHidden": false,
+      "partiallyClipped": false
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "",
+      "text": "Live discussion",
+      "top": 420,
+      "bottom": 451,
+      "pastNavBottom": -167,
+      "fullyHidden": false,
+      "partiallyClipped": false
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "chosen",
+      "text": "All headlines",
+      "top": 453,
+      "bottom": 484,
+      "pastNavBottom": -134,
+      "fullyHidden": false,
+      "partiallyClipped": false
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "",
+      "text": "Your brief",
+      "top": 486,
+      "bottom": 517,
+      "pastNavBottom": -101,
+      "fullyHidden": false,
+      "partiallyClipped": false
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "",
+      "text": "Saved stories",
+      "top": 519,
+      "bottom": 550,
+      "pastNavBottom": -68,
+      "fullyHidden": false,
+      "partiallyClipped": false
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "",
+      "text": "Hidden stories",
+      "top": 552,
+      "bottom": 583,
+      "pastNavBottom": -35,
+      "fullyHidden": false,
+      "partiallyClipped": false
+    },
+    {
+      "tag": "DIV",
+      "cls": "nav-heading",
+      "text": "Watchlists",
+      "top": 603,
+      "bottom": 639,
+      "pastNavBottom": 21,
+      "fullyHidden": false,
+      "partiallyClipped": true
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "",
+      "text": "Climate desk",
+      "top": 646,
+      "bottom": 677,
+      "pastNavBottom": 59,
+      "fullyHidden": true,
+      "partiallyClipped": false
+    }
+  ]
+}
