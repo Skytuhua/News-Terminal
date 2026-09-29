@@ -54,7 +54,14 @@ export function ImageControls({ settings = false }: { settings?: boolean }) {
       <button type="button" disabled={session.busy || !session.ready} aria-pressed={session.mode === 'compact'} onClick={() => void session.update(session.automatic, 'compact')}>Compact</button>
     </div>
     {session.automatic ? <button type="button" disabled={session.busy} onClick={() => void session.update(false, session.mode)}>Disable automatic images</button> : <>
-      <span className="fine">For personal, noncommercial reading. Automatic images contact publishers and disclose your IP address as you scroll. Only permitted images; no disk cache. Consent is per profile and resets on import.</span>
+      <span className="fine">Automatic images contact publishers and reveal your IP address.</span>
+      {/* The full consent text used to sit inline and wrapped to six lines at 200%
+          zoom, which starved the headline list. The material facts stay visible;
+          the rest is one collapsed disclosure whose target already exists in
+          Settings -> Image preferences. */}
+      <details className="image-consent"><summary>Consent details</summary>
+        <span className="fine">For personal, noncommercial reading. Automatic images contact publishers and disclose your IP address as you scroll. Only permitted images; no disk cache. Consent is per profile and resets on import.</span>
+      </details>
       <button type="button" disabled={session.busy || !session.ready} onClick={() => void session.update(true, 'visual')}>Enable automatic images</button>
     </>}
     {session.error && <span role="alert">{session.error}</span>}

@@ -432,7 +432,8 @@ kbd {
 }
 .thumbnail-error {
   width: 66px;
-  font-size: 10px;
+  /* 0.5 M2: DESIGN.md states secondary metadata is never smaller than 12px. */
+  font-size: 12px;
   line-height: 1.25;
   color: var(--danger);
   overflow-wrap: anywhere;

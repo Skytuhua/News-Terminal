@@ -1,0 +1,120 @@
+{
+  "values": {
+    "--bg": "oklch(17% 0.008 190)",
+    "--surface": "oklch(20% 0.008 190)",
+    "--raised": "oklch(24% 0.009 190)",
+    "--line": "oklch(32% 0.009 190)",
+    "--text": "oklch(92% 0.007 190)",
+    "--muted": "oklch(73% 0.009 190)",
+    "--accent": "oklch(82% 0.14 78)",
+    "--selected": "oklch(28% 0.025 78)",
+    "--danger": "oklch(80% 0.12 30)"
+  },
+  "pairs": [
+    {
+      "fg": "--line",
+      "bg": "--selected",
+      "ratio": 1.16
+    },
+    {
+      "fg": "--line",
+      "bg": "--raised",
+      "ratio": 1.29
+    },
+    {
+      "fg": "--line",
+      "bg": "--surface",
+      "ratio": 1.43
+    },
+    {
+      "fg": "--line",
+      "bg": "--bg",
+      "ratio": 1.5
+    },
+    {
+      "fg": "--muted",
+      "bg": "--selected",
+      "ratio": 6.19
+    },
+    {
+      "fg": "--muted",
+      "bg": "--raised",
+      "ratio": 6.89
+    },
+    {
+      "fg": "--danger",
+      "bg": "--selected",
+      "ratio": 7.46
+    },
+    {
+      "fg": "--muted",
+      "bg": "--surface",
+      "ratio": 7.63
+    },
+    {
+      "fg": "--muted",
+      "bg": "--bg",
+      "ratio": 8.03
+    },
+    {
+      "fg": "--accent",
+      "bg": "--selected",
+      "ratio": 8.3
+    },
+    {
+      "fg": "--danger",
+      "bg": "--raised",
+      "ratio": 8.31
+    },
+    {
+      "fg": "--danger",
+      "bg": "--surface",
+      "ratio": 9.2
+    },
+    {
+      "fg": "--accent",
+      "bg": "--raised",
+      "ratio": 9.25
+    },
+    {
+      "fg": "--danger",
+      "bg": "--bg",
+      "ratio": 9.68
+    },
+    {
+      "fg": "--accent",
+      "bg": "--surface",
+      "ratio": 10.24
+    },
+    {
+      "fg": "--accent",
+      "bg": "--bg",
+      "ratio": 10.77
+    },
+    {
+      "fg": "--text",
+      "bg": "--selected",
+      "ratio": 11.61
+    },
+    {
+      "fg": "--text",
+      "bg": "--raised",
+      "ratio": 12.93
+    },
+    {
+      "fg": "--text",
+      "bg": "--surface",
+      "ratio": 14.32
+    },
+    {
+      "fg": "--text",
+      "bg": "--bg",
+      "ratio": 15.06
+    }
+  ],
+  "accentClasses": [
+    "h2",
+    ".new-items"
+  ],
+  "rootFontSize": "13px"
+}

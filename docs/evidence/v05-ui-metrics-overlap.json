@@ -1,0 +1,142 @@
+{
+  "1440x900": {
+    "pill": {
+      "w": 172.9,
+      "h": 30,
+      "text": "3 new stories · Show latest"
+    },
+    "overlaps": [],
+    "leftEdges": [
+      {
+        "hasThumb": false,
+        "left": 227
+      },
+      {
+        "hasThumb": false,
+        "left": 227
+      },
+      {
+        "hasThumb": false,
+        "left": 227
+      }
+    ],
+    "rowHeights": [
+      84,
+      109,
+      84
+    ],
+    "listWidth": 837,
+    "pillPctOfList": 20.7,
+    "uniqueLeftEdges": [
+      227
+    ]
+  },
+  "1024x768": {
+    "pill": {
+      "w": 172.9,
+      "h": 30,
+      "text": "3 new stories · Show latest"
+    },
+    "overlaps": [],
+    "leftEdges": [
+      {
+        "hasThumb": false,
+        "left": 227
+      },
+      {
+        "hasThumb": false,
+        "left": 227
+      },
+      {
+        "hasThumb": false,
+        "left": 227
+      }
+    ],
+    "rowHeights": [
+      105,
+      130,
+      84
+    ],
+    "listWidth": 421,
+    "pillPctOfList": 41.1,
+    "uniqueLeftEdges": [
+      227
+    ]
+  },
+  "800x600": {
+    "pill": {
+      "w": 172.9,
+      "h": 30,
+      "text": "3 new stories · Show latest"
+    },
+    "overlaps": [
+      {
+        "row": "Orbital ReviewSep 23東京の研究チームが新",
+        "area": 5187,
+        "coversText": true
+      }
+    ],
+    "leftEdges": [
+      {
+        "hasThumb": false,
+        "left": 18
+      },
+      {
+        "hasThumb": false,
+        "left": 18
+      },
+      {
+        "hasThumb": false,
+        "left": 18
+      }
+    ],
+    "rowHeights": [
+      105,
+      130,
+      84
+    ],
+    "listWidth": 406,
+    "pillPctOfList": 42.6,
+    "uniqueLeftEdges": [
+      18
+    ]
+  },
+  "720x450": {
+    "pill": {
+      "w": 172.9,
+      "h": 30,
+      "text": "3 new stories · Show latest"
+    },
+    "overlaps": [
+      {
+        "row": "Science WireSep 23Researchers ",
+        "area": 1499,
+        "coversText": false
+      }
+    ],
+    "leftEdges": [
+      {
+        "hasThumb": false,
+        "left": 18
+      },
+      {
+        "hasThumb": false,
+        "left": 18
+      },
+      {
+        "hasThumb": false,
+        "left": 18
+      }
+    ],
+    "rowHeights": [
+      105,
+      151,
+      105
+    ],
+    "listWidth": 356,
+    "pillPctOfList": 48.6,
+    "uniqueLeftEdges": [
+      18
+    ]
+  }
+}
