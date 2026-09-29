@@ -12,6 +12,63 @@ fn workspace_get_is_read_only_for_change_events() {
     assert!(changed("workspace_save"));
 }
 
+#[test]
+fn alert_receipts_is_read_only_for_change_events() {
+    assert!(
+        !changed("alert_receipts"),
+        "reviewing receipts must not trigger a data-changed reload"
+    );
+    assert!(
+        changed("article_state_many"),
+        "a bulk triage write is a change and must emit data-changed"
+    );
+}
+
+#[tokio::test]
+async fn batch_hide_cancels_active_summaries_like_the_single_article_path() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut database = db::Database::open(dir.path().join("summary-cancel.sqlite3")).unwrap();
+    let source = database.request(&json!({"op":"source_add","name":"Fixture","url":"https://example.org/feed","termsUrl":"https://example.org/terms","topics":[],"language":"en","region":"world","kind":"reporting","storage":"excerpt"}),1000).unwrap();
+    database.ingest(source["id"].as_str().unwrap(), &json!({"articles":[{"id":"1","title":"Headline","url":"https://example.org/a","excerpt":"Fixture excerpt"}]}),1000).unwrap();
+    let article =
+        database.request(&json!({"op":"snapshot"}), 1000).unwrap()["articles"][0]["id"].clone();
+    let host = Backend::new(database);
+    let token = host
+        .execute(json!({"op":"workspace_get","profileId":"default"}))
+        .await
+        .unwrap()["replacementToken"]
+        .clone();
+    // A summary registered against a story that the batch then hides must be
+    // cancelled, exactly as the single-article hide path does. Otherwise a
+    // summary can keep quoting a story the user just hid.
+    let cancel = Arc::new(AtomicBool::new(false));
+    host.cancellations
+        .lock()
+        .unwrap()
+        .insert("summary-1".to_owned(), cancel.clone());
+    host.execute(json!({"op":"article_state_many","profileId":"default","replacementToken":token,"items":[{"articleId":article,"hidden":true}]}))
+        .await
+        .unwrap();
+    assert!(
+        cancel.load(Ordering::SeqCst),
+        "a batched hide must cancel active summaries"
+    );
+    // A batch that only sets read does not cancel: it cannot invalidate a
+    // summary's grounding, and cancelling needlessly would drop user work.
+    let cancel = Arc::new(AtomicBool::new(false));
+    host.cancellations
+        .lock()
+        .unwrap()
+        .insert("summary-2".to_owned(), cancel.clone());
+    host.execute(json!({"op":"article_state_many","profileId":"default","replacementToken":token,"items":[{"articleId":article,"read":true}]}))
+        .await
+        .unwrap();
+    assert!(
+        !cancel.load(Ordering::SeqCst),
+        "a read-only batch must not cancel summaries"
+    );
+}
+
 struct WakeCounter(std::sync::atomic::AtomicUsize);
 impl std::task::Wake for WakeCounter {
     fn wake(self: Arc<Self>) {

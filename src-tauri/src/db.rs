@@ -13,6 +13,16 @@ use std::{collections::HashSet, path::Path, time::Duration};
 pub type Result<T> = std::result::Result<T, String>;
 const MAX_WORKSPACE_REVISION: u64 = 9_007_199_254_740_990;
 pub const MAX_SOURCES: usize = 300;
+/// One bulk-triage dispatch must stay small enough that a single transaction
+/// cannot stall the writer lock behind an unbounded renderer loop. 200 covers a
+/// full mounted page (100 rows) with headroom, and keeps the whole-batch
+/// rejection cheap because every id is verified before anything is written.
+pub const MAX_ARTICLE_STATE_BATCH: usize = 200;
+/// Alert receipts are a review aid, not a log. 50 is a readable page of recent
+/// deliveries and 200 is the hard ceiling so a large `limit` cannot become an
+/// unbounded read of a table that also backs the 10-minute delivery budget.
+pub const MAX_ALERT_RECEIPTS: usize = 200;
+const DEFAULT_ALERT_RECEIPTS: usize = 50;
 fn sql(e: rusqlite::Error) -> String {
     format!("Local database error: {e}")
 }
@@ -709,6 +719,34 @@ impl Database {
         }
         Ok(updates.len())
     }
+    /// The one article-state write path. `article_state`, `group_split` and
+    /// `article_state_many` all call this, so a multi-key item in a batch
+    /// cannot diverge from the single-article behaviour: same boolean guard,
+    /// same saved cap, same `read`, `saved`, `hidden` application order.
+    fn write_article_state(&mut self, id: &str, r: &Value, split: bool) -> Result<()> {
+        let aid = text(r, "articleId", 200)?;
+        self.article_raw(aid)?.ok_or("Unknown article")?;
+        let mut s = self.state(id, aid)?;
+        if r["saved"] == true && s["saved"] != true {
+            let count:usize=self.conn.query_row("SELECT count(DISTINCT article_id) FROM states WHERE json_extract(data,'$.saved')=1",[],|row|row.get(0)).map_err(sql)?;
+            if count >= 10000 {
+                return Err(
+                    "Maximum 10,000 saved stories; export and remove older saves first".into(),
+                );
+            }
+        }
+        for key in ["read", "saved", "hidden"] {
+            if let Some(v) = r.get(key) {
+                boolean(v)?;
+                s[key] = v.clone();
+            }
+        }
+        if split {
+            s["groupId"] = json!(format!("split:{id}:{aid}"));
+        }
+        self.conn.execute("INSERT INTO states(profile_id,article_id,data) VALUES(?1,?2,?3) ON CONFLICT(profile_id,article_id) DO UPDATE SET data=excluded.data",params![id,aid,s.to_string()]).map_err(sql)?;
+        Ok(())
+    }
     fn state(&self, profile_id: &str, article_id: &str) -> Result<Value> {
         let raw: Option<String> = self
             .conn
@@ -1209,6 +1247,45 @@ impl Database {
                 result["replacementToken"] = json!(self.replacement_token);
                 Ok(result)
             }
+            "alert_receipts" => {
+                // No implicit `default` fallback: a receipts list scoped to the
+                // wrong profile would report another user's delivery history.
+                let id = text(r, "profileId", 200)?;
+                self.require_profile(id)?;
+                let limit = match r.get("limit") {
+                    None => DEFAULT_ALERT_RECEIPTS,
+                    Some(v) => {
+                        let n = v.as_u64().ok_or("Receipt limit must be a whole number")?;
+                        if n == 0 {
+                            return Err("Receipt limit must be at least 1".into());
+                        }
+                        (n as usize).min(MAX_ALERT_RECEIPTS)
+                    }
+                };
+                // `alert_log` is the deduplication receipt written at delivery
+                // and pruned by `retain` at 90 days; the same window is applied
+                // here so a read can never surface a receipt the retention
+                // policy has already expired. `at DESC, article_id ASC` is
+                // newest first with a deterministic tie order.
+                let mut stmt = self.conn.prepare(
+                    "SELECT l.article_id,l.at,json_extract(a.data,'$.title') FROM alert_log l LEFT JOIN articles a ON a.id=l.article_id WHERE l.profile_id=?1 AND l.at>=?2 ORDER BY l.at DESC,l.article_id ASC LIMIT ?3",
+                ).map_err(sql)?;
+                let rows = stmt
+                    .query_map(params![id, now - 90 * 86400, limit], |row| {
+                        Ok(json!({
+                            "profileId":id,
+                            "articleId":row.get::<_, String>(0)?,
+                            "at":row.get::<_, i64>(1)?,
+                            "title":row.get::<_, Option<String>>(2)?
+                        }))
+                    })
+                    .map_err(sql)?;
+                let mut out = Vec::new();
+                for row in rows {
+                    out.push(row.map_err(sql)?);
+                }
+                Ok(json!(out))
+            }
             "hidden_stories" => {
                 let id = text(r, "profileId", 200)?;
                 self.require_profile(id)?;
@@ -1360,31 +1437,39 @@ impl Database {
                     .map_err(sql)?;
                 result
             }
+            "article_state_many" => {
+                self.require_replacement(r)?;
+                // Unlike `article_state`, this operation has no implicit
+                // `default` fallback: a bulk write dispatched while another
+                // profile is active must fail closed, not land on `default`.
+                let id = text(r, "profileId", 200)?;
+                self.require_profile(id)?;
+                let items = r["items"].as_array().ok_or("Expected a list of items")?;
+                if items.is_empty() || items.len() > MAX_ARTICLE_STATE_BATCH {
+                    return Err(format!(
+                        "Batch must contain 1 to {MAX_ARTICLE_STATE_BATCH} article state items"
+                    ));
+                }
+                // One transaction for the whole batch: a rejected item must leave
+                // no partial write, so a partial belief can never reach the UI.
+                self.conn.execute_batch("BEGIN IMMEDIATE").map_err(sql)?;
+                let mut result = Ok(());
+                for item in items {
+                    result = self.write_article_state(id, item, false);
+                    if result.is_err() {
+                        break;
+                    }
+                }
+                self.conn
+                    .execute_batch(if result.is_ok() { "COMMIT" } else { "ROLLBACK" })
+                    .map_err(sql)?;
+                result?;
+                Ok(Value::Null)
+            }
             "article_state" | "group_split" => {
                 self.require_replacement(r)?;
                 self.require_profile(id)?;
-                let aid = text(r, "articleId", 200)?;
-                self.article_raw(aid)?.ok_or("Unknown article")?;
-                let mut s = self.state(id, aid)?;
-                if r["saved"] == true && s["saved"] != true {
-                    let count:usize=self.conn.query_row("SELECT count(DISTINCT article_id) FROM states WHERE json_extract(data,'$.saved')=1",[],|row|row.get(0)).map_err(sql)?;
-                    if count >= 10000 {
-                        return Err(
-                            "Maximum 10,000 saved stories; export and remove older saves first"
-                                .into(),
-                        );
-                    }
-                }
-                for key in ["read", "saved", "hidden"] {
-                    if let Some(v) = r.get(key) {
-                        boolean(v)?;
-                        s[key] = v.clone();
-                    }
-                }
-                if r["op"] == "group_split" {
-                    s["groupId"] = json!(format!("split:{id}:{aid}"));
-                }
-                self.conn.execute("INSERT INTO states(profile_id,article_id,data) VALUES(?1,?2,?3) ON CONFLICT(profile_id,article_id) DO UPDATE SET data=excluded.data",params![id,aid,s.to_string()]).map_err(sql)?;
+                self.write_article_state(id, r, r["op"] == "group_split")?;
                 Ok(Value::Null)
             }
             "search" => Ok(json!(

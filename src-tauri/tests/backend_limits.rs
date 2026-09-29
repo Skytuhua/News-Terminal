@@ -1,4 +1,4 @@
-use news_terminal_lib::db::Database;
+use news_terminal_lib::db::{Database, MAX_ARTICLE_STATE_BATCH};
 use rusqlite::{params, Connection};
 use serde_json::{json, Value};
 
@@ -194,6 +194,131 @@ fn export_enforces_import_state_and_receipt_limits() {
         .map(|_| ())
         .expect_err("over-limit receipts must reject export")
         .contains("alerts"));
+}
+
+#[test]
+fn article_state_many_is_bounded_and_never_partially_writes() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("batch-limits.db");
+    let mut db = Database::open(&path).unwrap();
+    let now = 1_800_000_000;
+    let source = db.request(&json!({"op":"source_add","name":"Fixture","url":"https://example.org/feed","termsUrl":"https://example.org/terms","topics":[],"language":"en","region":"world","kind":"reporting","storage":"excerpt"}),now).unwrap();
+    db.ingest(source["id"].as_str().unwrap(), &json!({"notModified":false,"etag":"v1","articles":[{"id":"one","title":"Fixture","url":"https://example.org/story","excerpt":"text"}]}), now).unwrap();
+    let article = db.request(&json!({"op":"snapshot"}), now).unwrap()["articles"][0].clone();
+    let aid = article["id"].as_str().unwrap().to_owned();
+    let conn = Connection::open(&path).unwrap();
+    // A realistic mounted page plus headroom, so the bound is tested at a size
+    // the renderer can actually produce, not at a synthetic token count.
+    conn.execute("WITH RECURSIVE n(i) AS (VALUES(0) UNION ALL SELECT i+1 FROM n WHERE i<299) INSERT INTO articles SELECT printf('bulk-%04d',i),?1,json_set(?2,'$.id',printf('bulk-%04d',i),'$.url','https://example.org/bulk-'||i) FROM n", params![source["id"].as_str(), article.to_string()]).unwrap();
+    // Read the generated ids back over the same file: article ids are derived
+    // from the canonical URL, so the batch must use the stored ids, not the
+    // fixture labels.
+    let mut ids: Vec<String> = {
+        let mut stmt = conn
+            .prepare("SELECT id FROM articles WHERE id LIKE 'bulk-%' ORDER BY id")
+            .unwrap();
+        let rows = stmt
+            .query_map([], |r| r.get::<_, String>(0))
+            .unwrap()
+            .collect::<std::result::Result<Vec<_>, _>>()
+            .unwrap();
+        rows
+    };
+    drop(conn);
+    ids.push(aid.clone());
+    assert!(
+        ids.len() > MAX_ARTICLE_STATE_BATCH,
+        "fixture must exceed the bound"
+    );
+    let items = |n: usize, key: &str| -> Value {
+        let mut v = json!({"articleId":ids[0],"saved":true});
+        v[key] = json!(true);
+        Value::Array(
+            (0..n)
+                .map(|i| {
+                    let mut item = v.clone();
+                    item["articleId"] = json!(ids[i % ids.len()]);
+                    item
+                })
+                .collect(),
+        )
+    };
+    let at_bound = MAX_ARTICLE_STATE_BATCH;
+    guarded(
+        &mut db,
+        json!({"op":"article_state_many","profileId":"default","items":items(at_bound,"read")}),
+        now,
+    )
+    .unwrap();
+    assert_eq!(
+        db.request(&json!({"op":"hidden_stories","profileId":"default"}), now)
+            .unwrap(),
+        json!([])
+    );
+    let after_bound = db.export().unwrap();
+    // One item past the bound is rejected, and the rejected batch writes nothing.
+    for extra in [1usize, 2, 50] {
+        let over = at_bound + extra;
+        let error = guarded(
+            &mut db,
+            json!({"op":"article_state_many","profileId":"default","items":items(over,"read")}),
+            now,
+        )
+        .unwrap_err();
+        assert!(error.contains("Batch"), "unexpected error: {error}");
+        assert_eq!(
+            db.export().unwrap(),
+            after_bound,
+            "an over-bound batch must not write any of its {over} items"
+        );
+    }
+    // An empty batch is a client bug, not a silent no-op success.
+    assert!(guarded(
+        &mut db,
+        json!({"op":"article_state_many","profileId":"default","items":[]}),
+        now
+    )
+    .is_err());
+    // A non-array items field is rejected before any write.
+    for bad in [json!(null), json!({}), json!("read"), json!(3)] {
+        assert!(guarded(
+            &mut db,
+            json!({"op":"article_state_many","profileId":"default","items":bad}),
+            now
+        )
+        .is_err());
+    }
+    assert_eq!(db.export().unwrap(), after_bound);
+    // A per-item bad shape rejects the whole batch: a non-object item and a
+    // missing articleId must not slip through the shared write path.
+    for bad_item in [json!("read"), json!(3), json!({}), json!({"saved":true})] {
+        assert_eq!(
+            guarded(
+                &mut db,
+                json!({"op":"article_state_many","profileId":"default","items":[{"articleId":aid,"read":true},bad_item]}),
+                now
+            )
+            .unwrap_err(),
+            "Missing or invalid articleId",
+            "accepted {bad_item}"
+        );
+    }
+    assert_eq!(db.export().unwrap(), after_bound);
+    // An unknown key inside an item is ignored exactly as the single path
+    // ignores unknown request keys: the batch must not invent stricter rules
+    // than the operation it is meant to replicate.
+    guarded(
+        &mut db,
+        json!({"op":"article_state_many","profileId":"default","items":[{"articleId":aid,"starred":true,"read":true}]}),
+        now,
+    )
+    .unwrap();
+    let starred = db.article("default", aid.as_str()).unwrap();
+    assert_eq!(starred["read"], json!(true));
+    assert!(
+        starred.get("starred").is_none(),
+        "unknown keys must not be stored"
+    );
 }
 
 fn guarded(db: &mut Database, mut request: Value, now: i64) -> Result<Value, String> {

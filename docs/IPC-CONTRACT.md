@@ -28,6 +28,20 @@ Provider `{id,name,kind:'ollama'|'gemini'|'groq',model:string,enabled:boolean,co
 - `source_update` also accepts `mediaAllowed` for custom feeds. Catalog media rights still require reviewed catalog updates and are not user-overridable.
 - The service layer rejects non-Ollama summary providers in zero-paid mode with a safe user-facing error before cloud credentials or outbound inference are used.
 
+## 0.5 additions
+
+- `article_state_many {profileId, replacementToken, items:[{articleId, read?, saved?, hidden?}]}` -> null. Bulk sibling of `article_state`, sharing one write path so a multi-key item cannot diverge from the single-article behaviour.
+  - `profileId` is **required**, with no implicit `default` fallback, unlike `article_state`. A mis-scoped bulk write is the costliest possible mis-scope, so it fails closed instead.
+  - `replacementToken` is required and checked before anything else; a stale or missing token fails exactly as it does for the single path.
+  - `items` must hold 1–200 entries. The cap is a runaway-loop guard, not a user-facing limit; selection is scoped to the 100-row mounted page, so 200 cannot be reached by intended use.
+  - Applied as one transaction. **Any** unknown `articleId` rejects the whole batch, leaving no partial write.
+  - Per item, keys apply in the order `read`, then `saved`, then `hidden`; `groupId` and unrelated keys are preserved. A batch containing `hidden` cancels in-flight summaries exactly as the single path does; a read/save-only batch does not.
+- `alert_receipts {profileId, limit?}` -> `{profileId, articleId, at, title}[]`. `profileId` is required with no default fallback.
+  - Reads the existing `alert_log` deduplication receipts written at delivery. There is no new table, write path, or retention rule; the same 90-day window is applied on read, so a receipt can never outlive the retention policy that would have expired it.
+  - Ordered `at DESC, article_id ASC` (newest first, deterministic ties). `limit` defaults to 50 and is clamped to 200; `0` is rejected.
+  - `title` is `null` when the article has since been pruned. A receipt is a local delivery record, never evidence of publisher activity or of the reader having seen the story.
+  - Registered read-only for change events; `article_state_many` deliberately is not.
+
 ## Integration clarifications
 
 - Source and Article include `aiAllowed:boolean`, default false. Feed reading/storage permission is distinct from AI processing permission. Host and service enforce it; UI explains disabled summaries. Custom sources require an explicit permission declaration to enable AI.
