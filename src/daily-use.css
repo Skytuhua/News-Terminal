@@ -50,6 +50,19 @@ nav button.chosen .nav-count { color: var(--foreground); }
   margin: 0;
   cursor: pointer;
 }
+/* 0.5 cache disclosure. */
+.cache-summary {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.retention-list { margin: 0 0 10px; padding-left: 18px; font-size: 12px; }
+.retention-list li { margin-bottom: 6px; }
 /* 0.5 alert delivery failure banner. Sits above the list, never over it, so it
    cannot cover a headline the way a floating toast would. */
 .alert-warning {

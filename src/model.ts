@@ -1,5 +1,28 @@
 import type { Article, FocusSection, Source, Tab, Watchlist } from "./types";
 export const sourceFailed = (source: Source) => source.enabled && Number.isFinite(source.failures) && (source.failures ?? 0) > 0;
+// 0.5 cache disclosure. The host prunes silently: an unsaved story disappears
+// after 30 days, or once it falls outside the newest 5000, whichever comes
+// first. Saved stories are exempt. A reader relying on cached stories offline
+// has no way to learn that today, which makes the policy worth stating rather
+// than leaving it buried in the Rust. These numbers mirror `retain` in
+// src-tauri/src/db.rs and are asserted in tests/v05-cache-disclosure.test.ts -
+// a disclosure that lies is worse than no disclosure.
+export const CACHE_LIMITS = {
+  articleDays: 30,
+  articleMax: 5000,
+  alertReceiptDays: 90,
+  alertAttemptMinutes: 10,
+} as const;
+
+export function cacheDisclosure(articles: Article[]) {
+  let saved = 0;
+  let unread = 0;
+  for (const a of articles) {
+    if (a.saved) saved++;
+    if (!a.read) unread++;
+  }
+  return { cached: articles.length, saved, unread, keepsSavedForever: true };
+}
 // 0.5 source search and filter. Thirty sources with no way to find one is a
 // real daily-use cost, so the matching lives in the model layer where it can be
 // tested without a browser rather than inside a component.

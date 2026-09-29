@@ -59,6 +59,7 @@ type Panel =
   | "alerts"
   | "providers"
   | "backup"
+  | "storage"
   | "help";
 const freshTab = (): Tab => ({
   id: crypto.randomUUID(),

@@ -12,6 +12,7 @@ import { dispatch, type Request } from "./ipc";
 import {
   list, date, sourceFailed, sourceEligibleAt,
   filterSources, sourceFilterCount, type SourceFilter,
+  cacheDisclosure, CACHE_LIMITS,
 } from "./model";
 import Connections from "./Connections";
 import MonitorControls from "./MonitorControls";
@@ -26,6 +27,7 @@ export type Panel =
   | "alerts"
   | "providers"
   | "backup"
+  | "storage"
   | "help";
 const panels: Record<Panel, string> = {
   preferences: "Preferences",
@@ -37,6 +39,7 @@ const panels: Record<Panel, string> = {
   alerts: "Alerts",
   providers: "AI providers",
   backup: "Backup",
+  storage: "Storage & retention",
   help: "Keyboard shortcuts",
 };
 function sourceAccessLabel(source: Source) {
@@ -136,6 +139,9 @@ export default function Settings({
   }
   // 0.5 source search and filter state. Local to the panel, never persisted:
   // a source search is a momentary lookup, not a workspace preference.
+  // 0.5 cache disclosure. Derived from the snapshot already in hand, so the
+  // figures can never disagree with what the list is showing.
+  const cache = cacheDisclosure(data.articles);
   const [sourceQuery, setSourceQuery] = useState("");
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const visibleSources = useMemo(
@@ -918,6 +924,49 @@ export default function Settings({
                   </form>
                 );
               })}
+            </>
+          )}
+          {panel === "storage" && (
+            <>
+              <p className="intro">
+                News Terminal keeps a local copy of the stories it shows you so
+                you can read them again without a network connection. That copy
+                is pruned automatically.
+              </p>
+              <div className="cache-summary" aria-label="Cached reading data">
+                <span>{cache.cached} stories cached</span>
+                <span>{cache.unread} unread</span>
+                <span>{cache.saved} saved</span>
+              </div>
+              <h3>What is kept, and for how long</h3>
+              <ul className="retention-list">
+                <li>
+                  An unsaved story is kept for {CACHE_LIMITS.articleDays} days
+                  after you first saw it, and only while it is among the newest{" "}
+                  {CACHE_LIMITS.articleMax.toLocaleString()} stories. Whichever
+                  limit is reached first removes it.
+                </li>
+                <li>
+                  <strong>Saved stories are never pruned.</strong> Saving is how
+                  you keep a story beyond the window above.
+                </li>
+                <li>
+                  Alert receipts are kept for {CACHE_LIMITS.alertReceiptDays}{" "}
+                  days. After that a receipt keeps its time but loses its title.
+                </li>
+                <li>
+                  Undelivered alert attempts are discarded after{" "}
+                  {CACHE_LIMITS.alertAttemptMinutes} minutes.
+                </li>
+                <li>
+                  Pruning removes the local copy only. It never unsaves a story,
+                  and it never contacts the publisher.
+                </li>
+              </ul>
+              <p className="fine">
+                Nothing here is sent anywhere. Cached reading data stays in this
+                Windows user profile, and is included in a backup export.
+              </p>
             </>
           )}
           {panel === "backup" && (
