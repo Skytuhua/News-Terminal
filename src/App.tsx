@@ -544,9 +544,32 @@ export default function App() {
   const navigationRows = collectionRows.filter(a => matchesReadingStatus(a, readingStatus) || readingSequence.current.ids.has(a.id));
   readingSequence.current.ids = new Set(navigationRows.map(a => a.id));
   const pageSize = 100;
+  // 0.5 bulk triage. Scoped to the mounted page, the active profile and the
+  // current filter. Never persisted, and cleared whenever the collection it
+  // was scoped to changes, so it can never act on a row the reader cannot see.
+  const [triage, setTriage] = useState<string[]>([]);
+  const toggleTriage = useCallback((id: string) =>
+    setTriage(current => current.includes(id) ? current.filter(v => v !== id) : [...current, id]), []);
+  const triageKey = JSON.stringify([profileId, active?.id, active?.mode, active?.topic, active?.section, active?.watchlistId, query, kind, readingStatus, page]);
+  const triageScope = useRef(triageKey);
+  if (triageScope.current !== triageKey) { triageScope.current = triageKey; if (triage.length) setTriage([]); }
+  const triageIds = useMemo(() => new Set(triage), [triage]);
   const lastPage = Math.max(0, Math.ceil(rows.length / pageSize) - 1);
   const currentPage = Math.min(page, lastPage);
   const pageRows = rows.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+  const triageArticles = useMemo(
+    () => pageRows.filter(a => triageIds.has(a.id)).slice(0, 200),
+    [pageRows, triageIds],
+  );
+  const applyTriage = (patch: { read?: boolean; saved?: boolean; hidden?: boolean }, verb: string) => {
+    if (!triageArticles.length) return;
+    const items = triageArticles.map(a => ({ articleId: a.id, ...patch }));
+    void action(
+      { op: "article_state_many", profileId, items },
+      `${triageArticles.length} ${verb}`,
+      () => setTriage([]),
+    );
+  };
   function choosePage(value: number) { pageFromControl.current = true; setPage(value); }
   useEffect(() => { setPage(0); }, [profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, readingStatus]);
   useEffect(() => {
@@ -1204,8 +1227,17 @@ export default function App() {
             ))}
           {(active?.section !== "ai" || active.mode !== "all" || aiView === "news") && <>
           <ImageControls />
+          {triageArticles.length > 0 && <div className="bulk-actions" role="region" aria-label="Bulk actions">
+            <span role="status">{triageArticles.length} selected</span>
+            <button type="button" onClick={() => applyTriage({ read: true }, 'stories marked read')}>Mark read</button>
+            <button type="button" onClick={() => applyTriage({ read: false }, 'stories marked unread')}>Mark unread</button>
+            <button type="button" onClick={() => applyTriage({ saved: true }, 'stories saved')}>Save</button>
+            <button type="button" onClick={() => applyTriage({ hidden: true }, 'stories hidden')}>Hide</button>
+            <button type="button" className="quiet" onClick={() => setTriage([])}>Clear</button>
+          </div>}
           <div className="story-list" aria-label="Cached stories">
-            {pageRows.map(a => <HeadlineRow key={a.id} article={a} profileId={profileId} selected={a.id === selectedId} related={counts.get(a.groupId) || 0} onSelect={select} now={now} />)}
+            {pageRows.map(a => <HeadlineRow key={a.id} article={a} profileId={profileId} selected={a.id === selectedId} related={counts.get(a.groupId) || 0} onSelect={select} now={now}
+              triageSelected={triageIds.has(a.id)} onToggleTriage={toggleTriage} />)}
             {active && !rows.length && <EmptyHeadlines hidden={() => navigate({mode:"hidden", title:"Hidden stories"})} data={data} tab={active} query={query} kind={kind} readingStatus={readingStatus}
               retrySearch={() => { setError(''); setSearchFailed(false); setSearching(true); setSearchAttempt(value => value + 1); }}
               failed={searchFailed} busy={searching || refreshing} clear={() => { editQuery(""); setKind(""); setReadingStatus("all"); if (active.topic) patchTab({topic:"", title: active.mode === 'saved' ? 'Saved stories' : 'Headlines'}); }}

@@ -4,12 +4,16 @@ import type { Article } from './types';
 import { compactDate, date } from './model';
 import StoryThumbnail from './StoryThumbnail';
 
-export default memo(function HeadlineRow({ article: a, selected, related, onSelect, now }: {
+export default memo(function HeadlineRow({ article: a, selected, related, onSelect, now, triageSelected, onToggleTriage }: {
   article: Article; profileId: string; selected: boolean; related: number; onSelect: (article: Article) => void;
-  now: Date;
+  now: Date; triageSelected?: boolean; onToggleTriage?: (id: string) => void;
 }) {
   return <article data-testid="story-row" data-article-id={a.id}
-    className={`story-row ${selected ? 'selected' : ''} ${a.read ? 'read' : ''}`}>
+    className={`story-row ${selected ? 'selected' : ''} ${a.read ? 'read' : ''} ${triageSelected ? 'triaged' : ''}`}>
+    {onToggleTriage && <input type="checkbox" className="triage-box"
+      checked={!!triageSelected}
+      aria-label={`Select ${a.title}`}
+      onChange={() => onToggleTriage(a.id)} />}
     <StoryThumbnail article={a} />
     <div className="row-main">
       <div className="row-meta"><span>{!a.read && <span className="unread-dot" />}{a.sourceName}</span>
