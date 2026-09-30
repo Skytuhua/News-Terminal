@@ -969,7 +969,7 @@ fn deliver_alerts(app: &tauri::AppHandle, state: &Backend) {
     }
 }
 
-fn cdp_browser_args(port: &str) -> Result<String, String> {
+pub(crate) fn cdp_browser_args(port: &str) -> Result<String, String> {
     let parsed = port
         .parse::<u16>()
         .map_err(|_| "Invalid NEWS_TERMINAL_CDP_PORT")?;

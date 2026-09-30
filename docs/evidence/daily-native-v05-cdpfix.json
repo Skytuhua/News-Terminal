@@ -1,0 +1,985 @@
+{
+  "startedAt": "2026-09-30T06:35:33.483Z",
+  "executable": "C:\\Users\\user\\Documents\\News Terminal\\src-tauri\\target\\release\\news-terminal.exe",
+  "fixtureLabel": "SYNTHETIC DAILY NATIVE FIXTURE — not real news",
+  "fixtureCount": 251,
+  "checks": [
+    {
+      "name": "actual native runtime and embedded assets",
+      "startedAt": "2026-09-30T06:35:35.697Z",
+      "details": {
+        "assets": [
+          {
+            "url": "http://tauri.localhost/assets/index-hEKP-Bld.js",
+            "sha256": "97321f114c506b2787dbd3a549ea926e4e64fdd51b60de28eae4299e956ccd3b"
+          },
+          {
+            "url": "http://tauri.localhost/assets/index-Bg_WmWlN.css",
+            "sha256": "93534eac124081b94eee1f2893f5c1565a49cd7bbde83bd8a75a1cebf1fcabed"
+          }
+        ],
+        "windows": [
+          {
+            "hwnd": 1053788,
+            "pid": 18636,
+            "title": "News Terminal"
+          }
+        ],
+        "context": {
+          "detached": false,
+          "detachedTabs": [],
+          "label": "main",
+          "profileId": "default",
+          "tabId": null
+        },
+        "webviewDirectory": "C:\\Users\\user\\AppData\\Local\\Temp\\news-terminal-daily-native-G0OjFo\\webview"
+      },
+      "passed": true
+    },
+    {
+      "name": "isolated validated synthetic import with exact count and no active sources",
+      "startedAt": "2026-09-30T06:35:35.887Z",
+      "details": {
+        "count": 251,
+        "source": {
+          "aiAllowed": false,
+          "enabled": false,
+          "homepage": "https://example.invalid/",
+          "id": "daily-native-synthetic",
+          "kind": "reporting",
+          "language": "en",
+          "lastSuccess": null,
+          "mediaAllowed": false,
+          "name": "SYNTHETIC TEST FIXTURE — not news",
+          "region": "global",
+          "status": "Synthetic offline fixture; never fetched",
+          "storage": "metadata",
+          "termsUrl": "https://example.invalid/synthetic",
+          "topics": [
+            "science"
+          ],
+          "url": "https://example.invalid/synthetic/feed"
+        },
+        "orderedFirstPage": [
+          "daily-native-0000",
+          "daily-native-0001",
+          "daily-native-0002",
+          "daily-native-0003",
+          "daily-native-0004",
+          "daily-native-0005",
+          "daily-native-0006",
+          "daily-native-0007",
+          "daily-native-0008",
+          "daily-native-0009",
+          "daily-native-0010",
+          "daily-native-0011",
+          "daily-native-0012",
+          "daily-native-0013",
+          "daily-native-0014",
+          "daily-native-0015",
+          "daily-native-0016",
+          "daily-native-0017",
+          "daily-native-0018",
+          "daily-native-0019",
+          "daily-native-0020",
+          "daily-native-0021",
+          "daily-native-0022",
+          "daily-native-0023",
+          "daily-native-0024",
+          "daily-native-0025",
+          "daily-native-0026",
+          "daily-native-0027",
+          "daily-native-0028",
+          "daily-native-0029",
+          "daily-native-0030",
+          "daily-native-0031",
+          "daily-native-0032",
+          "daily-native-0033",
+          "daily-native-0034",
+          "daily-native-0035",
+          "daily-native-0036",
+          "daily-native-0037",
+          "daily-native-0038",
+          "daily-native-0039",
+          "daily-native-0040",
+          "daily-native-0041",
+          "daily-native-0042",
+          "daily-native-0043",
+          "daily-native-0044",
+          "daily-native-0045",
+          "daily-native-0046",
+          "daily-native-0047",
+          "daily-native-0048",
+          "daily-native-0049",
+          "daily-native-0050",
+          "daily-native-0051",
+          "daily-native-0052",
+          "daily-native-0053",
+          "daily-native-0054",
+          "daily-native-0055",
+          "daily-native-0056",
+          "daily-native-0057",
+          "daily-native-0058",
+          "daily-native-0059",
+          "daily-native-0060",
+          "daily-native-0061",
+          "daily-native-0062",
+          "daily-native-0063",
+          "daily-native-0064",
+          "daily-native-0065",
+          "daily-native-0066",
+          "daily-native-0067",
+          "daily-native-0068",
+          "daily-native-0069",
+          "daily-native-0070",
+          "daily-native-0071",
+          "daily-native-0072",
+          "daily-native-0073",
+          "daily-native-0074",
+          "daily-native-0075",
+          "daily-native-0076",
+          "daily-native-0077",
+          "daily-native-0078",
+          "daily-native-0079",
+          "daily-native-0080",
+          "daily-native-0081",
+          "daily-native-0082",
+          "daily-native-0083",
+          "daily-native-0084",
+          "daily-native-0085",
+          "daily-native-0086",
+          "daily-native-0087",
+          "daily-native-0088",
+          "daily-native-0089",
+          "daily-native-0090",
+          "daily-native-0091",
+          "daily-native-0092",
+          "daily-native-0093",
+          "daily-native-0094",
+          "daily-native-0095",
+          "daily-native-0096",
+          "daily-native-0097",
+          "daily-native-0098",
+          "daily-native-0099"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "Close clears selection but preserves saved and hidden flags",
+      "startedAt": "2026-09-30T06:35:38.968Z",
+      "details": {
+        "articleId": "daily-native-0000",
+        "before": {
+          "read": true,
+          "saved": true,
+          "hidden": false
+        },
+        "after": {
+          "read": true,
+          "saved": true,
+          "hidden": false
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "Hide saved story and Undo restore actual host flags and Saved view",
+      "startedAt": "2026-09-30T06:35:39.475Z",
+      "details": {
+        "articleId": "daily-native-0000",
+        "hidden": {
+          "read": true,
+          "saved": true,
+          "hidden": true
+        },
+        "restored": {
+          "read": true,
+          "saved": true,
+          "hidden": false
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "native pagination enumerates every fixture exactly once with bounded DOM",
+      "startedAt": "2026-09-30T06:35:40.119Z",
+      "details": {
+        "pages": [
+          {
+            "count": 100,
+            "first": "daily-native-0000",
+            "last": "daily-native-0099",
+            "status": "1–100 of 251"
+          },
+          {
+            "count": 100,
+            "first": "daily-native-0100",
+            "last": "daily-native-0199",
+            "status": "101–200 of 251"
+          },
+          {
+            "count": 51,
+            "first": "daily-native-0200",
+            "last": "daily-native-0250",
+            "status": "201–251 of 251"
+          }
+        ],
+        "unique": 251,
+        "ids": [
+          "daily-native-0000",
+          "daily-native-0001",
+          "daily-native-0002",
+          "daily-native-0003",
+          "daily-native-0004",
+          "daily-native-0005",
+          "daily-native-0006",
+          "daily-native-0007",
+          "daily-native-0008",
+          "daily-native-0009",
+          "daily-native-0010",
+          "daily-native-0011",
+          "daily-native-0012",
+          "daily-native-0013",
+          "daily-native-0014",
+          "daily-native-0015",
+          "daily-native-0016",
+          "daily-native-0017",
+          "daily-native-0018",
+          "daily-native-0019",
+          "daily-native-0020",
+          "daily-native-0021",
+          "daily-native-0022",
+          "daily-native-0023",
+          "daily-native-0024",
+          "daily-native-0025",
+          "daily-native-0026",
+          "daily-native-0027",
+          "daily-native-0028",
+          "daily-native-0029",
+          "daily-native-0030",
+          "daily-native-0031",
+          "daily-native-0032",
+          "daily-native-0033",
+          "daily-native-0034",
+          "daily-native-0035",
+          "daily-native-0036",
+          "daily-native-0037",
+          "daily-native-0038",
+          "daily-native-0039",
+          "daily-native-0040",
+          "daily-native-0041",
+          "daily-native-0042",
+          "daily-native-0043",
+          "daily-native-0044",
+          "daily-native-0045",
+          "daily-native-0046",
+          "daily-native-0047",
+          "daily-native-0048",
+          "daily-native-0049",
+          "daily-native-0050",
+          "daily-native-0051",
+          "daily-native-0052",
+          "daily-native-0053",
+          "daily-native-0054",
+          "daily-native-0055",
+          "daily-native-0056",
+          "daily-native-0057",
+          "daily-native-0058",
+          "daily-native-0059",
+          "daily-native-0060",
+          "daily-native-0061",
+          "daily-native-0062",
+          "daily-native-0063",
+          "daily-native-0064",
+          "daily-native-0065",
+          "daily-native-0066",
+          "daily-native-0067",
+          "daily-native-0068",
+          "daily-native-0069",
+          "daily-native-0070",
+          "daily-native-0071",
+          "daily-native-0072",
+          "daily-native-0073",
+          "daily-native-0074",
+          "daily-native-0075",
+          "daily-native-0076",
+          "daily-native-0077",
+          "daily-native-0078",
+          "daily-native-0079",
+          "daily-native-0080",
+          "daily-native-0081",
+          "daily-native-0082",
+          "daily-native-0083",
+          "daily-native-0084",
+          "daily-native-0085",
+          "daily-native-0086",
+          "daily-native-0087",
+          "daily-native-0088",
+          "daily-native-0089",
+          "daily-native-0090",
+          "daily-native-0091",
+          "daily-native-0092",
+          "daily-native-0093",
+          "daily-native-0094",
+          "daily-native-0095",
+          "daily-native-0096",
+          "daily-native-0097",
+          "daily-native-0098",
+          "daily-native-0099",
+          "daily-native-0100",
+          "daily-native-0101",
+          "daily-native-0102",
+          "daily-native-0103",
+          "daily-native-0104",
+          "daily-native-0105",
+          "daily-native-0106",
+          "daily-native-0107",
+          "daily-native-0108",
+          "daily-native-0109",
+          "daily-native-0110",
+          "daily-native-0111",
+          "daily-native-0112",
+          "daily-native-0113",
+          "daily-native-0114",
+          "daily-native-0115",
+          "daily-native-0116",
+          "daily-native-0117",
+          "daily-native-0118",
+          "daily-native-0119",
+          "daily-native-0120",
+          "daily-native-0121",
+          "daily-native-0122",
+          "daily-native-0123",
+          "daily-native-0124",
+          "daily-native-0125",
+          "daily-native-0126",
+          "daily-native-0127",
+          "daily-native-0128",
+          "daily-native-0129",
+          "daily-native-0130",
+          "daily-native-0131",
+          "daily-native-0132",
+          "daily-native-0133",
+          "daily-native-0134",
+          "daily-native-0135",
+          "daily-native-0136",
+          "daily-native-0137",
+          "daily-native-0138",
+          "daily-native-0139",
+          "daily-native-0140",
+          "daily-native-0141",
+          "daily-native-0142",
+          "daily-native-0143",
+          "daily-native-0144",
+          "daily-native-0145",
+          "daily-native-0146",
+          "daily-native-0147",
+          "daily-native-0148",
+          "daily-native-0149",
+          "daily-native-0150",
+          "daily-native-0151",
+          "daily-native-0152",
+          "daily-native-0153",
+          "daily-native-0154",
+          "daily-native-0155",
+          "daily-native-0156",
+          "daily-native-0157",
+          "daily-native-0158",
+          "daily-native-0159",
+          "daily-native-0160",
+          "daily-native-0161",
+          "daily-native-0162",
+          "daily-native-0163",
+          "daily-native-0164",
+          "daily-native-0165",
+          "daily-native-0166",
+          "daily-native-0167",
+          "daily-native-0168",
+          "daily-native-0169",
+          "daily-native-0170",
+          "daily-native-0171",
+          "daily-native-0172",
+          "daily-native-0173",
+          "daily-native-0174",
+          "daily-native-0175",
+          "daily-native-0176",
+          "daily-native-0177",
+          "daily-native-0178",
+          "daily-native-0179",
+          "daily-native-0180",
+          "daily-native-0181",
+          "daily-native-0182",
+          "daily-native-0183",
+          "daily-native-0184",
+          "daily-native-0185",
+          "daily-native-0186",
+          "daily-native-0187",
+          "daily-native-0188",
+          "daily-native-0189",
+          "daily-native-0190",
+          "daily-native-0191",
+          "daily-native-0192",
+          "daily-native-0193",
+          "daily-native-0194",
+          "daily-native-0195",
+          "daily-native-0196",
+          "daily-native-0197",
+          "daily-native-0198",
+          "daily-native-0199",
+          "daily-native-0200",
+          "daily-native-0201",
+          "daily-native-0202",
+          "daily-native-0203",
+          "daily-native-0204",
+          "daily-native-0205",
+          "daily-native-0206",
+          "daily-native-0207",
+          "daily-native-0208",
+          "daily-native-0209",
+          "daily-native-0210",
+          "daily-native-0211",
+          "daily-native-0212",
+          "daily-native-0213",
+          "daily-native-0214",
+          "daily-native-0215",
+          "daily-native-0216",
+          "daily-native-0217",
+          "daily-native-0218",
+          "daily-native-0219",
+          "daily-native-0220",
+          "daily-native-0221",
+          "daily-native-0222",
+          "daily-native-0223",
+          "daily-native-0224",
+          "daily-native-0225",
+          "daily-native-0226",
+          "daily-native-0227",
+          "daily-native-0228",
+          "daily-native-0229",
+          "daily-native-0230",
+          "daily-native-0231",
+          "daily-native-0232",
+          "daily-native-0233",
+          "daily-native-0234",
+          "daily-native-0235",
+          "daily-native-0236",
+          "daily-native-0237",
+          "daily-native-0238",
+          "daily-native-0239",
+          "daily-native-0240",
+          "daily-native-0241",
+          "daily-native-0242",
+          "daily-native-0243",
+          "daily-native-0244",
+          "daily-native-0245",
+          "daily-native-0246",
+          "daily-native-0247",
+          "daily-native-0248",
+          "daily-native-0249",
+          "daily-native-0250"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "J/K cross real page boundary and S persists without key leakage into search",
+      "startedAt": "2026-09-30T06:35:40.680Z",
+      "details": {
+        "from": "daily-native-0099",
+        "next": "daily-native-0100",
+        "saved": {
+          "read": true,
+          "saved": true,
+          "hidden": false
+        },
+        "typingDoesNotSaveOrNavigate": true
+      },
+      "passed": true
+    },
+    {
+      "name": "Unread J J K revisits read history without consuming the third story",
+      "startedAt": "2026-09-30T06:35:41.463Z",
+      "details": {
+        "unreadIds": [
+          "daily-native-0001",
+          "daily-native-0002",
+          "daily-native-0003"
+        ],
+        "returnedTo": "daily-native-0001",
+        "thirdStillUnread": true
+      },
+      "passed": true
+    },
+    {
+      "name": "full-cache search reaches off-page final fixture and keyboard help is operable",
+      "startedAt": "2026-09-30T06:35:43.222Z",
+      "details": {
+        "lastArticleId": "daily-native-0250",
+        "helpOpenedAndClosed": true,
+        "controlKFocus": true
+      },
+      "passed": true
+    },
+    {
+      "name": "main pointer-resized panes are scoped independently per tab",
+      "startedAt": "2026-09-30T06:35:44.466Z",
+      "details": {
+        "mainHomeWidths": {
+          "context": {
+            "detached": false,
+            "detachedTabs": [],
+            "label": "main",
+            "profileId": "default",
+            "tabId": null
+          },
+          "ui": {
+            "width": 1920,
+            "reading": 470,
+            "navigation": 225,
+            "actualReading": 470,
+            "bodyWidth": 1920,
+            "lang": "en"
+          },
+          "storage": {
+            "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+          }
+        },
+        "mainOtherWidths": {
+          "context": {
+            "detached": false,
+            "detachedTabs": [],
+            "label": "main",
+            "profileId": "default",
+            "tabId": null
+          },
+          "ui": {
+            "width": 1920,
+            "reading": 430,
+            "navigation": 205,
+            "actualReading": 430,
+            "bodyWidth": 1920,
+            "lang": "en"
+          },
+          "storage": {
+            "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+            "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+          }
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "real detached native window has independent pane scope",
+      "startedAt": "2026-09-30T06:35:47.624Z",
+      "details": {
+        "detachedWidths": {
+          "context": {
+            "detached": true,
+            "detachedTabs": [
+              {
+                "label": "detached-ca13738b371642ce253bc866",
+                "profileId": "default",
+                "tabId": "home"
+              }
+            ],
+            "label": "detached-ca13738b371642ce253bc866",
+            "profileId": "default",
+            "tabId": "home"
+          },
+          "ui": {
+            "width": 1920,
+            "reading": 330,
+            "navigation": 160,
+            "actualReading": 330,
+            "bodyWidth": 1920,
+            "lang": "en"
+          },
+          "storage": {
+            "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+            "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+            "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+          }
+        },
+        "main": {
+          "context": {
+            "detached": false,
+            "detachedTabs": [
+              {
+                "label": "detached-ca13738b371642ce253bc866",
+                "profileId": "default",
+                "tabId": "home"
+              }
+            ],
+            "label": "main",
+            "profileId": "default",
+            "tabId": null
+          },
+          "ui": {
+            "width": 1920,
+            "reading": 430,
+            "navigation": 205,
+            "actualReading": 430,
+            "bodyWidth": 1920,
+            "lang": "en"
+          },
+          "storage": {
+            "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+            "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+            "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+          }
+        },
+        "windows": [
+          {
+            "hwnd": 592630,
+            "pid": 18636,
+            "title": "News Terminal · Detached workspace"
+          },
+          {
+            "hwnd": 1053788,
+            "pid": 18636,
+            "title": "News Terminal"
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "real app close and restart retains main/detached pane preferences",
+      "startedAt": "2026-09-30T06:35:49.301Z",
+      "details": {
+        "main": {
+          "context": {
+            "detached": false,
+            "detachedTabs": [
+              {
+                "label": "detached-ca13738b371642ce253bc866",
+                "profileId": "default",
+                "tabId": "home"
+              }
+            ],
+            "label": "main",
+            "profileId": "default",
+            "tabId": null
+          },
+          "ui": {
+            "width": 1920,
+            "reading": 430,
+            "navigation": 205,
+            "actualReading": 430,
+            "bodyWidth": 1920,
+            "lang": "en"
+          },
+          "storage": {
+            "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+            "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+            "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+          }
+        },
+        "detached": {
+          "context": {
+            "detached": true,
+            "detachedTabs": [
+              {
+                "label": "detached-ca13738b371642ce253bc866",
+                "profileId": "default",
+                "tabId": "home"
+              }
+            ],
+            "label": "detached-ca13738b371642ce253bc866",
+            "profileId": "default",
+            "tabId": "home"
+          },
+          "ui": {
+            "width": 1920,
+            "reading": 330,
+            "navigation": 160,
+            "actualReading": 330,
+            "bodyWidth": 1920,
+            "lang": "en"
+          },
+          "storage": {
+            "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+            "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+            "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+          }
+        },
+        "windows": [
+          {
+            "hwnd": 1509264,
+            "pid": 47508,
+            "title": "News Terminal · Detached workspace"
+          },
+          {
+            "hwnd": 4065804,
+            "pid": 47508,
+            "title": "News Terminal"
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "reattach restores same tab main widths without copying detached preferences",
+      "startedAt": "2026-09-30T06:35:53.764Z",
+      "passed": false,
+      "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('tab', { name: /Synthetic fixture headlines|Headlines/ }).first()\u001b[22m\n\n    at C:\\Users\\user\\Documents\\News Terminal\\scripts\\daily-native-smoke.mjs:170:237\n    at async check (C:\\Users\\user\\Documents\\News Terminal\\scripts\\daily-native-smoke.mjs:45:18)\n    at async file:///C:/Users/user/Documents/News%20Terminal/scripts/daily-native-smoke.mjs:169:3",
+      "body": "News Terminal\nLocal workspace\nScreens\nShortcuts\n?\nAll headlines\nSynthetic second tab\nAll headlines\nSynthetic second tab\nDetach\nReading profile\nGlobal\nManage profiles\nFocus\nAI\nTechnology\nStocks\nOthers\n245\nDaily briefing\nLive discussion\nAll headlines\n245\nYour brief\nSaved stories\nHidden stories\nAlert history\nWatchlists\nCreate a watchlist\nConnections\nSources & health\n0\nPreferences\nAll headlines\n\nCached news & public discussion\n\n/\nAll types\nreporting\ndiscussion\nofficial notice\nopinion\nRead\nAll\nUnread\nRead\n251 stories\nVisual\nCompact\nAutomatic images contact publishers and reveal your IP address.\nConsent details\nEnable automatic images\nSYNTHETIC TEST FIXTURE — not news\n08:15 PM\nSYNTHETIC fixture report 0200 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:14 PM\nSYNTHETIC fixture report 0201 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:13 PM\nSYNTHETIC fixture report 0202 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:12 PM\nSYNTHETIC fixture report 0203 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:11 PM\nSYNTHETIC fixture report 0204 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:10 PM\nSYNTHETIC fixture report 0205 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:09 PM\nSYNTHETIC fixture report 0206 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:08 PM\nSYNTHETIC fixture report 0207 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:07 PM\nSYNTHETIC fixture report 0208 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:06 PM\nSYNTHETIC fixture report 0209 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:05 PM\nSYNTHETIC fixture report 0210 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:04 PM\nSYNTHETIC fixture report 0211 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:03 PM\nSYNTHETIC fixture report 0212 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:02 PM\nSYNTHETIC fixture report 0213 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:01 PM\nSYNTHETIC fixture report 0214 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n08:00 PM\nSYNTHETIC fixture report 0215 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:59 PM\nSYNTHETIC fixture report 0216 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:58 PM\nSYNTHETIC fixture report 0217 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:57 PM\nSYNTHETIC fixture report 0218 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:56 PM\nSYNTHETIC fixture report 0219 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:55 PM\nSYNTHETIC fixture report 0220 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:54 PM\nSYNTHETIC fixture report 0221 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:53 PM\nSYNTHETIC fixture report 0222 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:52 PM\nSYNTHETIC fixture report 0223 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:51 PM\nSYNTHETIC fixture report 0224 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:50 PM\nSYNTHETIC fixture report 0225 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:49 PM\nSYNTHETIC fixture report 0226 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:48 PM\nSYNTHETIC fixture report 0227 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:47 PM\nSYNTHETIC fixture report 0228 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:46 PM\nSYNTHETIC fixture report 0229 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:45 PM\nSYNTHETIC fixture report 0230 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:44 PM\nSYNTHETIC fixture report 0231 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:43 PM\nSYNTHETIC fixture report 0232 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:42 PM\nSYNTHETIC fixture report 0233 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:41 PM\nSYNTHETIC fixture report 0234 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:40 PM\nSYNTHETIC fixture report 0235 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:39 PM\nSYNTHETIC fixture report 0236 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:38 PM\nSYNTHETIC fixture report 0237 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:37 PM\nSYNTHETIC fixture report 0238 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:36 PM\nSYNTHETIC fixture report 0239 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:35 PM\nSYNTHETIC fixture report 0240 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:34 PM\nSYNTHETIC fixture report 0241 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:33 PM\nSYNTHETIC fixture report 0242 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:32 PM\nSYNTHETIC fixture report 0243 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:31 PM\nSYNTHETIC fixture report 0244 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:30 PM\nSYNTHETIC fixture report 0245 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:29 PM\nSYNTHETIC fixture report 0246 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:28 PM\nSYNTHETIC fixture report 0247 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:27 PM\nSYNTHETIC fixture report 0248 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:26 PM\nSYNTHETIC fixture report 0249 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n07:25 PM\nSYNTHETIC fixture report 0250 — not real news\nScience\nothers\nFirst\nPrevious\n201–251 of 251\nNext\nLast\nReading pane\nMark unread\nHide\nSYNTHETIC TEST FIXTURE — not news\nreporting\nSYNTHETIC fixture report 0250 — not real news\n\n9/29/2026, 7:25:37 PM\n\nOpen original\nhttps://example.invalid/synthetic/250\nPublisher excerpt\n\nThis source provides metadata only. Read the original for the full report.\n\nCached feed excerpt. The full article may require publisher access.\n\nWhy this story\nRecency: 4 hours since publication\nLanguage match: en\nSource diversity cap relaxed: insufficient alternative-source coverage\nOptional AI summary\nConfigure AI\n\nOn demand only. Enabled, consented providers may be tried in fallback order; your original excerpt remains available if every provider fails.\n\nThis item is not eligible for AI processing under the current source and item permissions.\n\nSummarize excerpt\nLikely related coverage\n1 report\n\nGrouped by headline similarity and timing, not a verified shared event or a measure of independent reporting.\n\nCompare coverage\nStory timeline\nPublisher timestamp\n9/29/2026, 7:25:37 PM\nFirst seen in this workspace\n9/29/2026, 7:25:37 PM\n\nFeed and ingestion timestamps are not the chronology of the underlying event.\n\nLast refresh 9/29/2026, 11:35:36 PM\n0 enabled sources\nLocal cache · No account required"
+    },
+    {
+      "name": "no frontend page errors and fixture isolation retained",
+      "startedAt": "2026-09-30T06:36:14.211Z",
+      "details": {
+        "pageErrors": [],
+        "consoleErrors": [],
+        "articleCount": 251
+      },
+      "passed": true
+    }
+  ],
+  "launches": [
+    {
+      "port": 59390,
+      "startedAt": "2026-09-30T06:35:33.596Z",
+      "stderr": "[0929/233550.148:ERROR:ui\\gfx\\win\\window_impl.cc:172] Failed to unregister class Chrome_WidgetWin_0. Error = 1412\r\n",
+      "pid": 18636,
+      "url": "http://tauri.localhost/",
+      "windows": [
+        {
+          "hwnd": 1053788,
+          "pid": 18636,
+          "title": "News Terminal"
+        }
+      ],
+      "termination": {
+        "pid": 18636,
+        "requestedGraceful": true,
+        "forceKilled": false,
+        "windows": [
+          {
+            "hwnd": 592630,
+            "pid": 18636,
+            "title": "News Terminal · Detached workspace"
+          },
+          {
+            "hwnd": 1053788,
+            "pid": 18636,
+            "title": "News Terminal"
+          }
+        ],
+        "exitCode": 0,
+        "finishedAt": "2026-09-30T06:35:50.202Z"
+      }
+    },
+    {
+      "port": 58724,
+      "startedAt": "2026-09-30T06:35:50.226Z",
+      "stderr": "",
+      "pid": 47508,
+      "url": "http://tauri.localhost/",
+      "windows": [
+        {
+          "hwnd": 1509264,
+          "pid": 47508,
+          "title": "News Terminal · Detached workspace"
+        },
+        {
+          "hwnd": 4065804,
+          "pid": 47508,
+          "title": "News Terminal"
+        }
+      ],
+      "termination": {
+        "pid": 47508,
+        "requestedGraceful": true,
+        "forceKilled": false,
+        "windows": [
+          {
+            "hwnd": 4065804,
+            "pid": 47508,
+            "title": "News Terminal"
+          }
+        ],
+        "exitCode": 0,
+        "finishedAt": "2026-09-30T06:36:14.847Z"
+      }
+    }
+  ],
+  "screenshots": [
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-cdpfix-synthetic-first-page.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-cdpfix-saved-hidden-undo.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-cdpfix-saved-restored.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-cdpfix-last-page.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-cdpfix-keyboard-page-crossing.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-cdpfix-unread-history.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-cdpfix-off-page-search.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-cdpfix-main-pane-width.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-cdpfix-detached-pane-width.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-cdpfix-main-restarted.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-cdpfix-detached-restarted.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-cdpfix-failure-12.png"
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "limitations": [
+    "Only the recorded executable hash is accepted. No build or claim of source-to-binary freshness is made.",
+    "251 explicitly synthetic stories imported through the real validated native backup API into newly-created temporary appdata. IPC and DOM are not mocked.",
+    "Screenshots are actual native WebView2 content, not OS window chrome. Native window identities are independently recorded with Win32.",
+    "Default startup refresh may begin before sources can be disabled; it is drained before replacing isolated contents with fixtures. All fixture-phase sources/providers are disabled.",
+    "No network/AI/feed quality, hot-unplug, installer, or physical DPI acceptance is implied. No unrelated process or existing model service is touched."
+  ],
+  "executableSha256": "23907f41d651dd8c5524750110dbf031e9ef92d806e798c491c032bc5f3dcf23",
+  "executableModifiedAt": "2026-09-30T06:35:21.294Z",
+  "scriptSha256": "43339c91dd1d27d4d09208e643f464a1caede88d8bc8492e7bcfdefbc0512dda",
+  "dataDirectory": "C:\\Users\\user\\AppData\\Local\\Temp\\news-terminal-daily-native-G0OjFo",
+  "launchedExecutable": "C:\\Users\\user\\AppData\\Local\\Temp\\news-terminal-daily-native-G0OjFo\\daily-native-app.exe",
+  "beforeRestart": {
+    "main": {
+      "context": {
+        "detached": false,
+        "detachedTabs": [
+          {
+            "label": "detached-ca13738b371642ce253bc866",
+            "profileId": "default",
+            "tabId": "home"
+          }
+        ],
+        "label": "main",
+        "profileId": "default",
+        "tabId": null
+      },
+      "ui": {
+        "width": 1920,
+        "reading": 430,
+        "navigation": 205,
+        "actualReading": 430,
+        "bodyWidth": 1920,
+        "lang": "en"
+      },
+      "storage": {
+        "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+        "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+        "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+      }
+    },
+    "detached": {
+      "context": {
+        "detached": true,
+        "detachedTabs": [
+          {
+            "label": "detached-ca13738b371642ce253bc866",
+            "profileId": "default",
+            "tabId": "home"
+          }
+        ],
+        "label": "detached-ca13738b371642ce253bc866",
+        "profileId": "default",
+        "tabId": "home"
+      },
+      "ui": {
+        "width": 1920,
+        "reading": 330,
+        "navigation": 160,
+        "actualReading": 330,
+        "bodyWidth": 1920,
+        "lang": "en"
+      },
+      "storage": {
+        "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+        "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+        "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+      }
+    },
+    "states": [
+      {
+        "id": "daily-native-0000",
+        "read": true,
+        "saved": true,
+        "hidden": false
+      },
+      {
+        "id": "daily-native-0099",
+        "read": true,
+        "saved": true,
+        "hidden": false
+      }
+    ]
+  },
+  "afterRestart": {
+    "main": {
+      "context": {
+        "detached": false,
+        "detachedTabs": [
+          {
+            "label": "detached-ca13738b371642ce253bc866",
+            "profileId": "default",
+            "tabId": "home"
+          }
+        ],
+        "label": "main",
+        "profileId": "default",
+        "tabId": null
+      },
+      "ui": {
+        "width": 1920,
+        "reading": 430,
+        "navigation": 205,
+        "actualReading": 430,
+        "bodyWidth": 1920,
+        "lang": "en"
+      },
+      "storage": {
+        "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+        "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+        "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+      }
+    },
+    "detached": {
+      "context": {
+        "detached": true,
+        "detachedTabs": [
+          {
+            "label": "detached-ca13738b371642ce253bc866",
+            "profileId": "default",
+            "tabId": "home"
+          }
+        ],
+        "label": "detached-ca13738b371642ce253bc866",
+        "profileId": "default",
+        "tabId": "home"
+      },
+      "ui": {
+        "width": 1920,
+        "reading": 330,
+        "navigation": 160,
+        "actualReading": 330,
+        "bodyWidth": 1920,
+        "lang": "en"
+      },
+      "storage": {
+        "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+        "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+        "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+      }
+    },
+    "windows": [
+      {
+        "hwnd": 1509264,
+        "pid": 47508,
+        "title": "News Terminal · Detached workspace"
+      },
+      {
+        "hwnd": 4065804,
+        "pid": 47508,
+        "title": "News Terminal"
+      }
+    ]
+  },
+  "finishedAt": "2026-09-30T06:36:14.858Z",
+  "summary": {
+    "checks": 13,
+    "passed": 12,
+    "failed": 1
+  },
+  "passed": false
+}
