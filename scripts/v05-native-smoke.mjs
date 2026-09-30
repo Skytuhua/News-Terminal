@@ -51,7 +51,7 @@ const invoke = (page, request) =>
 const snapshot = (page = main) => invoke(page, { op: 'snapshot', profileId: 'default' });
 const rows = (page = main) => page.getByTestId('story-row');
 const state = (a) => ({ read: a.read, saved: a.saved, hidden: a.hidden });
-function osWindows() {
+function osWindows(close=false) {
   // Visible windows with a non-empty title only. Without those two filters the
   // enumeration also returns IME helper windows owned by the same process,
   // which made a correct single-window launch look like four.
@@ -67,12 +67,14 @@ def cb(h,p):
     pid=w.DWORD();u.GetWindowThreadProcessId(h,c.byref(pid))
     if pid.value==a['pid'] and u.IsWindowVisible(h):
         t=c.create_unicode_buffer(512);u.GetWindowTextW(h,t,512)
-        if t.value: windows.append(dict(hwnd=int(h),pid=pid.value,title=t.value,visible=True))
+        if t.value:
+            windows.append(dict(hwnd=int(h),pid=pid.value,title=t.value,visible=True))
+            if a.get('close') and t.value=='News Terminal': u.PostMessageW(h,16,0,0)
     return True
 u.EnumWindows(cb,0)
 print(json.dumps(windows))`;
   return JSON.parse(execFileSync(process.env.V05_NATIVE_PYTHON || 'python',
-    ['-c', osPython, JSON.stringify({ pid: app.pid })], { encoding: 'utf8', timeout: 15000 }));
+    ['-c', osPython, JSON.stringify({ pid: app.pid, ...(close ? { close: true } : {}) })], { encoding: 'utf8', timeout: 15000 }));
 }
 async function ready(page) {
   page.setDefaultTimeout(20000);
@@ -374,10 +376,28 @@ try {
     fatalError: evidence.fatalError }, null, 2));
   process.exitCode = 1;
 } finally {
+  // Mark cleanup BEFORE acting, so the exit timestamp can be attributed: an
+  // appExit at or after this point was caused by our own taskkill, while one
+  // before it happened during the checks and is a genuine crash.
+  evidence.cleanupStartedAt = new Date().toISOString();
+  evidence.appAliveAtCleanup = !!(app && app.exitCode === null);
+  save();
   try { await browser?.close(); } catch {}
+  // Graceful close first (WM_CLOSE to the owned window, as the daily smoke
+  // does), then force only if the app ignores it. The previous direct
+  // taskkill /F produced exit code 1 and looked like an unexplained crash;
+  // attribution showed the app was alive and idle when killed.
   if (app && app.exitCode === null) {
-    const r = spawnSync('taskkill.exe', ['/PID', String(app.pid), '/T', '/F'], { encoding: 'utf8' });
-    evidence.cleanup = { pid: app.pid, status: r.status };
+    // WM_CLOSE to the owned window, exactly as the daily smoke does it.
+    osWindows(true);
+    await until(async () => app.exitCode !== null, 'graceful close timeout', 8000).catch(() => {});
+    const forced = app.exitCode === null;
+    if (forced) {
+      const r = spawnSync('taskkill.exe', ['/PID', String(app.pid), '/T', '/F'], { encoding: 'utf8' });
+      evidence.cleanup = { pid: app.pid, status: r.status, forced: true };
+    } else {
+      evidence.cleanup = { pid: app.pid, forced: false, exitCode: app.exitCode };
+    }
     save();
   }
 }

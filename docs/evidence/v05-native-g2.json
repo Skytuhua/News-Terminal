@@ -1,0 +1,187 @@
+{
+  "startedAt": "2026-09-30T03:53:16.163Z",
+  "executable": "C:\\Users\\user\\Documents\\News Terminal\\src-tauri\\target\\release\\news-terminal.exe",
+  "fixtureLabel": "SYNTHETIC 0.5 FIXTURE — not real news",
+  "fixtureCount": 6,
+  "checks": [
+    {
+      "name": "actual native runtime and embedded assets",
+      "passed": true,
+      "detail": {
+        "assets": [
+          {
+            "url": "http://tauri.localhost/assets/index-hEKP-Bld.js",
+            "sha256": "97321f114c506b2787dbd3a549ea926e4e64fdd51b60de28eae4299e956ccd3b"
+          },
+          {
+            "url": "http://tauri.localhost/assets/index-Bg_WmWlN.css",
+            "sha256": "93534eac124081b94eee1f2893f5c1565a49cd7bbde83bd8a75a1cebf1fcabed"
+          }
+        ],
+        "windows": [
+          {
+            "hwnd": 4786044,
+            "pid": 35368,
+            "title": "News Terminal",
+            "visible": true
+          }
+        ]
+      },
+      "startedAt": "2026-09-30T03:53:16.906Z",
+      "finishedAt": "2026-09-30T03:53:17.107Z"
+    },
+    {
+      "name": "isolated validated synthetic import with exact count and no active sources",
+      "passed": true,
+      "detail": {
+        "count": 6,
+        "replacementTokenPresent": true
+      },
+      "startedAt": "2026-09-30T03:53:17.108Z",
+      "finishedAt": "2026-09-30T03:53:18.348Z"
+    },
+    {
+      "name": "bulk triage writes through article_state_many and the real host",
+      "passed": true,
+      "detail": {
+        "targets": [
+          {
+            "id": "v05-000",
+            "read": false,
+            "saved": true,
+            "hidden": false
+          },
+          {
+            "id": "v05-001",
+            "read": false,
+            "saved": true,
+            "hidden": false
+          }
+        ]
+      },
+      "startedAt": "2026-09-30T03:53:18.349Z",
+      "finishedAt": "2026-09-30T03:53:18.569Z"
+    },
+    {
+      "name": "bulk hide applies to every selected row through the host",
+      "passed": true,
+      "detail": {
+        "id": "v05-000",
+        "read": false,
+        "saved": true,
+        "hidden": true
+      },
+      "startedAt": "2026-09-30T03:53:18.571Z",
+      "finishedAt": "2026-09-30T03:53:18.705Z"
+    },
+    {
+      "name": "X, M and Escape act on the real native window",
+      "passed": true,
+      "detail": {
+        "hiddenByX": "v05-001",
+        "toggledByM": "v05-002",
+        "read": false
+      },
+      "startedAt": "2026-09-30T03:53:18.706Z",
+      "finishedAt": "2026-09-30T03:53:19.078Z"
+    },
+    {
+      "name": "reading status selector filters the native list",
+      "passed": true,
+      "detail": {
+        "unread": 4,
+        "read": 0,
+        "total": 6
+      },
+      "startedAt": "2026-09-30T03:53:19.080Z",
+      "finishedAt": "2026-09-30T03:53:19.181Z"
+    },
+    {
+      "name": "alert_receipts is profile-scoped and explicit through the real host",
+      "passed": true,
+      "detail": {
+        "count": 0,
+        "emptyBecauseNoWatchlistAlertsFired": true
+      },
+      "startedAt": "2026-09-30T03:53:19.183Z",
+      "finishedAt": "2026-09-30T03:53:19.215Z"
+    },
+    {
+      "name": "Alert history view renders from real receipts without a blank row",
+      "passed": true,
+      "detail": {
+        "hostReceipts": 0
+      },
+      "startedAt": "2026-09-30T03:53:19.218Z",
+      "finishedAt": "2026-09-30T03:53:19.509Z"
+    },
+    {
+      "name": "source search and filter narrow the native directory",
+      "passed": true,
+      "detail": {
+        "total": 70,
+        "narrowed": 1
+      },
+      "startedAt": "2026-09-30T03:53:19.511Z",
+      "finishedAt": "2026-09-30T03:53:20.011Z"
+    },
+    {
+      "name": "cache disclosure states the real retention policy and live counts",
+      "passed": true,
+      "detail": {
+        "cached": 6,
+        "saved": 2,
+        "unread": 5
+      },
+      "startedAt": "2026-09-30T03:53:20.012Z",
+      "finishedAt": "2026-09-30T03:53:20.883Z"
+    }
+  ],
+  "launches": [
+    {
+      "port": 59135,
+      "startedAt": "2026-09-30T03:53:16.169Z",
+      "stderr": "",
+      "pid": 35368
+    }
+  ],
+  "screenshots": [
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\v05-native-g2-imported.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\v05-native-g2-bulk-saved.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\v05-native-g2-keyboard-shortcuts.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\v05-native-g2-alert-history.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\v05-native-g2-source-search.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\v05-native-g2-cache-disclosure.png"
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "limitations": [
+    "Only the recorded executable hash is accepted. No build or claim of source-to-binary freshness is made.",
+    "6 explicitly synthetic stories imported through the real validated native backup API into a newly-created temporary appdata directory. IPC and DOM are not mocked.",
+    "Covers the 0.5 features only. The 0.3-era daily workflow is covered by scripts/daily-native-smoke.mjs.",
+    "The detached-window check is deliberately excluded: a window created after startup does not register a CDP target, so the harness cannot observe it. See docs/v05-native-acceptance.md.",
+    "No network/AI/feed quality, installer, physical DPI, or Windows notification toast acceptance is implied."
+  ],
+  "launchedExecutable": "C:\\Users\\user\\Documents\\News Terminal\\src-tauri\\target\\release\\news-terminal.exe",
+  "summary": {
+    "checks": 10,
+    "passed": 10,
+    "failed": 0
+  },
+  "passed": true,
+  "pageErrorCount": 0,
+  "consoleErrorCount": 0,
+  "cleanupStartedAt": "2026-09-30T03:53:20.913Z",
+  "appAliveAtCleanup": true,
+  "mainPageClosed": "2026-09-30T03:53:20.962Z",
+  "appExit": {
+    "code": 0,
+    "signal": null,
+    "at": "2026-09-30T03:53:21.196Z"
+  },
+  "cleanup": {
+    "pid": 35368,
+    "forced": false,
+    "exitCode": 0
+  }
+}
