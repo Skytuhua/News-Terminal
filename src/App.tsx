@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpRight,
+  Bell,
   Bookmark,
   Check,
   ChevronLeft,
@@ -23,9 +24,11 @@ import {
   dispatch,
   runtimeAvailable,
   subscribe,
+  subscribeAlertStatus,
   type Request,
   type WindowContext,
 } from "./ipc";
+import AlertHistory from "./AlertHistory";
 import { date, sourceFailed, filterArticles, focusSections, relatedCounts, reconcileArticles, topics, matchesReadingStatus, unreadCounts, type ReadingStatus } from "./model";
 import { coalescedRead } from "./coalescedRead";
 import SettingsPanel from "./Settings";
@@ -56,6 +59,7 @@ type Panel =
   | "alerts"
   | "providers"
   | "backup"
+  | "storage"
   | "help";
 const freshTab = (): Tab => ({
   id: crypto.randomUUID(),
@@ -515,6 +519,18 @@ export default function App() {
   const acceptedArticles = useMemo(() => new Map(data?.articles.map((a) => [a.id, a])), [data?.articles]);
   const metadataView = active?.mode === "all" && active.section === "ai" && aiView !== "news";
   const reportView = metadataView || active?.mode === "briefing" || active?.mode === "live" || active?.mode === "hidden";
+  // 0.5: the host emits notification-status when Windows delivery fails. Before
+  // this nothing listened, so a silenced alert was indistinguishable from a
+  // delivered one. The text is host-authored and shown verbatim.
+  const [alertWarning, setAlertWarning] = useState("");
+  useEffect(() => {
+    let stop = () => {};
+    let live = true;
+    void subscribeAlertStatus((message) => {
+      if (live && message) setAlertWarning(message);
+    }).then((un) => { if (live) stop = un; else un(); });
+    return () => { live = false; stop(); };
+  }, []);
   const collectionRows = useMemo(() =>
     active && data && !reportView
       ? filterArticles(
@@ -544,9 +560,32 @@ export default function App() {
   const navigationRows = collectionRows.filter(a => matchesReadingStatus(a, readingStatus) || readingSequence.current.ids.has(a.id));
   readingSequence.current.ids = new Set(navigationRows.map(a => a.id));
   const pageSize = 100;
+  // 0.5 bulk triage. Scoped to the mounted page, the active profile and the
+  // current filter. Never persisted, and cleared whenever the collection it
+  // was scoped to changes, so it can never act on a row the reader cannot see.
+  const [triage, setTriage] = useState<string[]>([]);
+  const toggleTriage = useCallback((id: string) =>
+    setTriage(current => current.includes(id) ? current.filter(v => v !== id) : [...current, id]), []);
+  const triageKey = JSON.stringify([profileId, active?.id, active?.mode, active?.topic, active?.section, active?.watchlistId, query, kind, readingStatus, page]);
+  const triageScope = useRef(triageKey);
+  if (triageScope.current !== triageKey) { triageScope.current = triageKey; if (triage.length) setTriage([]); }
+  const triageIds = useMemo(() => new Set(triage), [triage]);
   const lastPage = Math.max(0, Math.ceil(rows.length / pageSize) - 1);
   const currentPage = Math.min(page, lastPage);
   const pageRows = rows.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+  const triageArticles = useMemo(
+    () => pageRows.filter(a => triageIds.has(a.id)).slice(0, 200),
+    [pageRows, triageIds],
+  );
+  const applyTriage = (patch: { read?: boolean; saved?: boolean; hidden?: boolean }, verb: string) => {
+    if (!triageArticles.length) return;
+    const items = triageArticles.map(a => ({ articleId: a.id, ...patch }));
+    void action(
+      { op: "article_state_many", profileId, items },
+      `${triageArticles.length} ${verb}`,
+      () => setTriage([]),
+    );
+  };
   function choosePage(value: number) { pageFromControl.current = true; setPage(value); }
   useEffect(() => { setPage(0); }, [profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, readingStatus]);
   useEffect(() => {
@@ -691,6 +730,26 @@ export default function App() {
             .querySelector(`[data-article-id="${CSS.escape(a.id)}"]`)
             ?.scrollIntoView({ block: "nearest", behavior: "instant" });
         }
+      } else if (e.key === "x" && selected) {
+        e.preventDefault();
+        void action({
+          op: "article_state",
+          profileId,
+          articleId: selected.id,
+          hidden: true,
+        }, "Story hidden");
+      } else if (e.key === "m" && selected) {
+        e.preventDefault();
+        void action({
+          op: "article_state",
+          profileId,
+          articleId: selected.id,
+          read: !selected.read,
+        }, selected.read ? "Marked unread" : "Marked read");
+      } else if (e.key === "Escape" && selectedId) {
+        // Empty the reading pane rather than leaving a stale story on screen.
+        e.preventDefault();
+        closeStory();
       } else if (e.key === "s" && selected) {
         e.preventDefault();
         void action({
@@ -1036,6 +1095,7 @@ export default function App() {
               {badge(badges?.saved)}
             </button>
             <button className={active?.mode === "hidden" ? "chosen" : ""} aria-label="Hidden stories" onClick={() => navigate({mode:"hidden", title:"Hidden stories"})}><ListFilter size={16} />Hidden stories{badge(badges?.hidden)}</button>
+            <button className={active?.mode === "alerts" ? "chosen" : ""} aria-label="Alert history" onClick={() => navigate({mode:"alerts", title:"Alert history"})}><Bell size={16} />Alert history</button>
             <div className="nav-heading">
               <span>Watchlists</span>
               <button
@@ -1096,9 +1156,18 @@ export default function App() {
           onChange={value => pane.update('nav', value)}
           onCommit={value => pane.update('nav', value, true)}
         />
-        {active?.mode === "hidden" ? (!importing.current && !profilePending && !workspaceInvalid && <HiddenStories key={`${profileId}:${active.id}:${recoveryEpoch}`} profileId={profileId} replacementToken={data.replacementToken} isCurrent={() => !importing.current && !switchingProfile.current && dataRef.current?.replacementToken === data.replacementToken} browse={() => navigate({mode:"all", title:"Headlines"})} />) : active?.mode === "briefing" ? <Briefing key={`${profileId}:${active.id}`} profileId={profileId} inputRevision={briefingInput} providers={data.providers} configure={() => setPanel("providers")} /> : active?.mode === "live" ? <LiveDiscussion key={`${profileId}:${active.id}`} /> : <>
+        {active?.mode === "hidden" ? (!importing.current && !profilePending && !workspaceInvalid && <HiddenStories key={`${profileId}:${active.id}:${recoveryEpoch}`} profileId={profileId} replacementToken={data.replacementToken} isCurrent={() => !importing.current && !switchingProfile.current && dataRef.current?.replacementToken === data.replacementToken} browse={() => navigate({mode:"all", title:"Headlines"})} />) : active?.mode === "alerts" ? <AlertHistory key={`${profileId}`} profileId={profileId} /> : active?.mode === "briefing" ? <Briefing key={`${profileId}:${active.id}`} profileId={profileId} inputRevision={briefingInput} providers={data.providers} configure={() => setPanel("providers")} /> : active?.mode === "live" ? <LiveDiscussion key={`${profileId}:${active.id}`} /> : <>
         <main className="headlines" aria-label="Headlines">
-          <div className="list-heading">
+            {alertWarning && (
+              <div className="alert-warning" role="status" aria-label="Alert delivery problem">
+                <span>{alertWarning}</span>
+                <button onClick={() => navigate({mode:"alerts", title:"Alert history"})}>Show alert history</button>
+                <button className="icon" aria-label="Dismiss alert warning" onClick={() => setAlertWarning("")}>
+                  <X size={15} />
+                </button>
+              </div>
+            )}
+            <div className="list-heading">
             <div>
               <h2>{active?.title || "Workspace"}</h2>
               <p>
@@ -1141,7 +1210,7 @@ export default function App() {
                 ),
               )}
             </select>
-            <label className="field">
+            <label className="check">
               Read
               <select
                 value={readingStatus}
@@ -1204,8 +1273,17 @@ export default function App() {
             ))}
           {(active?.section !== "ai" || active.mode !== "all" || aiView === "news") && <>
           <ImageControls />
+          {triageArticles.length > 0 && <div className="bulk-actions" role="region" aria-label="Bulk actions">
+            <span role="status">{triageArticles.length} selected</span>
+            <button type="button" onClick={() => applyTriage({ read: true }, 'stories marked read')}>Mark read</button>
+            <button type="button" onClick={() => applyTriage({ read: false }, 'stories marked unread')}>Mark unread</button>
+            <button type="button" onClick={() => applyTriage({ saved: true }, 'stories saved')}>Save</button>
+            <button type="button" onClick={() => applyTriage({ hidden: true }, 'stories hidden')}>Hide</button>
+            <button type="button" className="quiet" onClick={() => setTriage([])}>Clear</button>
+          </div>}
           <div className="story-list" aria-label="Cached stories">
-            {pageRows.map(a => <HeadlineRow key={a.id} article={a} profileId={profileId} selected={a.id === selectedId} related={counts.get(a.groupId) || 0} onSelect={select} now={now} />)}
+            {pageRows.map(a => <HeadlineRow key={a.id} article={a} profileId={profileId} selected={a.id === selectedId} related={counts.get(a.groupId) || 0} onSelect={select} now={now}
+              triageSelected={triageIds.has(a.id)} onToggleTriage={toggleTriage} />)}
             {active && !rows.length && <EmptyHeadlines hidden={() => navigate({mode:"hidden", title:"Hidden stories"})} data={data} tab={active} query={query} kind={kind} readingStatus={readingStatus}
               retrySearch={() => { setError(''); setSearchFailed(false); setSearching(true); setSearchAttempt(value => value + 1); }}
               failed={searchFailed} busy={searching || refreshing} clear={() => { editQuery(""); setKind(""); setReadingStatus("all"); if (active.topic) patchTab({topic:"", title: active.mode === 'saved' ? 'Saved stories' : 'Headlines'}); }}

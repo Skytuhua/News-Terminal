@@ -98,7 +98,7 @@ async function setReadingByKeyboard(page,value) {
 }
 async function getIds(page) {return rows(page).evaluateAll(rs=>rs.map(r=>r.getAttribute('data-article-id')));}
 async function allHeadlines(page=main) {
-  await page.getByRole('button',{name:'All headlines',exact:true}).click();await page.getByRole('searchbox').fill('');await page.getByLabel('Unread',{exact:true}).uncheck();await expect(rows(page)).toHaveCount(100);
+  await page.getByRole('button',{name:'All headlines',exact:true}).click();await page.getByRole('searchbox').fill('');await page.getByLabel('Reading status',{exact:true}).selectOption('all');await expect(rows(page)).toHaveCount(100);
 }
 let orderedIds=[],firstId,firstTitle,mainHomeWidths,mainOtherWidths,detachedWidths;
 try {
@@ -140,11 +140,11 @@ try {
     await main.keyboard.press('/');await expect(main.getByRole('searchbox')).toBeFocused();await main.keyboard.type('jks');assert.equal(await main.getByRole('searchbox').inputValue(),'jks');assert.deepEqual(state(await article(orderedIds[99])),saved);await main.getByRole('searchbox').fill('');await expect(rows(main)).toHaveCount(100);return {from:orderedIds[99],next:orderedIds[100],saved,typingDoesNotSaveOrNavigate:true};
   });
   await check('Unread J J K revisits read history without consuming the third story',async()=>{
-    await allHeadlines();if(await main.getByLabel('Close story',{exact:true}).count())await main.getByLabel('Close story',{exact:true}).click();await main.getByLabel('Unread',{exact:true}).check();await main.locator('.list-heading h2').click();
+    await allHeadlines();if(await main.getByLabel('Close story',{exact:true}).count())await main.getByLabel('Close story',{exact:true}).click();await main.getByLabel('Reading status',{exact:true}).selectOption('unread');await main.locator('.list-heading h2').click();
     const unreadIds=(await getIds(main)).slice(0,3);assert.equal(unreadIds.length,3);const titles=await Promise.all(unreadIds.map(async id=>(await article(id)).title));
     await main.keyboard.press('j');await expect(main.locator('.detail h2')).toHaveText(titles[0]);await until(async()=>(await article(unreadIds[0])).read,'First J did not mark first unread story read');
     await main.keyboard.press('j');await expect(main.locator('.detail h2')).toHaveText(titles[1]);await until(async()=>(await article(unreadIds[1])).read,'Second J did not mark second unread story read');
-    await main.keyboard.press('k');await expect(main.locator('.detail h2')).toHaveText(titles[0]);assert.equal((await article(unreadIds[2])).read,false);await shot('unread-history');await main.getByLabel('Unread',{exact:true}).uncheck();return {unreadIds,returnedTo:unreadIds[0],thirdStillUnread:true};
+    await main.keyboard.press('k');await expect(main.locator('.detail h2')).toHaveText(titles[0]);assert.equal((await article(unreadIds[2])).read,false);await shot('unread-history');await main.getByLabel('Reading status',{exact:true}).selectOption('all');return {unreadIds,returnedTo:unreadIds[0],thirdStillUnread:true};
   });
   await check('full-cache search reaches off-page final fixture and keyboard help is operable',async()=>{
     const last=await article(orderedIds.at(-1));await main.getByRole('searchbox').fill(last.title.split(' — ')[0]);await expect(rows(main)).toHaveCount(1);assert.equal((await getIds(main))[0],last.id);await main.locator('.headline').click();await expect(main.locator('.detail h2')).toHaveText(last.title);await shot('off-page-search');
@@ -155,7 +155,7 @@ try {
     const monitors=await invoke(main,{op:'window_monitors'});const target=[...monitors.monitors].sort((a,b)=>b.width/b.scaleFactor-a.width/a.scaleFactor)[0];await invoke(main,{op:'window_move',monitorId:target.id,layout:'full'});await until(async()=>(await main.evaluate(()=>innerWidth))>=1100,'Need real native display at least 1100 CSS pixels wide');
     const d=divider(main);await expect(d).toHaveAttribute('aria-valuenow','390');const box=await d.boundingBox();await main.mouse.move(box.x+box.width/2,box.y+80);await main.mouse.down();await main.mouse.move(box.x+box.width/2-80,box.y+80,{steps:8});await main.mouse.up();await expect(d).toHaveAttribute('aria-valuenow','470');
     await divider(main,'Navigation').focus();await main.keyboard.press('ArrowRight');await main.keyboard.press('ArrowRight');await expect(divider(main,'Navigation')).toHaveAttribute('aria-valuenow','225');mainHomeWidths=await paneState(main);assert.equal(mainHomeWidths.ui.actualReading,470);
-    await main.getByRole('tab',{name:'Synthetic second tab',exact:true}).click();await expect(d).toHaveAttribute('aria-valuenow','390');await setReadingByKeyboard(main,430);mainOtherWidths=await paneState(main);await main.getByRole('tab',{name:/Synthetic fixture headlines|Headlines/,exact:true}).first().click();await expect(d).toHaveAttribute('aria-valuenow','470');await shot('main-pane-width');return {mainHomeWidths,mainOtherWidths};
+    await main.getByRole('tab',{name:'Synthetic second tab',exact:true}).click();await expect(d).toHaveAttribute('aria-valuenow','390');await setReadingByKeyboard(main,430);mainOtherWidths=await paneState(main);await main.getByRole('tablist',{name:'Workspace tabs'}).getByRole('tab').first().click();await expect(d).toHaveAttribute('aria-valuenow','470');await shot('main-pane-width');return {mainHomeWidths,mainOtherWidths};
   },{required:true});
   await check('real detached native window has independent pane scope',async()=>{
     await main.getByRole('button',{name:'Detach tab',exact:true}).click();detached=await findPage(c=>c.detached&&c.tabId==='home');await ready(detached);const monitors=await invoke(detached,{op:'window_monitors'});const target=[...monitors.monitors].sort((a,b)=>b.width/b.scaleFactor-a.width/a.scaleFactor)[0];await invoke(detached,{op:'window_move',monitorId:target.id,layout:'full'});

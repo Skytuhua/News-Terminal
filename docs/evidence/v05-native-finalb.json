@@ -1,0 +1,176 @@
+{
+  "startedAt": "2026-09-29T22:19:12.768Z",
+  "executable": "C:\\Users\\user\\Documents\\News Terminal\\src-tauri\\target\\release\\news-terminal.exe",
+  "fixtureLabel": "SYNTHETIC 0.5 FIXTURE — not real news",
+  "fixtureCount": 6,
+  "checks": [
+    {
+      "name": "actual native runtime and embedded assets",
+      "passed": true,
+      "detail": {
+        "assets": [
+          {
+            "url": "http://tauri.localhost/assets/index-hEKP-Bld.js",
+            "sha256": "97321f114c506b2787dbd3a549ea926e4e64fdd51b60de28eae4299e956ccd3b"
+          },
+          {
+            "url": "http://tauri.localhost/assets/index-Bg_WmWlN.css",
+            "sha256": "93534eac124081b94eee1f2893f5c1565a49cd7bbde83bd8a75a1cebf1fcabed"
+          }
+        ],
+        "windows": [
+          {
+            "hwnd": 1510972,
+            "pid": 37376,
+            "title": "News Terminal",
+            "visible": true
+          }
+        ]
+      },
+      "startedAt": "2026-09-29T22:19:13.873Z",
+      "finishedAt": "2026-09-29T22:19:14.318Z"
+    },
+    {
+      "name": "isolated validated synthetic import with exact count and no active sources",
+      "passed": true,
+      "detail": {
+        "count": 6,
+        "replacementTokenPresent": true
+      },
+      "startedAt": "2026-09-29T22:19:14.320Z",
+      "finishedAt": "2026-09-29T22:19:16.072Z"
+    },
+    {
+      "name": "bulk triage writes through article_state_many and the real host",
+      "passed": true,
+      "detail": {
+        "targets": [
+          {
+            "id": "v05-000",
+            "read": false,
+            "saved": true,
+            "hidden": false
+          },
+          {
+            "id": "v05-001",
+            "read": false,
+            "saved": true,
+            "hidden": false
+          }
+        ]
+      },
+      "startedAt": "2026-09-29T22:19:16.073Z",
+      "finishedAt": "2026-09-29T22:19:16.323Z"
+    },
+    {
+      "name": "bulk hide applies to every selected row through the host",
+      "passed": false,
+      "error": "TimeoutError: locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'Bulk actions' }).getByRole('button', { name: 'Hide', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\">Hide</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  - element was detached from the DOM, retrying\u001b[22m\n",
+      "startedAt": "2026-09-29T22:19:16.323Z",
+      "finishedAt": "2026-09-29T22:19:36.403Z"
+    },
+    {
+      "name": "X, M and Escape act on the real native window",
+      "passed": true,
+      "detail": {
+        "hiddenByX": "v05-000",
+        "toggledByM": "v05-001",
+        "read": false
+      },
+      "startedAt": "2026-09-29T22:19:36.404Z",
+      "finishedAt": "2026-09-29T22:19:36.870Z"
+    },
+    {
+      "name": "reading status selector filters the native list",
+      "passed": true,
+      "detail": {
+        "unread": 5,
+        "read": 0,
+        "total": 6
+      },
+      "startedAt": "2026-09-29T22:19:36.871Z",
+      "finishedAt": "2026-09-29T22:19:36.975Z"
+    },
+    {
+      "name": "alert_receipts is profile-scoped and explicit through the real host",
+      "passed": true,
+      "detail": {
+        "count": 0,
+        "emptyBecauseNoWatchlistAlertsFired": true
+      },
+      "startedAt": "2026-09-29T22:19:36.977Z",
+      "finishedAt": "2026-09-29T22:19:36.997Z"
+    },
+    {
+      "name": "Alert history view renders from real receipts without a blank row",
+      "passed": false,
+      "error": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByText('No alerts delivered yet')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByText('No alerts delivered yet') with timeout 5000ms\n  - waiting for getByText('No alerts delivered yet')\n",
+      "startedAt": "2026-09-29T22:19:36.998Z",
+      "finishedAt": "2026-09-29T22:19:42.024Z"
+    },
+    {
+      "name": "source search and filter narrow the native directory",
+      "passed": true,
+      "detail": {
+        "total": 70,
+        "narrowed": 1
+      },
+      "startedAt": "2026-09-29T22:19:42.025Z",
+      "finishedAt": "2026-09-29T22:19:42.552Z"
+    },
+    {
+      "name": "cache disclosure states the real retention policy and live counts",
+      "passed": true,
+      "detail": {
+        "cached": 6,
+        "saved": 2,
+        "unread": 5
+      },
+      "startedAt": "2026-09-29T22:19:42.554Z",
+      "finishedAt": "2026-09-29T22:19:43.266Z"
+    }
+  ],
+  "launches": [
+    {
+      "port": 63103,
+      "startedAt": "2026-09-29T22:19:12.775Z",
+      "stderr": "",
+      "pid": 37376
+    }
+  ],
+  "screenshots": [
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\v05-native-finalb-imported.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\v05-native-finalb-bulk-saved.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\v05-native-finalb-keyboard-shortcuts.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\v05-native-finalb-source-search.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\v05-native-finalb-cache-disclosure.png"
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "limitations": [
+    "Only the recorded executable hash is accepted. No build or claim of source-to-binary freshness is made.",
+    "6 explicitly synthetic stories imported through the real validated native backup API into a newly-created temporary appdata directory. IPC and DOM are not mocked.",
+    "Covers the 0.5 features only. The 0.3-era daily workflow is covered by scripts/daily-native-smoke.mjs.",
+    "The detached-window check is deliberately excluded: a window created after startup does not register a CDP target, so the harness cannot observe it. See docs/v05-native-acceptance.md.",
+    "No network/AI/feed quality, installer, physical DPI, or Windows notification toast acceptance is implied."
+  ],
+  "launchedExecutable": "C:\\Users\\user\\Documents\\News Terminal\\src-tauri\\target\\release\\news-terminal.exe",
+  "summary": {
+    "checks": 10,
+    "passed": 8,
+    "failed": 2
+  },
+  "passed": false,
+  "pageErrorCount": 0,
+  "consoleErrorCount": 0,
+  "mainPageClosed": "2026-09-29T22:19:43.281Z",
+  "cleanup": {
+    "pid": 37376,
+    "status": 0
+  },
+  "appExit": {
+    "code": 1,
+    "signal": null,
+    "at": "2026-09-29T22:19:43.842Z"
+  }
+}

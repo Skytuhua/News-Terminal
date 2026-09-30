@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
@@ -8,7 +9,11 @@ import {
 import { X } from "lucide-react";
 import type { Snapshot, Source, Watchlist } from "./types";
 import { dispatch, type Request } from "./ipc";
-import { list, date, sourceFailed, sourceEligibleAt } from "./model";
+import {
+  list, date, sourceFailed, sourceEligibleAt,
+  filterSources, sourceFilterCount, type SourceFilter,
+  cacheDisclosure, CACHE_LIMITS,
+} from "./model";
 import Connections from "./Connections";
 import MonitorControls from "./MonitorControls";
 import { ImageControls } from "./MediaSession";
@@ -22,6 +27,7 @@ export type Panel =
   | "alerts"
   | "providers"
   | "backup"
+  | "storage"
   | "help";
 const panels: Record<Panel, string> = {
   preferences: "Preferences",
@@ -33,6 +39,7 @@ const panels: Record<Panel, string> = {
   alerts: "Alerts",
   providers: "AI providers",
   backup: "Backup",
+  storage: "Storage & retention",
   help: "Keyboard shortcuts",
 };
 function sourceAccessLabel(source: Source) {
@@ -46,6 +53,15 @@ function sourceAdapterLabel(source: Source) {
   if (source.sourceAdapter === "external-link") return "External website";
   return source.sourceAdapter || "Feed adapter";
 }
+// 0.5 source search and filter. Chips state their count in text so the filter
+// is not colour-only, and the counts deliberately ignore the query so each
+// state keeps showing its true size while a search is typed.
+const SOURCE_FILTER_LABELS: Record<SourceFilter, string> = {
+  all: "All",
+  enabled: "Enabled",
+  disabled: "Disabled",
+  failing: "Failing",
+};
 export function Field({
   label,
   children,
@@ -121,6 +137,16 @@ export default function Settings({
       setBusy(false);
     }
   }
+  // 0.5 source search and filter state. Local to the panel, never persisted:
+  // a source search is a momentary lookup, not a workspace preference.
+  // 0.5 cache disclosure. Derived from the snapshot already in hand, so the
+  // figures can never disagree with what the list is showing.
+  const cache = cacheDisclosure(data.articles);
+  const [sourceQuery, setSourceQuery] = useState("");
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
+  const visibleSources = useMemo(
+    () => filterSources(data.sources, sourceQuery, sourceFilter),
+    [data.sources, sourceQuery, sourceFilter]);
   const sourceSummary = {
     total: data.sources.length,
     enabled: data.sources.filter((s) => s.enabled).length,
@@ -566,8 +592,40 @@ export default function Settings({
                 remove its cached stories. Review the publisher’s terms before
                 adding a feed.
               </p>
+              <div className="source-filter" role="search">
+                <input
+                  type="search"
+                  aria-label="Search sources"
+                  placeholder="Search name, publisher, kind or region"
+                  value={sourceQuery}
+                  onChange={(e) => setSourceQuery(e.target.value)}
+                />
+                <div className="source-filter-chips" role="group" aria-label="Filter sources by state">
+                  {(["all", "enabled", "disabled", "failing"] as SourceFilter[]).map((f) => (
+                    <button
+                      key={f}
+                      className={sourceFilter === f ? "chosen" : ""}
+                      aria-pressed={sourceFilter === f}
+                      onClick={() => setSourceFilter(f)}
+                    >
+                      {SOURCE_FILTER_LABELS[f]}{" "}
+                      <span className="nav-count">{sourceFilterCount(data.sources, f)}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="fine" role="status">
+                  {visibleSources.length} of {data.sources.length} sources shown
+                </p>
+              </div>
+              {visibleSources.length === 0 ? (
+                <p className="intro">
+                  No sources match the current search and filter. Clear the
+                  search or pick another filter to see all {data.sources.length}{" "}
+                  configured sources.
+                </p>
+              ) : null}
               <div className="setting-rows">
-                {data.sources.map((s) => (
+                {visibleSources.map((s) => (
                   <div className="source-row" key={s.id}>
                     <div className="setting-row">
                       <div>
@@ -868,6 +926,49 @@ export default function Settings({
               })}
             </>
           )}
+          {panel === "storage" && (
+            <>
+              <p className="intro">
+                News Terminal keeps a local copy of the stories it shows you so
+                you can read them again without a network connection. That copy
+                is pruned automatically.
+              </p>
+              <div className="cache-summary" aria-label="Cached reading data">
+                <span>{cache.cached} stories cached</span>
+                <span>{cache.unread} unread</span>
+                <span>{cache.saved} saved</span>
+              </div>
+              <h3>What is kept, and for how long</h3>
+              <ul className="retention-list">
+                <li>
+                  An unsaved story is kept for {CACHE_LIMITS.articleDays} days
+                  after you first saw it, and only while it is among the newest{" "}
+                  {CACHE_LIMITS.articleMax.toLocaleString()} stories. Whichever
+                  limit is reached first removes it.
+                </li>
+                <li>
+                  <strong>Saved stories are never pruned.</strong> Saving is how
+                  you keep a story beyond the window above.
+                </li>
+                <li>
+                  Alert receipts are kept for {CACHE_LIMITS.alertReceiptDays}{" "}
+                  days. After that a receipt keeps its time but loses its title.
+                </li>
+                <li>
+                  Undelivered alert attempts are discarded after{" "}
+                  {CACHE_LIMITS.alertAttemptMinutes} minutes.
+                </li>
+                <li>
+                  Pruning removes the local copy only. It never unsaves a story,
+                  and it never contacts the publisher.
+                </li>
+              </ul>
+              <p className="fine">
+                Nothing here is sent anywhere. Cached reading data stays in this
+                Windows user profile, and is included in a backup export.
+              </p>
+            </>
+          )}
           {panel === "backup" && (
             <>
               <p className="intro">
@@ -986,13 +1087,15 @@ export default function Settings({
                   ["J / K", "Next / previous story"],
                   ["O", "Open original in your browser"],
                   ["S", "Save / unsave selected story"],
+                  ["M", "Mark read / unread selected story"],
+                  ["X", "Hide selected story"],
                   ["R", "Refresh feeds"],
                   ["Ctrl T", "New tab"],
                   ["Ctrl W", "Close current tab"],
                   ["Ctrl Tab", "Next tab"],
                   ["Ctrl Shift Tab", "Previous tab"],
                   ["?", "Show keyboard shortcuts"],
-                  ["Escape", "Close the current dialog"],
+                  ["Escape", "Close the current dialog, or the reading pane"],
                 ].map(([key, label]) => (
                   <div key={key}>
                     <dt>

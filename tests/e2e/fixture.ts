@@ -1,7 +1,13 @@
 import type { Page } from "@playwright/test";
 export async function fixture(
   page: Page,
-  options: { visitEvents?: boolean; savedProfile?: boolean; v02?: boolean } = {},
+  options: {
+    visitEvents?: boolean;
+    savedProfile?: boolean;
+    v02?: boolean;
+    alertReceipts?: { profileId: string; articleId: string; at: string; title: string | null }[];
+    sources?: any[];
+  } = {},
 ) {
   await page.addInitScript((options) => {
     (window as any).__EVENT_ON_VISIT__ = options.visitEvents;
@@ -70,7 +76,7 @@ export async function fixture(
     const initial = {
       profiles: [profile],
       profile,
-      sources: [source],
+      sources: options.sources || [source],
       articles: [
         article,
         {
@@ -133,6 +139,10 @@ export async function fixture(
       byProfile[p.id] = { ...structuredClone(initial), profile: p, profiles: s.profiles };
     }
     let mainProfile = localStorage.getItem("fixture-main-profile") || (options.savedProfile ? "desk-b" : "default");
+    // Receipts belong to the profile that was active when the fixture loaded.
+    // Building them from the *current* profile would silently return rows for
+    // whichever profile asked, making a cross-profile leak unobservable.
+    const receiptsOwner = mainProfile;
     const calls: any[] = [];
     const detached: any[] = [];
     let liveEnabled = false;
@@ -187,6 +197,21 @@ export async function fixture(
         )
           window.dispatchEvent(new Event("data-changed"));
         return s.profile;
+      }
+      if (r.op === "alert_receipts") {
+        // Receipts are profile-scoped and newest-first, exactly as the host
+        // returns them. A null title models an article pruned after 90 days.
+        // The host is profile-scoped with no default and no cross-profile data.
+        if (r.profileId !== receiptsOwner) return [];
+        const rows = (options.alertReceipts || [
+          { profileId: receiptsOwner, articleId: "a", at: "2026-09-29T08:04:00Z",
+            title: "Researchers map a new lunar water reserve" },
+          { profileId: receiptsOwner, articleId: "c", at: "2026-09-28T18:12:00Z",
+            title: "New chips improve battery density" },
+          { profileId: receiptsOwner, articleId: "b", at: "2026-09-27T06:40:00Z", title: null },
+        ]).filter((x: any) => x.profileId === receiptsOwner);
+        const limit = typeof r.limit === "number" ? r.limit : 50;
+        return rows.slice(0, limit);
       }
       if (options.v02 && r.op === "window_monitors") return { currentLabel: "main", monitors: [
         { id: "screen-1", name: "Primary display", x: 0, y: 0, width: 1920, height: 1080, scaleFactor: 1, current: currentMonitor === "screen-1" },

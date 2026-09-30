@@ -1,5 +1,57 @@
 import type { Article, FocusSection, Source, Tab, Watchlist } from "./types";
 export const sourceFailed = (source: Source) => source.enabled && Number.isFinite(source.failures) && (source.failures ?? 0) > 0;
+// 0.5 cache disclosure. The host prunes silently: an unsaved story disappears
+// after 30 days, or once it falls outside the newest 5000, whichever comes
+// first. Saved stories are exempt. A reader relying on cached stories offline
+// has no way to learn that today, which makes the policy worth stating rather
+// than leaving it buried in the Rust. These numbers mirror `retain` in
+// src-tauri/src/db.rs and are asserted in tests/v05-cache-disclosure.test.ts -
+// a disclosure that lies is worse than no disclosure.
+export const CACHE_LIMITS = {
+  articleDays: 30,
+  articleMax: 5000,
+  alertReceiptDays: 90,
+  alertAttemptMinutes: 10,
+} as const;
+
+export function cacheDisclosure(articles: Article[]) {
+  let saved = 0;
+  let unread = 0;
+  for (const a of articles) {
+    if (a.saved) saved++;
+    if (!a.read) unread++;
+  }
+  return { cached: articles.length, saved, unread, keepsSavedForever: true };
+}
+// 0.5 source search and filter. Thirty sources with no way to find one is a
+// real daily-use cost, so the matching lives in the model layer where it can be
+// tested without a browser rather than inside a component.
+export type SourceFilter = "all" | "enabled" | "disabled" | "failing";
+
+export function filterSources(sources: Source[], query: string, filter: SourceFilter): Source[] {
+  const q = query.trim().toLowerCase();
+  return sources.filter((s) => {
+    if (filter === "enabled" && !s.enabled) return false;
+    // A disabled source is not "failing": it is switched off, which is a
+    // deliberate state rather than a delivery problem.
+    if (filter === "disabled" && s.enabled) return false;
+    if (filter === "failing" && !sourceFailed(s)) return false;
+    if (!q) return true;
+    return (
+      s.name.toLowerCase().includes(q) ||
+      (s.publisher || "").toLowerCase().includes(q) ||
+      s.kind.toLowerCase().includes(q) ||
+      s.region.toLowerCase().includes(q) ||
+      s.language.toLowerCase().includes(q)
+    );
+  });
+}
+
+// Counts describe the whole list under a filter, ignoring the query, so the
+// chips keep showing how many sources each state holds while a search is typed.
+export function sourceFilterCount(sources: Source[], filter: SourceFilter): number {
+  return filterSources(sources, "", filter).length;
+}
 export function sourceEligibleAt(source: Source) {
   // Match the host scheduler, not publication age. Legacy status text is not a clock.
   const last = Number.isInteger(source.lastAttempt) ? source.lastAttempt! : undefined;

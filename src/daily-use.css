@@ -20,9 +20,93 @@
   flex-shrink: 0;
 }
 nav button.chosen .nav-count { color: var(--foreground); }
+/* 0.5 bulk triage bar. Appears only with a non-empty selection, states the
+   count in text, and sits above the list rather than floating over it. */
+/* 0.5 source search and filter. */
+.source-filter { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.source-filter input[type="search"] { width: 100%; box-sizing: border-box; }
+.source-filter-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.source-filter-chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  padding: 3px 8px;
+}
+.source-filter-chips button.chosen { border-color: var(--accent); color: var(--foreground); }
+/* The audit found 13x13px source checkboxes, below a usable pointer target.
+   The visual box stays 13px; the hit area is enlarged instead, so the list
+   keeps its density while the control is actually clickable. */
+.source-row .check {
+  position: relative;
+  min-width: 24px;
+  min-height: 24px;
+  justify-content: center;
+  cursor: pointer;
+}
+.source-row .check input[type="checkbox"] {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  cursor: pointer;
+}
+/* 0.5 cache disclosure. */
+.cache-summary {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.retention-list { margin: 0 0 10px; padding-left: 18px; font-size: 12px; }
+.retention-list li { margin-bottom: 6px; }
+/* 0.5 alert delivery failure banner. Sits above the list, never over it, so it
+   cannot cover a headline the way a floating toast would. */
+.alert-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  color: var(--danger);
+  background: color-mix(in oklch, var(--danger) 14%, transparent);
+  border-bottom: 1px solid color-mix(in oklch, var(--danger) 40%, transparent);
+}
+.alert-warning > span { flex: 1; min-width: 0; }
+.receipts { list-style: none; margin: 0; padding: 0; overflow-y: auto; }
+.receipts li {
+  display: flex;
+  gap: 10px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.receipts time { flex: 0 0 11em; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-raised, var(--surface));
+  flex-shrink: 0;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.bulk-actions > [role="status"] { margin-right: auto; color: var(--muted); }
+.bulk-actions button { font-size: 12px; padding: 4px 8px; }
+.story-row.triaged { background: var(--accent-soft); }
+.triage-box { align-self: start; margin-top: 2px; }
 .image-mode { display: flex; gap: 3px; }
 .image-mode button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
-.story-row:not(:has(.row-thumbnail)) { grid-template-columns: minmax(0, 1fr); }
+/* 0.5 bulk triage adds a leading checkbox, so the row needs a third column.
+   Without this the checkbox wraps onto an implicit second grid row and every
+   headline grows ~30px, which measurably costs visible rows at small sizes. */
+.story-row { grid-template-columns: auto auto minmax(0, 1fr); }
+.story-row:not(:has(.row-thumbnail)) { grid-template-columns: auto minmax(0, 1fr); }
 .story-row .row-thumbnail { display: block; margin: 0; width: 124px; min-width: 124px; height: auto; align-self: start; overflow: hidden; border: 0; border-radius: 4px; background: transparent; }
 .thumbnail-frame { height: 84px; width: 124px; overflow: hidden; background: var(--surface-raised, var(--surface)); border: 1px solid var(--line); border-radius: 4px; }
 .story-row .thumbnail-frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
@@ -72,10 +156,12 @@ nav button.chosen .nav-count { color: var(--foreground); }
    short viewports the chrome compacts to give it back the space. Nothing is
    hidden: every control stays present, reachable and at the 12px floor. */
 @media (max-height: 600px) {
-  .list-heading { padding: 6px 12px; gap: 6px; flex-wrap: nowrap; align-items: center; }
-  .list-heading h2 { font-size: 12px; }
-  .list-heading > div { min-width: 0; }
-  .list-heading p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Scoped to the headlines pane: the Hidden stories view has its own
+     short-height layout and paging tests, and must not shift underneath it. */
+  main.headlines .list-heading { padding: 6px 12px; gap: 6px; flex-wrap: nowrap; align-items: center; }
+  main.headlines .list-heading h2 { font-size: 12px; }
+  main.headlines .list-heading > div { min-width: 0; }
+  main.headlines .list-heading p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .search, .filters { padding: 6px 12px; }
   .image-controls { padding: 4px 12px; max-height: 44px; }
 }
