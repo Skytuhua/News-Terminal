@@ -306,6 +306,39 @@ fn hidden_workspace_mode_persists_and_roundtrips_with_legacy_modes() {
 }
 
 #[test]
+fn every_tab_mode_the_renderer_can_produce_is_accepted_by_the_host() {
+    // 0.5 shipped the Alert history view as a tab mode. The host validates tab
+    // modes against its own list, and the browser fixture never reaches that
+    // validation, so a mode the renderer can produce but the host rejects
+    // fails open in the browser and silently in the packaged app. These two
+    // lists must stay in step; this test is what makes the drift fail loudly.
+    for mode in [
+        "all",
+        "saved",
+        "brief",
+        "watchlist",
+        "briefing",
+        "live",
+        "hidden",
+        "alerts",
+    ] {
+        let mut db = Database::memory().unwrap();
+        call(&mut db, json!({"op":"profile_create","name":"Default"}));
+        let mut workspace = json!({
+            "tabs":[{"id":"home","title":"T","topic":"","query":"","mode":mode}],
+            "activeTabId":"home","revision":0
+        });
+        workspace["tabs"][0]["mode"] = json!(mode);
+        request(
+            &mut db,
+            json!({"op":"workspace_save","workspace":workspace}),
+            1,
+        )
+        .unwrap_or_else(|e| panic!("host rejected renderer tab mode {mode:?}: {e}"));
+    }
+}
+
+#[test]
 fn workspace_rejects_stale_writes_and_watchlists_are_profile_scoped() {
     let mut db = Database::memory().unwrap();
     let p = call(&mut db, json!({"op":"profile_create","name":"Other"}));

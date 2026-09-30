@@ -148,6 +148,13 @@ fn validate_workspace(w: &Value) -> Result<()> {
             "briefing",
             "live",
             "hidden",
+            // 0.5: the Alert history view persists as a tab mode. Without it
+            // here the host rejects the workspace write with "Invalid tab
+            // mode", the persisted tab keeps its previous mode, and the view
+            // silently fails to open in the packaged app. The renderer and the
+            // host must agree on this list or the feature only works in the
+            // browser fixture, which never reaches this validation.
+            "alerts",
         ]
         .contains(&t["mode"].as_str().unwrap_or(""))
         {
