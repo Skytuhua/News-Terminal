@@ -1,12 +1,12 @@
 {
-  "startedAt": "2026-09-29T22:04:42.972Z",
+  "startedAt": "2026-09-30T06:40:29.212Z",
   "executable": "C:\\Users\\user\\Documents\\News Terminal\\src-tauri\\target\\release\\news-terminal.exe",
   "fixtureLabel": "SYNTHETIC DAILY NATIVE FIXTURE — not real news",
   "fixtureCount": 251,
   "checks": [
     {
       "name": "actual native runtime and embedded assets",
-      "startedAt": "2026-09-29T22:04:44.631Z",
+      "startedAt": "2026-09-30T06:40:30.652Z",
       "details": {
         "assets": [
           {
@@ -20,8 +20,8 @@
         ],
         "windows": [
           {
-            "hwnd": 7736498,
-            "pid": 51044,
+            "hwnd": 1771480,
+            "pid": 48276,
             "title": "News Terminal"
           }
         ],
@@ -32,13 +32,13 @@
           "profileId": "default",
           "tabId": null
         },
-        "webviewDirectory": "C:\\Users\\user\\AppData\\Local\\Temp\\news-terminal-daily-native-Z1qq6F\\webview"
+        "webviewDirectory": "C:\\Users\\user\\AppData\\Local\\Temp\\news-terminal-daily-native-xWUOga\\webview"
       },
       "passed": true
     },
     {
       "name": "isolated validated synthetic import with exact count and no active sources",
-      "startedAt": "2026-09-29T22:04:44.784Z",
+      "startedAt": "2026-09-30T06:40:30.846Z",
       "details": {
         "count": 251,
         "source": {
@@ -167,7 +167,7 @@
     },
     {
       "name": "Close clears selection but preserves saved and hidden flags",
-      "startedAt": "2026-09-29T22:04:46.918Z",
+      "startedAt": "2026-09-30T06:40:35.033Z",
       "details": {
         "articleId": "daily-native-0000",
         "before": {
@@ -185,7 +185,7 @@
     },
     {
       "name": "Hide saved story and Undo restore actual host flags and Saved view",
-      "startedAt": "2026-09-29T22:04:47.496Z",
+      "startedAt": "2026-09-30T06:40:35.908Z",
       "details": {
         "articleId": "daily-native-0000",
         "hidden": {
@@ -203,7 +203,7 @@
     },
     {
       "name": "native pagination enumerates every fixture exactly once with bounded DOM",
-      "startedAt": "2026-09-29T22:04:48.073Z",
+      "startedAt": "2026-09-30T06:40:37.073Z",
       "details": {
         "pages": [
           {
@@ -484,7 +484,7 @@
     },
     {
       "name": "J/K cross real page boundary and S persists without key leakage into search",
-      "startedAt": "2026-09-29T22:04:48.542Z",
+      "startedAt": "2026-09-30T06:40:37.838Z",
       "details": {
         "from": "daily-native-0099",
         "next": "daily-native-0100",
@@ -499,7 +499,7 @@
     },
     {
       "name": "Unread J J K revisits read history without consuming the third story",
-      "startedAt": "2026-09-29T22:04:49.538Z",
+      "startedAt": "2026-09-30T06:40:42.050Z",
       "details": {
         "unreadIds": [
           "daily-native-0001",
@@ -513,7 +513,7 @@
     },
     {
       "name": "full-cache search reaches off-page final fixture and keyboard help is operable",
-      "startedAt": "2026-09-29T22:04:50.579Z",
+      "startedAt": "2026-09-30T06:40:50.224Z",
       "details": {
         "lastArticleId": "daily-native-0250",
         "helpOpenedAndClosed": true,
@@ -523,7 +523,7 @@
     },
     {
       "name": "main pointer-resized panes are scoped independently per tab",
-      "startedAt": "2026-09-29T22:04:51.152Z",
+      "startedAt": "2026-09-30T06:40:52.539Z",
       "details": {
         "mainHomeWidths": {
           "context": {
@@ -571,57 +571,273 @@
     },
     {
       "name": "real detached native window has independent pane scope",
-      "startedAt": "2026-09-29T22:04:52.722Z",
-      "passed": false,
-      "error": "Error: Native window target not ready\n    at until (file:///C:/Users/user/Documents/News%20Terminal/scripts/daily-native-smoke.mjs:32:118)\n    at async check.required (file:///C:/Users/user/Documents/News%20Terminal/scripts/daily-native-smoke.mjs:161:84)\n    at async check (file:///C:/Users/user/Documents/News%20Terminal/scripts/daily-native-smoke.mjs:45:18)\n    at async file:///C:/Users/user/Documents/News%20Terminal/scripts/daily-native-smoke.mjs:160:3",
-      "body": "News Terminal\nLocal workspace\nScreens\nShortcuts\n?\nSynthetic second tab\nSynthetic second tab\nDetach\nReading profile\nGlobal\nManage profiles\nFocus\nAI\nTechnology\nStocks\nOthers\n245\nDaily briefing\nLive discussion\nAll headlines\n245\nYour brief\nSaved stories\nHidden stories\nAlert history\nWatchlists\nCreate a watchlist\nConnections\nSources & health\n0\nPreferences\nSynthetic second tab\n\nCached news & public discussion\n\n/\nAll types\nreporting\ndiscussion\nofficial notice\nopinion\nRead\nAll\nUnread\nRead\n251 stories\nAll headlines · Another screen\nReattach\nVisual\nCompact\nAutomatic images contact publishers and reveal your IP address.\nConsent details\nEnable automatic images\nSYNTHETIC TEST FIXTURE — not news\n03:04 PM\nSYNTHETIC fixture report 0000 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n03:03 PM\nSYNTHETIC fixture report 0001 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n03:02 PM\nSYNTHETIC fixture report 0002 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n03:01 PM\nSYNTHETIC fixture report 0003 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n03:00 PM\nSYNTHETIC fixture report 0004 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:59 PM\nSYNTHETIC fixture report 0005 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:58 PM\nSYNTHETIC fixture report 0006 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:57 PM\nSYNTHETIC fixture report 0007 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:56 PM\nSYNTHETIC fixture report 0008 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:55 PM\nSYNTHETIC fixture report 0009 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:54 PM\nSYNTHETIC fixture report 0010 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:53 PM\nSYNTHETIC fixture report 0011 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:52 PM\nSYNTHETIC fixture report 0012 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:51 PM\nSYNTHETIC fixture report 0013 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:50 PM\nSYNTHETIC fixture report 0014 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:49 PM\nSYNTHETIC fixture report 0015 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:48 PM\nSYNTHETIC fixture report 0016 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:47 PM\nSYNTHETIC fixture report 0017 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:46 PM\nSYNTHETIC fixture report 0018 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:45 PM\nSYNTHETIC fixture report 0019 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:44 PM\nSYNTHETIC fixture report 0020 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:43 PM\nSYNTHETIC fixture report 0021 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:42 PM\nSYNTHETIC fixture report 0022 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:41 PM\nSYNTHETIC fixture report 0023 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:40 PM\nSYNTHETIC fixture report 0024 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:39 PM\nSYNTHETIC fixture report 0025 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:38 PM\nSYNTHETIC fixture report 0026 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:37 PM\nSYNTHETIC fixture report 0027 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:36 PM\nSYNTHETIC fixture report 0028 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:35 PM\nSYNTHETIC fixture report 0029 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:34 PM\nSYNTHETIC fixture report 0030 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:33 PM\nSYNTHETIC fixture report 0031 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:32 PM\nSYNTHETIC fixture report 0032 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:31 PM\nSYNTHETIC fixture report 0033 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:30 PM\nSYNTHETIC fixture report 0034 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:29 PM\nSYNTHETIC fixture report 0035 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:28 PM\nSYNTHETIC fixture report 0036 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:27 PM\nSYNTHETIC fixture report 0037 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:26 PM\nSYNTHETIC fixture report 0038 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:25 PM\nSYNTHETIC fixture report 0039 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:24 PM\nSYNTHETIC fixture report 0040 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:23 PM\nSYNTHETIC fixture report 0041 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:22 PM\nSYNTHETIC fixture report 0042 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:21 PM\nSYNTHETIC fixture report 0043 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:20 PM\nSYNTHETIC fixture report 0044 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:19 PM\nSYNTHETIC fixture report 0045 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:18 PM\nSYNTHETIC fixture report 0046 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:17 PM\nSYNTHETIC fixture report 0047 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:16 PM\nSYNTHETIC fixture report 0048 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:15 PM\nSYNTHETIC fixture report 0049 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:14 PM\nSYNTHETIC fixture report 0050 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:13 PM\nSYNTHETIC fixture report 0051 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:12 PM\nSYNTHETIC fixture report 0052 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:11 PM\nSYNTHETIC fixture report 0053 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:10 PM\nSYNTHETIC fixture report 0054 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:09 PM\nSYNTHETIC fixture report 0055 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:08 PM\nSYNTHETIC fixture report 0056 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:07 PM\nSYNTHETIC fixture report 0057 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:06 PM\nSYNTHETIC fixture report 0058 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:05 PM\nSYNTHETIC fixture report 0059 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:04 PM\nSYNTHETIC fixture report 0060 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:03 PM\nSYNTHETIC fixture report 0061 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:02 PM\nSYNTHETIC fixture report 0062 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:01 PM\nSYNTHETIC fixture report 0063 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n02:00 PM\nSYNTHETIC fixture report 0064 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:59 PM\nSYNTHETIC fixture report 0065 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:58 PM\nSYNTHETIC fixture report 0066 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:57 PM\nSYNTHETIC fixture report 0067 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:56 PM\nSYNTHETIC fixture report 0068 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:55 PM\nSYNTHETIC fixture report 0069 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:54 PM\nSYNTHETIC fixture report 0070 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:53 PM\nSYNTHETIC fixture report 0071 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:52 PM\nSYNTHETIC fixture report 0072 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:51 PM\nSYNTHETIC fixture report 0073 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:50 PM\nSYNTHETIC fixture report 0074 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:49 PM\nSYNTHETIC fixture report 0075 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:48 PM\nSYNTHETIC fixture report 0076 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:47 PM\nSYNTHETIC fixture report 0077 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:46 PM\nSYNTHETIC fixture report 0078 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:45 PM\nSYNTHETIC fixture report 0079 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:44 PM\nSYNTHETIC fixture report 0080 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:43 PM\nSYNTHETIC fixture report 0081 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:42 PM\nSYNTHETIC fixture report 0082 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:41 PM\nSYNTHETIC fixture report 0083 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:40 PM\nSYNTHETIC fixture report 0084 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:39 PM\nSYNTHETIC fixture report 0085 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:38 PM\nSYNTHETIC fixture report 0086 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:37 PM\nSYNTHETIC fixture report 0087 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:36 PM\nSYNTHETIC fixture report 0088 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:35 PM\nSYNTHETIC fixture report 0089 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:34 PM\nSYNTHETIC fixture report 0090 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:33 PM\nSYNTHETIC fixture report 0091 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:32 PM\nSYNTHETIC fixture report 0092 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:31 PM\nSYNTHETIC fixture report 0093 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:30 PM\nSYNTHETIC fixture report 0094 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:29 PM\nSYNTHETIC fixture report 0095 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:28 PM\nSYNTHETIC fixture report 0096 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:27 PM\nSYNTHETIC fixture report 0097 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:26 PM\nSYNTHETIC fixture report 0098 — not real news\nScience\nothers\nSYNTHETIC TEST FIXTURE — not news\n01:25 PM\nSYNTHETIC fixture report 0099 — not real news\nScience\nothers\nFirst\nPrevious\n1–100 of 251\nNext\nLast\nSelect a story\n\nRead the publisher’s excerpt, compare coverage and keep the original source in view.\n\nJ\nK\nMove between stories\nLast refresh 9/29/2026, 3:04:45 PM\n0 enabled sources\nHidden story restored"
+      "startedAt": "2026-09-30T06:40:56.243Z",
+      "details": {
+        "detachedWidths": {
+          "context": {
+            "detached": true,
+            "detachedTabs": [
+              {
+                "label": "detached-ca13738b371642ce253bc866",
+                "profileId": "default",
+                "tabId": "home"
+              }
+            ],
+            "label": "detached-ca13738b371642ce253bc866",
+            "profileId": "default",
+            "tabId": "home"
+          },
+          "ui": {
+            "width": 1920,
+            "reading": 330,
+            "navigation": 160,
+            "actualReading": 330,
+            "bodyWidth": 1920,
+            "lang": "en"
+          },
+          "storage": {
+            "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+            "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+            "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+          }
+        },
+        "main": {
+          "context": {
+            "detached": false,
+            "detachedTabs": [
+              {
+                "label": "detached-ca13738b371642ce253bc866",
+                "profileId": "default",
+                "tabId": "home"
+              }
+            ],
+            "label": "main",
+            "profileId": "default",
+            "tabId": null
+          },
+          "ui": {
+            "width": 1920,
+            "reading": 430,
+            "navigation": 205,
+            "actualReading": 430,
+            "bodyWidth": 1920,
+            "lang": "en"
+          },
+          "storage": {
+            "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+            "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+            "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+          }
+        },
+        "windows": [
+          {
+            "hwnd": 31722200,
+            "pid": 48276,
+            "title": "News Terminal · Detached workspace"
+          },
+          {
+            "hwnd": 1771480,
+            "pid": 48276,
+            "title": "News Terminal"
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "real app close and restart retains main/detached pane preferences",
+      "startedAt": "2026-09-30T06:41:02.962Z",
+      "details": {
+        "main": {
+          "context": {
+            "detached": false,
+            "detachedTabs": [
+              {
+                "label": "detached-ca13738b371642ce253bc866",
+                "profileId": "default",
+                "tabId": "home"
+              }
+            ],
+            "label": "main",
+            "profileId": "default",
+            "tabId": null
+          },
+          "ui": {
+            "width": 1920,
+            "reading": 430,
+            "navigation": 205,
+            "actualReading": 430,
+            "bodyWidth": 1920,
+            "lang": "en"
+          },
+          "storage": {
+            "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+            "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+            "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+          }
+        },
+        "detached": {
+          "context": {
+            "detached": true,
+            "detachedTabs": [
+              {
+                "label": "detached-ca13738b371642ce253bc866",
+                "profileId": "default",
+                "tabId": "home"
+              }
+            ],
+            "label": "detached-ca13738b371642ce253bc866",
+            "profileId": "default",
+            "tabId": "home"
+          },
+          "ui": {
+            "width": 1920,
+            "reading": 330,
+            "navigation": 160,
+            "actualReading": 330,
+            "bodyWidth": 1920,
+            "lang": "en"
+          },
+          "storage": {
+            "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+            "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+            "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+          }
+        },
+        "windows": [
+          {
+            "hwnd": 16255708,
+            "pid": 26676,
+            "title": "News Terminal · Detached workspace"
+          },
+          {
+            "hwnd": 8849748,
+            "pid": 26676,
+            "title": "News Terminal"
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "reattach restores same tab main widths without copying detached preferences",
+      "startedAt": "2026-09-30T06:41:08.935Z",
+      "details": {
+        "context": {
+          "detached": false,
+          "detachedTabs": [],
+          "label": "main",
+          "profileId": "default",
+          "tabId": null
+        },
+        "ui": {
+          "width": 1920,
+          "reading": 470,
+          "navigation": 225,
+          "actualReading": 470,
+          "bodyWidth": 1920,
+          "lang": "en"
+        },
+        "storage": {
+          "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+          "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+          "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "no frontend page errors and fixture isolation retained",
+      "startedAt": "2026-09-30T06:41:09.511Z",
+      "details": {
+        "pageErrors": [],
+        "consoleErrors": [],
+        "articleCount": 251
+      },
+      "passed": true
     }
   ],
   "launches": [
     {
-      "port": 57493,
-      "startedAt": "2026-09-29T22:04:43.017Z",
-      "stderr": "[0929/150523.170:ERROR:ui\\gfx\\win\\window_impl.cc:172] Failed to unregister class Chrome_WidgetWin_0. Error = 1412\r\n",
-      "pid": 51044,
+      "port": 63764,
+      "startedAt": "2026-09-30T06:40:29.262Z",
+      "stderr": "[0929/234104.186:ERROR:ui\\gfx\\win\\window_impl.cc:172] Failed to unregister class Chrome_WidgetWin_0. Error = 1412\r\n",
+      "pid": 48276,
       "url": "http://tauri.localhost/",
       "windows": [
         {
-          "hwnd": 7736498,
-          "pid": 51044,
+          "hwnd": 1771480,
+          "pid": 48276,
           "title": "News Terminal"
         }
       ],
       "termination": {
-        "pid": 51044,
+        "pid": 48276,
         "requestedGraceful": true,
         "forceKilled": false,
         "windows": [
           {
-            "hwnd": 5313552,
-            "pid": 51044,
+            "hwnd": 31722200,
+            "pid": 48276,
             "title": "News Terminal · Detached workspace"
           },
           {
-            "hwnd": 7736498,
-            "pid": 51044,
+            "hwnd": 1771480,
+            "pid": 48276,
             "title": "News Terminal"
           }
         ],
         "exitCode": 0,
-        "finishedAt": "2026-09-29T22:05:23.280Z"
+        "finishedAt": "2026-09-30T06:41:04.214Z"
+      }
+    },
+    {
+      "port": 49309,
+      "startedAt": "2026-09-30T06:41:04.253Z",
+      "stderr": "",
+      "pid": 26676,
+      "url": "http://tauri.localhost/",
+      "windows": [
+        {
+          "hwnd": 16255708,
+          "pid": 26676,
+          "title": "News Terminal · Detached workspace"
+        },
+        {
+          "hwnd": 8849748,
+          "pid": 26676,
+          "title": "News Terminal"
+        }
+      ],
+      "termination": {
+        "pid": 26676,
+        "requestedGraceful": true,
+        "forceKilled": false,
+        "windows": [
+          {
+            "hwnd": 8849748,
+            "pid": 26676,
+            "title": "News Terminal"
+          }
+        ],
+        "exitCode": 0,
+        "finishedAt": "2026-09-30T06:41:11.378Z"
       }
     }
   ],
   "screenshots": [
-    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-synthetic-first-page.png",
-    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-saved-hidden-undo.png",
-    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-saved-restored.png",
-    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-last-page.png",
-    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-keyboard-page-crossing.png",
-    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-unread-history.png",
-    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-off-page-search.png",
-    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-main-pane-width.png",
-    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-failure-10.png"
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-final2-synthetic-first-page.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-final2-saved-hidden-undo.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-final2-saved-restored.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-final2-last-page.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-final2-keyboard-page-crossing.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-final2-unread-history.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-final2-off-page-search.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-final2-main-pane-width.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-final2-detached-pane-width.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-final2-main-restarted.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-final2-detached-restarted.png",
+    "C:\\Users\\user\\Documents\\News Terminal\\docs\\evidence\\daily-native-v05-final2-reattached-main.png"
   ],
   "pageErrors": [],
   "consoleErrors": [],
@@ -632,17 +848,158 @@
     "Default startup refresh may begin before sources can be disabled; it is drained before replacing isolated contents with fixtures. All fixture-phase sources/providers are disabled.",
     "No network/AI/feed quality, hot-unplug, installer, or physical DPI acceptance is implied. No unrelated process or existing model service is touched."
   ],
-  "executableSha256": "e96464210f53b584e38c03b4922146a7484a9010c356154bd783d4e3d61fd0cb",
-  "executableModifiedAt": "2026-09-29T21:56:04.988Z",
-  "scriptSha256": "43339c91dd1d27d4d09208e643f464a1caede88d8bc8492e7bcfdefbc0512dda",
-  "dataDirectory": "C:\\Users\\user\\AppData\\Local\\Temp\\news-terminal-daily-native-Z1qq6F",
-  "launchedExecutable": "C:\\Users\\user\\AppData\\Local\\Temp\\news-terminal-daily-native-Z1qq6F\\daily-native-app.exe",
-  "fatalError": "Error: Native window target not ready\n    at until (file:///C:/Users/user/Documents/News%20Terminal/scripts/daily-native-smoke.mjs:32:118)\n    at async check.required (file:///C:/Users/user/Documents/News%20Terminal/scripts/daily-native-smoke.mjs:161:84)\n    at async check (file:///C:/Users/user/Documents/News%20Terminal/scripts/daily-native-smoke.mjs:45:18)\n    at async file:///C:/Users/user/Documents/News%20Terminal/scripts/daily-native-smoke.mjs:160:3",
-  "finishedAt": "2026-09-29T22:05:23.282Z",
-  "summary": {
-    "checks": 10,
-    "passed": 9,
-    "failed": 1
+  "executableSha256": "23907f41d651dd8c5524750110dbf031e9ef92d806e798c491c032bc5f3dcf23",
+  "executableModifiedAt": "2026-09-30T06:35:21.294Z",
+  "scriptSha256": "227bff35b45d046e87a5414228b635ca21d9a40c9c2a08eea6802a061fb89984",
+  "dataDirectory": "C:\\Users\\user\\AppData\\Local\\Temp\\news-terminal-daily-native-xWUOga",
+  "launchedExecutable": "C:\\Users\\user\\AppData\\Local\\Temp\\news-terminal-daily-native-xWUOga\\daily-native-app.exe",
+  "beforeRestart": {
+    "main": {
+      "context": {
+        "detached": false,
+        "detachedTabs": [
+          {
+            "label": "detached-ca13738b371642ce253bc866",
+            "profileId": "default",
+            "tabId": "home"
+          }
+        ],
+        "label": "main",
+        "profileId": "default",
+        "tabId": null
+      },
+      "ui": {
+        "width": 1920,
+        "reading": 430,
+        "navigation": 205,
+        "actualReading": 430,
+        "bodyWidth": 1920,
+        "lang": "en"
+      },
+      "storage": {
+        "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+        "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+        "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+      }
+    },
+    "detached": {
+      "context": {
+        "detached": true,
+        "detachedTabs": [
+          {
+            "label": "detached-ca13738b371642ce253bc866",
+            "profileId": "default",
+            "tabId": "home"
+          }
+        ],
+        "label": "detached-ca13738b371642ce253bc866",
+        "profileId": "default",
+        "tabId": "home"
+      },
+      "ui": {
+        "width": 1920,
+        "reading": 330,
+        "navigation": 160,
+        "actualReading": 330,
+        "bodyWidth": 1920,
+        "lang": "en"
+      },
+      "storage": {
+        "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+        "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+        "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+      }
+    },
+    "states": [
+      {
+        "id": "daily-native-0000",
+        "read": true,
+        "saved": true,
+        "hidden": false
+      },
+      {
+        "id": "daily-native-0099",
+        "read": true,
+        "saved": true,
+        "hidden": false
+      }
+    ]
   },
-  "passed": false
+  "afterRestart": {
+    "main": {
+      "context": {
+        "detached": false,
+        "detachedTabs": [
+          {
+            "label": "detached-ca13738b371642ce253bc866",
+            "profileId": "default",
+            "tabId": "home"
+          }
+        ],
+        "label": "main",
+        "profileId": "default",
+        "tabId": null
+      },
+      "ui": {
+        "width": 1920,
+        "reading": 430,
+        "navigation": 205,
+        "actualReading": 430,
+        "bodyWidth": 1920,
+        "lang": "en"
+      },
+      "storage": {
+        "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+        "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+        "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+      }
+    },
+    "detached": {
+      "context": {
+        "detached": true,
+        "detachedTabs": [
+          {
+            "label": "detached-ca13738b371642ce253bc866",
+            "profileId": "default",
+            "tabId": "home"
+          }
+        ],
+        "label": "detached-ca13738b371642ce253bc866",
+        "profileId": "default",
+        "tabId": "home"
+      },
+      "ui": {
+        "width": 1920,
+        "reading": 330,
+        "navigation": 160,
+        "actualReading": 330,
+        "bodyWidth": 1920,
+        "lang": "en"
+      },
+      "storage": {
+        "news-terminal:panes:[\"default\",\"detached-ca13738b371642ce253bc866\",\"home\"]": "{\"version\":1,\"nav\":160,\"detail\":330}",
+        "news-terminal:panes:[\"default\",\"main\",\"daily-other\"]": "{\"version\":1,\"nav\":205,\"detail\":430}",
+        "news-terminal:panes:[\"default\",\"main\",\"home\"]": "{\"version\":1,\"nav\":225,\"detail\":470}"
+      }
+    },
+    "windows": [
+      {
+        "hwnd": 16255708,
+        "pid": 26676,
+        "title": "News Terminal · Detached workspace"
+      },
+      {
+        "hwnd": 8849748,
+        "pid": 26676,
+        "title": "News Terminal"
+      }
+    ]
+  },
+  "finishedAt": "2026-09-30T06:41:11.418Z",
+  "summary": {
+    "checks": 13,
+    "passed": 13,
+    "failed": 0
+  },
+  "passed": true
 }

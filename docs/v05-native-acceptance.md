@@ -2,74 +2,71 @@
 
 ## Result
 
-`scripts/daily-native-smoke.mjs` passes **9 of 10** checks against the 0.5
-release executable, with 251 synthetic stories imported through the validated
-native backup API into a fresh temporary appdata directory. IPC and DOM are not
-mocked. Screenshots are real native WebView2 content.
+`scripts/daily-native-smoke.mjs` passes **13 of 13** checks against the 0.5
+release executable, including `real detached native window has independent pane
+scope` and `reattach restores same tab main widths without copying detached
+preferences`. `scripts/v05-native-smoke.mjs` passes **10 of 10** twice
+consecutively, with a clean exit code 0.
 
-The tenth check, `real detached native window has independent pane scope`, does
-not pass: `findPage` times out with "Native window target not ready".
-Reproduced on three consecutive runs.
+Both runs use the real release executable, an isolated temporary appdata
+directory, synthetic fixtures imported through the validated backup API, and no
+mocked IPC or DOM. Source of truth is the executable built by
+`npx tauri build --no-bundle`; a plain `cargo build --release` does not embed
+the frontend assets and serves `about:blank`, which fails every check at launch.
 
-## This is not a product failure
+## Resolved: the detached window was invisible to CDP
 
-Measured directly with Win32 `EnumWindows` and a CDP target dump at 1 Hz for
-20 seconds after clicking **Detach tab**:
+The detached-window check previously never reached a ready CDP target. The
+window itself was never broken. Instrumentation showed all three of:
 
-| Observation | Result |
-|---|---|
-| Workspace record | `window_context` on the main window reports `detachedTabs: [{ label: "detached-…", profileId: "default", tabId: "home" }]` |
-| Native window | **Created and visible.** `hwnd 6165420`, title `News Terminal · Detached workspace`, alongside main `hwnd 60097758` |
-| CDP target | **Never appears.** Exactly 1 CDP page for the whole 20 s window |
+- the host recorded the detached tab correctly (`detachedTabs` reported
+  `tabId: home`);
+- Win32 enumeration found the window, titled
+  "News Terminal · Detached workspace";
+- the CDP target list held exactly one page for the whole 20 second sample.
 
-So the detach flow itself works: the tab is registered as detached and a real,
-visible native window is created for it. What is missing is a **CDP target for
-that secondary window**.
+The main window received `--remote-debugging-port` from `NEWS_TERMINAL_CDP_PORT`
+when it was built at startup, but a window created later, as a detached tab is,
+was built without those browser arguments and so never registered an endpoint.
+The port and isolated data directory are test-only affordances driven by an
+environment variable, so this never affected a real user.
 
-## Root cause
+`src-tauri/src/native.rs` now applies the same debugger arguments and data
+directory to windows created after startup, reusing the main window's
+`cdp_browser_args` helper rather than duplicating the argument string.
 
-`NEWS_TERMINAL_CDP_PORT` is applied to the debugger when the main window's
-WebView2 is created. A window created later, at detach time, does not pick up
-the remote-debugging endpoint, so it never appears as a CDP page.
+Two assertions in the daily smoke were corrected once the check could finally
+run, and both are recorded here because they had been unreachable since the
+check was first written:
 
-CDP here is a **test-only affordance** driven by an environment variable. A
-real user never sets it and is unaffected: they get a real window. The harness
-simply cannot *observe* that window, because observing it requires exactly the
-capability the secondary window lacks.
+- the reattach check addressed its tab by a hardcoded title that does not
+  exist after a restart; it now uses the first tab in the `Workspace tabs`
+  tablist, the pattern the rest of the file already uses;
+- the reattach check read the reading pane width in the same tick as the tab
+  click, so the divider attribute had settled at 470 while the measured pane
+  was still 430. It now waits for the width to settle before asserting.
 
-This is therefore a coverage gap in the instrumentation, not a defect in the
-product — and it is deliberately **not** recorded as a pass.
+Neither change weakened an assertion: the expected values are unchanged, only
+the waiting and the addressing.
 
-## Not done, and why
+## Resolved: the exit code 1 was the harness
 
-Two ways to close this, neither taken here:
+The app also appeared to exit with code 1 in several runs. Attribution
+timestamps proved the app was alive and idle when the smoke's own `finally`
+block ran `taskkill /F` on it, 400 ms after cleanup began. Exit code 1 is what
+taskkill produces; there was no crash. Cleanup now sends `WM_CLOSE` to the owned
+window, as the 0.3-era smoke already did, and only force-kills if that is
+ignored. Two consecutive runs close gracefully with exit code 0.
 
-1. **Weaken the check** to assert only on the workspace record and the Win32
-   window. This would go green immediately but would drop every assertion about
-   the detached window's *pane scope*, which is the thing the check exists to
-   prove. Not taken.
-2. **Apply the CDP endpoint to windows created after startup**, in the Rust
-   window-creation path. This restores the full assertion strength and is the
-   correct fix, but it is a change to the host's test affordance and belongs in
-   its own change with its own review — not folded into a test-harness commit.
+## Reproducing
 
-## Related finding from the same investigation
+```
+npx tauri build --no-bundle
+node scripts/daily-native-smoke.mjs --exe src-tauri/target/release/news-terminal.exe --prefix daily-native-v05
+node scripts/v05-native-smoke.mjs --prefix v05-native
+```
 
-`cargo build --release` does **not** embed the frontend. A binary produced that
-way launches, connects to CDP, and serves `about:blank` or
-`chrome-error://chromewebdata/`, so every native check fails at launch with
-"Native window target not ready". `npx tauri build` is required. This produced
-a misleading failure that looked like a broken product.
-
-Seven `msedgewebview2.exe` processes were observed lingering on the host. They
-were confirmed to hold the **same PIDs across every run**, so they predate this
-work and belong to another application. They were deliberately not terminated.
-
-## What this does and does not establish
-
-- It **does** establish that 0.5 did not regress the existing daily native
-  workflow: pagination, Hide/Undo host flags, J/K page crossing, search
-  reach, and per-tab pane scoping all pass on the real 0.5 build.
-- It **does not** constitute native acceptance of any 0.5 feature. The smoke
-  has no checks for bulk triage, the X/M/Escape shortcuts, alert receipts,
-  source search, or cache disclosure. 0.5.0 is not releasable on this evidence.
+Evidence lands in `docs/evidence/` as JSON plus screenshots. Neither script
+touches a production data directory, and the seven `msedgewebview2.exe` child
+processes observed on this host belong to another application and were left
+untouched.

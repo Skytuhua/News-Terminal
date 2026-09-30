@@ -542,11 +542,34 @@ fn create(app: &AppHandle, label: &str, placement: &Placement) -> Result<(), Str
             .map_err(|_| "Could not focus detached window")?;
         return Ok(());
     }
-    let window = WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
+    let mut builder = WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
         .title("News Terminal · Detached workspace")
         .inner_size(1060.0, 760.0)
         .min_inner_size(640.0, 480.0)
-        .visible(false)
+        .visible(false);
+    // A window created after startup must carry the same remote-debugging
+    // endpoint as the main window. Without this a detached window is invisible
+    // to CDP, so native acceptance could only ever assert that it failed to
+    // appear - the detached window's own pane scope was untestable. The port
+    // and the isolated data directory are test-only affordances driven by an
+    // environment variable, so this changes nothing for a real user.
+    if let Some(port) = std::env::var_os("NEWS_TERMINAL_CDP_PORT") {
+        if let Ok(args) = crate::cdp_browser_args(&port.to_string_lossy()) {
+            let directory = std::env::var_os("NEWS_TERMINAL_WEBVIEW_DATA_DIR")
+                .map(std::path::PathBuf::from)
+                .or_else(|| {
+                    std::env::var_os("NEWS_TERMINAL_DATA_DIR")
+                        .map(|path| std::path::PathBuf::from(path).join("webview-cdp"))
+                });
+            if let Some(directory) = directory {
+                let _ = std::fs::create_dir_all(&directory);
+                builder = builder
+                    .additional_browser_args(&args)
+                    .data_directory(directory);
+            }
+        }
+    }
+    let window = builder
         .build()
         .map_err(|_| "Could not create detached window")?;
     if let Err(error) = place(&window, placement) {
