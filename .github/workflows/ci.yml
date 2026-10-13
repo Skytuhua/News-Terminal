@@ -23,7 +23,21 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npx playwright install chromium
-      - run: npm run test:e2e
+      - name: Browser tests
+        id: browser_tests
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: test-results/playwright-results.json
+        run: npm run test:e2e -- --reporter=line,json
+      - name: Annotate browser test failures
+        if: ${{ failure() && steps.browser_tests.outcome == 'failure' }}
+        run: node scripts/report-playwright-failures.mjs test-results/playwright-results.json
+      - name: Upload browser test failure artifacts
+        if: ${{ failure() && steps.browser_tests.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-failures
+          path: test-results/
+          if-no-files-found: warn
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
       - run: cargo test --manifest-path src-tauri/Cargo.toml
       - run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
