@@ -124,6 +124,7 @@ export default function App() {
   const visited = useRef(new Set<string>());
   const loadGeneration = useRef(0);
   const queue = useRef(Promise.resolve());
+  const readToggleQueue = useRef(Promise.resolve());
   const contextAdopted = useRef(false);
   const workspaceGeneration = useRef(0);
   const importing = useRef(false);
@@ -518,7 +519,7 @@ export default function App() {
   const counts = useMemo(() => relatedCounts(data?.articles || []), [data?.articles]);
   const acceptedArticles = useMemo(() => new Map(data?.articles.map((a) => [a.id, a])), [data?.articles]);
   const metadataView = active?.mode === "all" && active.section === "ai" && aiView !== "news";
-  const reportView = metadataView || active?.mode === "briefing" || active?.mode === "live" || active?.mode === "hidden";
+  const reportView = metadataView || active?.mode === "briefing" || active?.mode === "live" || active?.mode === "hidden" || active?.mode === "alerts";
   // 0.5: the host emits notification-status when Windows delivery fails. Before
   // this nothing listened, so a silenced alert was indistinguishable from a
   // delivered one. The text is host-authored and shown verbatim.
@@ -548,10 +549,10 @@ export default function App() {
     [data?.articles, data?.profile.previousVisit, data?.watchlists],
   );
   // Zero renders nothing. The count is never colour-only: the number is real
-  // text, and the badge names itself for assistive tech while the button keeps
-  // its own clean accessible name.
-  const badge = (n: number | undefined) =>
-    n && n > 0 ? <span className="nav-count" role="img" aria-label={`${n} unread`}>{n}</span> : null;
+  // text. Each navigation button describes its badge when focused.
+  const badgeId = (n: number | undefined, key: string) => n && n > 0 ? `unread-${key}` : undefined;
+  const badge = (n: number | undefined, key: string) =>
+    n && n > 0 ? <span id={badgeId(n, key)} className="nav-count" role="img" aria-label={`${n} unread`}>{n}</span> : null;
   // Reading marks an item read, but must not erase its place in J/K history.
   // Only the current collection may participate: hidden/deleted/filtered items leave.
   const readingSequence = useRef({ key: '', ids: new Set<string>() });
@@ -567,8 +568,8 @@ export default function App() {
   const toggleTriage = useCallback((id: string) =>
     setTriage(current => current.includes(id) ? current.filter(v => v !== id) : [...current, id]), []);
   const triageKey = JSON.stringify([profileId, active?.id, active?.mode, active?.topic, active?.section, active?.watchlistId, query, kind, readingStatus, page]);
-  const triageScope = useRef(triageKey);
-  if (triageScope.current !== triageKey) { triageScope.current = triageKey; if (triage.length) setTriage([]); }
+  const triageScope = useRef({ key: triageKey });
+  if (triageScope.current.key !== triageKey) { triageScope.current = { key: triageKey }; if (triage.length) setTriage([]); }
   const triageIds = useMemo(() => new Set(triage), [triage]);
   const lastPage = Math.max(0, Math.ceil(rows.length / pageSize) - 1);
   const currentPage = Math.min(page, lastPage);
@@ -579,11 +580,15 @@ export default function App() {
   );
   const applyTriage = (patch: { read?: boolean; saved?: boolean; hidden?: boolean }, verb: string) => {
     if (!triageArticles.length) return;
+    const scope = triageScope.current;
+    const submitted = new Set(triageArticles.map(a => a.id));
     const items = triageArticles.map(a => ({ articleId: a.id, ...patch }));
     void action(
       { op: "article_state_many", profileId, items },
       `${triageArticles.length} ${verb}`,
-      () => setTriage([]),
+      () => {
+        if (triageScope.current === scope) setTriage(current => current.filter(id => !submitted.has(id)));
+      },
     );
   };
   function choosePage(value: number) { pageFromControl.current = true; setPage(value); }
@@ -618,6 +623,22 @@ export default function App() {
   function closeStory() {
     setSelectedId(undefined);
     patchTab({ selectedId: undefined });
+  }
+  function toggleStoryRead(article: Article) {
+    const target = { profileId, articleId: article.id, generation: workspaceGeneration.current, replacementToken: dataRef.current?.replacementToken };
+    const current = () => target.generation === workspaceGeneration.current &&
+      profileRef.current === target.profileId && !switchingProfile.current && !importing.current;
+    // Every press is an intent. Read the confirmed state only once its previous
+    // write has settled; failed writes never create an optimistic read marker.
+    readToggleQueue.current = readToggleQueue.current.then(async () => {
+      if (!current()) return;
+      const snapshot = await dispatch<Snapshot>({ op: "snapshot", profileId: target.profileId });
+      if (!current() || snapshot.replacementToken !== target.replacementToken) return;
+      const story = snapshot.articles.find(a => a.id === target.articleId);
+      if (!story) return;
+      await action({ op: "article_state", profileId: target.profileId, articleId: target.articleId, read: !story.read },
+        story.read ? "Marked unread" : "Marked read");
+    }).catch(e => { if (current()) setError(String(e)); });
   }
   async function hideStory(article: Article) {
     const target = { profileId, articleId: article.id, generation: workspaceGeneration.current };
@@ -676,7 +697,7 @@ export default function App() {
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (
-        !data || workspaceInvalid || panel || e.defaultPrevented ||
+        !data || workspaceInvalid || profilePending || switchingProfile.current || importing.current || panel || e.defaultPrevented ||
         document.querySelector("dialog[open]")
       ) return;
       const typing = (e.target as HTMLElement)?.closest(
@@ -732,20 +753,10 @@ export default function App() {
         }
       } else if (e.key === "x" && selected) {
         e.preventDefault();
-        void action({
-          op: "article_state",
-          profileId,
-          articleId: selected.id,
-          hidden: true,
-        }, "Story hidden");
+        void hideStory(selected);
       } else if (e.key === "m" && selected) {
         e.preventDefault();
-        void action({
-          op: "article_state",
-          profileId,
-          articleId: selected.id,
-          read: !selected.read,
-        }, selected.read ? "Marked unread" : "Marked read");
+        toggleStoryRead(selected);
       } else if (e.key === "Escape" && selectedId) {
         // Empty the reading pane rather than leaving a stale story on screen.
         e.preventDefault();
@@ -1017,6 +1028,7 @@ export default function App() {
                 key={section.id}
                 className={active?.mode === "all" && active?.section === section.id ? "chosen" : ""}
                 aria-label={section.title}
+                aria-describedby={badgeId(badges?.sections[section.id], `section-${section.id}`)}
                 onClick={() =>
                   navigate({
                     mode: "all",
@@ -1028,12 +1040,13 @@ export default function App() {
               >
                 <Newspaper size={16} />
                 {section.title}
-                {badge(badges?.sections[section.id])}
+                {badge(badges?.sections[section.id], `section-${section.id}`)}
               </button>
             ))}
             <button
               className={active?.mode === "all" && active?.section === "others" && !active.topic ? "chosen" : ""}
               aria-label="Others"
+              aria-describedby={badgeId(badges?.sections.others, "section-others")}
               aria-expanded={othersExpanded}
               aria-controls="other-topic-links"
               onClick={() => {
@@ -1042,7 +1055,7 @@ export default function App() {
               }}
             >
               <ChevronRight size={16} style={{ transform: othersExpanded ? "rotate(90deg)" : undefined }} />Others
-              {badge(badges?.sections.others)}
+              {badge(badges?.sections.others, "section-others")}
             </button>
             <div id="other-topic-links" hidden={!othersExpanded}>
               {Array.from(new Set([...topics, ...data.sources.flatMap(source => source.topics), ...data.workspace.tabs.map(tab => tab.topic).filter(Boolean)]))
@@ -1068,33 +1081,36 @@ export default function App() {
                 active?.mode === "all" && !active.topic && !active.section ? "chosen" : ""
               }
               aria-label="All headlines"
+              aria-describedby={badgeId(badges?.all, "all")}
               onClick={() => navigate({ mode: "all", section: undefined, title: "All headlines" })}
             >
               <Newspaper size={16} />
               All headlines
-              {badge(badges?.all)}
+              {badge(badges?.all, "all")}
             </button>
             <button
               className={active?.mode === "brief" ? "chosen" : ""}
               aria-label="Your brief"
+              aria-describedby={badgeId(badges?.brief, "brief")}
               onClick={() => navigate({ mode: "brief", title: "Your brief" })}
             >
               <Check size={16} />
               Your brief
-              {badge(badges?.brief)}
+              {badge(badges?.brief, "brief")}
             </button>
             <button
               className={active?.mode === "saved" ? "chosen" : ""}
               aria-label="Saved stories"
+              aria-describedby={badgeId(badges?.saved, "saved")}
               onClick={() =>
                 navigate({ mode: "saved", title: "Saved stories" })
               }
             >
               <Bookmark size={16} />
               Saved stories
-              {badge(badges?.saved)}
+              {badge(badges?.saved, "saved")}
             </button>
-            <button className={active?.mode === "hidden" ? "chosen" : ""} aria-label="Hidden stories" onClick={() => navigate({mode:"hidden", title:"Hidden stories"})}><ListFilter size={16} />Hidden stories{badge(badges?.hidden)}</button>
+            <button className={active?.mode === "hidden" ? "chosen" : ""} aria-label="Hidden stories" onClick={() => navigate({mode:"hidden", title:"Hidden stories"})}><ListFilter size={16} />Hidden stories</button>
             <button className={active?.mode === "alerts" ? "chosen" : ""} aria-label="Alert history" onClick={() => navigate({mode:"alerts", title:"Alert history"})}><Bell size={16} />Alert history</button>
             <div className="nav-heading">
               <span>Watchlists</span>
@@ -1115,6 +1131,7 @@ export default function App() {
                     : ""
                 }
                 aria-label={w.name}
+                aria-describedby={badgeId(badges?.watchlists[w.id], `watchlist-${w.id}`)}
                 onClick={() =>
                   navigate({
                     mode: "watchlist",
@@ -1125,7 +1142,7 @@ export default function App() {
               >
                 <ListFilter size={14} />
                 {w.name}
-                {badge(badges?.watchlists[w.id])}
+                {badge(badges?.watchlists[w.id], `watchlist-${w.id}`)}
               </button>
             ))}
             {!data.watchlists.length && (

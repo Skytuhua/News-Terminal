@@ -951,8 +951,9 @@ export default function Settings({
                   you keep a story beyond the window above.
                 </li>
                 <li>
-                  Alert receipts are kept for {CACHE_LIMITS.alertReceiptDays}{" "}
-                  days. After that a receipt keeps its time but loses its title.
+                  Alert receipts are removed after {CACHE_LIMITS.alertReceiptDays}{" "}
+                  days. If a story is pruned earlier, its receipt keeps the delivery time
+                  and says the story is no longer available.
                 </li>
                 <li>
                   Undelivered alert attempts are discarded after{" "}

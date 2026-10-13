@@ -69,6 +69,48 @@ test("later expands reuse the loaded preview; collapsing neither refetches nor d
   await expect(science(page).getByRole("button", { name: "Generate sector summary", exact: true })).toBeEnabled();
 });
 
+test("source preview loading message stops after failure and returns only for an explicit retry", async ({ page }) => {
+  await openBriefing(page);
+  await page.evaluate(() => {
+    const w = window as any;
+    w.__FAIL_OP__ = "sector_summary_preview";
+    w.__TEST_BEFORE_DISPATCH__ = async (r: any) => {
+      if (r.op === "sector_summary_preview")
+        await new Promise<void>(resolve => { w.__RELEASE_PREVIEW__ = resolve; });
+    };
+  });
+  const panel = science(page);
+  const checking = panel.getByText("Checking permitted source stories…", { exact: true });
+  await disclosure(page).click();
+  await expect(checking.first()).toBeVisible();
+  await expect.poll(() => page.evaluate(() => typeof (window as any).__RELEASE_PREVIEW__)).toBe("function");
+  await page.evaluate(() => (window as any).__RELEASE_PREVIEW__());
+
+  await expect(panel.getByRole("alert")).toContainText("Source preview unavailable");
+  await expect(checking).toHaveCount(0);
+  await expect(panel.getByRole("button", { name: "Generate sector summary", exact: true })).toBeDisabled();
+
+  await page.evaluate(() => {
+    const w = window as any;
+    w.__FAIL_OP__ = undefined;
+    w.__RELEASE_PREVIEW__ = undefined;
+  });
+  await panel.getByRole("button", { name: "Retry source preview", exact: true }).click();
+  await expect(checking.first()).toBeVisible();
+  await expect(panel.locator("details").getByRole("listitem")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => typeof (window as any).__RELEASE_PREVIEW__)).toBe("function");
+  await page.evaluate(() => {
+    const w = window as any;
+    w.__TEST_BEFORE_DISPATCH__ = undefined;
+    w.__RELEASE_PREVIEW__();
+  });
+  await expect(panel.getByRole("button", { name: "Generate sector summary", exact: true })).toBeEnabled();
+  await expect(checking).toHaveCount(0);
+  expect(await previewCalls(page)).toHaveLength(2);
+  const generated = await page.evaluate(() => (window as any).__TEST_CALLS__.filter((r: any) => r.op === "sector_summarize"));
+  expect(generated).toEqual([]);
+});
+
 test("browsing the briefing loads no preview, sends nothing to AI and marks nothing read", async ({ page }) => {
   await openBriefing(page);
   // Touch the briefing the way a reader does: browse sectors, read the outline,

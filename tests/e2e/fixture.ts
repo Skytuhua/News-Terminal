@@ -5,7 +5,7 @@ export async function fixture(
     visitEvents?: boolean;
     savedProfile?: boolean;
     v02?: boolean;
-    alertReceipts?: { profileId: string; articleId: string; at: string; title: string | null }[];
+    alertReceipts?: { profileId: string; articleId: string; at: number; title: string | null }[];
     sources?: any[];
   } = {},
 ) {
@@ -200,15 +200,15 @@ export async function fixture(
       }
       if (r.op === "alert_receipts") {
         // Receipts are profile-scoped and newest-first, exactly as the host
-        // returns them. A null title models an article pruned after 90 days.
+        // returns them. A null title models an article pruned before its receipt.
         // The host is profile-scoped with no default and no cross-profile data.
         if (r.profileId !== receiptsOwner) return [];
         const rows = (options.alertReceipts || [
-          { profileId: receiptsOwner, articleId: "a", at: "2026-09-29T08:04:00Z",
+          { profileId: receiptsOwner, articleId: "a", at: Date.parse("2026-09-29T08:04:00Z") / 1000,
             title: "Researchers map a new lunar water reserve" },
-          { profileId: receiptsOwner, articleId: "c", at: "2026-09-28T18:12:00Z",
+          { profileId: receiptsOwner, articleId: "c", at: Date.parse("2026-09-28T18:12:00Z") / 1000,
             title: "New chips improve battery density" },
-          { profileId: receiptsOwner, articleId: "b", at: "2026-09-27T06:40:00Z", title: null },
+          { profileId: receiptsOwner, articleId: "b", at: Date.parse("2026-09-27T06:40:00Z") / 1000, title: null },
         ]).filter((x: any) => x.profileId === receiptsOwner);
         const limit = typeof r.limit === "number" ? r.limit : 50;
         return rows.slice(0, limit);
@@ -340,8 +340,14 @@ export async function fixture(
             .toLowerCase()
             .includes(r.query.toLowerCase()),
         );
-      if (['article_state','group_split'].includes(r.op) && r.replacementToken !== replacementToken)
+      if (['article_state','article_state_many','group_split'].includes(r.op) && r.replacementToken !== replacementToken)
         throw new Error("Database replaced: reload before making a new change");
+      if (r.op === "article_state_many") {
+        const target = byProfile[r.profileId];
+        for (const item of r.items)
+          Object.assign((target.retainedArticles || target.articles).find((a: any) => a.id === item.articleId),
+            Object.fromEntries(["read", "saved", "hidden"].filter(k => k in item).map(k => [k, item[k]])));
+      }
       if (r.op === "article_state")
         Object.assign(
           (byProfile[r.profileId].retainedArticles || byProfile[r.profileId].articles).find((a: any) => a.id === r.articleId),

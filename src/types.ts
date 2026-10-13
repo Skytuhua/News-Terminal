@@ -230,10 +230,10 @@ export type Summary = {
   url: string;
 };
 // 0.5. A receipt proves a watchlist alert was delivered. title is null once the
-// article has been pruned out of the 90-day log, which is not a failure.
+// article has been pruned before its 90-day receipt expires.
 export type AlertReceipt = {
   profileId: string;
   articleId: string;
-  at: string;
+  at: number;
   title: string | null;
 };

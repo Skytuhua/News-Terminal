@@ -1,6 +1,6 @@
 // Windows/WebView2 + real Rust host acceptance for the 0.5 features.
 // SYNTHETIC fixtures via the validated native import only.
-// node scripts/v05-native-smoke.mjs [--exe src-tauri/target/release/news-terminal.exe] [--prefix v05-native]
+// node scripts/v05-native-smoke.mjs [--exe src-tauri/target/release/news-terminal.exe] [--prefix v05-native-review1]
 // Does NOT build, modify production data, mock IPC, start servers or models, or
 // stop unowned processes. Owns and terminates only the process it starts.
 //
@@ -10,7 +10,7 @@
 // all until this runs. This script is that evidence.
 import { chromium, expect } from '@playwright/test';
 import { spawn, spawnSync, execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createServer } from 'node:net';
@@ -35,7 +35,7 @@ const evidence = { startedAt: new Date().toISOString(), executable: resolve(root
     'Only the recorded executable hash is accepted. No build or claim of source-to-binary freshness is made.',
     `${FIXTURE_COUNT} explicitly synthetic stories imported through the real validated native backup API into a newly-created temporary appdata directory. IPC and DOM are not mocked.`,
     'Covers the 0.5 features only. The 0.3-era daily workflow is covered by scripts/daily-native-smoke.mjs.',
-    'The detached-window check is deliberately excluded: a window created after startup does not register a CDP target, so the harness cannot observe it. See docs/v05-native-acceptance.md.',
+    'Detached-window behavior is not checked here; use scripts/daily-native-smoke.mjs. See docs/v05-native-acceptance.md.',
     'No network/AI/feed quality, installer, physical DPI, or Windows notification toast acceptance is implied.',
   ] };
 let app, browser, main, dataDirectory;
@@ -97,13 +97,19 @@ const shot = async (name, page = main) => {
 };
 
 try {
+  assert.equal(process.platform, 'win32', 'Native acceptance requires Windows/WebView2');
+  assert.ok(existsSync(evidence.executable), 'Native executable does not exist');
+  evidence.executableSha256 = sha(readFileSync(evidence.executable));
+  evidence.scriptSha256 = sha(readFileSync(fileURLToPath(import.meta.url)));
   dataDirectory = mkdtempSync(join(tmpdir(), 'v05-native-'));
+  evidence.launchedExecutable = join(dataDirectory, 'v05-native-app.exe');
+  copyFileSync(evidence.executable, evidence.launchedExecutable);
+  assert.equal(sha(readFileSync(evidence.launchedExecutable)), evidence.executableSha256);
   mkdirSync(join(dataDirectory, 'webview'), { recursive: true });
   const port = await new Promise((done, reject) => { const s = createServer(); s.on('error', reject);
     s.listen(0, '127.0.0.1', () => { const n = s.address().port; s.close(() => done(n)); }); });
   const run = { port, startedAt: new Date().toISOString(), stderr: '' };
   evidence.launches.push(run);
-  evidence.launchedExecutable = resolve(root, values.exe);
   app = spawn(evidence.launchedExecutable, [], { env: { ...process.env,
     NEWS_TERMINAL_DATA_DIR: dataDirectory, NEWS_TERMINAL_CDP_PORT: String(port),
     NEWS_TERMINAL_WEBVIEW_DATA_DIR: join(dataDirectory, 'webview') }, stdio: 'pipe' });
@@ -241,12 +247,12 @@ try {
     assert.ok(next, 'expected a visible story for the M check');
     await main.locator(`[data-article-id="${next.id}"] .headline`).click();
     await main.locator('.list-heading h2').click();
-    // Read the flag AFTER the click. Selecting a story marks it read, so a
-    // value captured beforehand would be stale and the assertion would be
-    // checking the wrong transition.
-    const wasRead = (await snapshot()).articles.find((a) => a.id === next.id).read;
+    // Selection marks read asynchronously. Confirm that write before M, so
+    // selection cannot satisfy the toggle assertion or race its expected value.
+    await until(async () => (await snapshot()).articles.find((a) => a.id === next.id)?.read === true,
+      'Selection did not mark the story read before the M check', 15000);
     await main.keyboard.press('m');
-    await until(async () => (await snapshot()).articles.find((a) => a.id === next.id)?.read === !wasRead,
+    await until(async () => (await snapshot()).articles.find((a) => a.id === next.id)?.read === false,
       'M did not toggle read through the native host', 15000);
     await shot('keyboard-shortcuts');
     const s2 = await snapshot();
@@ -359,13 +365,13 @@ try {
   const passed = evidence.checks.filter((c) => c.passed).length;
   const failed = evidence.checks.filter((c) => !c.passed).length;
   evidence.summary = { checks: evidence.checks.length, passed, failed };
-  evidence.passed = failed === 0;
   evidence.pageErrorCount = evidence.pageErrors.length;
   evidence.consoleErrorCount = evidence.consoleErrors.length;
+  evidence.passed = failed === 0 && evidence.pageErrorCount === 0;
   save();
   console.log(JSON.stringify({ evidence: `${base}.json`, passed: evidence.passed, summary: evidence.summary,
     pageErrors: evidence.pageErrors, consoleErrors: evidence.consoleErrors }, null, 2));
-  if (failed) process.exitCode = 1;
+  if (!evidence.passed) process.exitCode = 1;
 } catch (error) {
   evidence.fatalError = String(error).slice(0, 2000);
   save();

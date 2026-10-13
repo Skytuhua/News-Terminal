@@ -116,7 +116,8 @@ export default function SectorSummary({ profileId, day, sectorId, sectorTitle, p
       const open = e.currentTarget.open;
       setShowInputs(open);
       if (open) setRequested(true);
-    }}><summary>Review selected source inputs</summary>{showInputs && (preview ? inputs : <li>Checking permitted source stories…</li>)}</details>}
+    }}><summary>Review selected source inputs</summary>{showInputs && (preview ? inputs
+      : requested && !previewError ? <p className="fine">Checking permitted source stories…</p> : null)}</details>}
     {!ready && <p className="fine">Enable a provider and give consent before generating.</p>}
     <div className="form-actions">{busy ? <>
       <span role="status">Selecting source quotations…</span>

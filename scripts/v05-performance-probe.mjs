@@ -1,5 +1,5 @@
 // Synthetic browser benchmark only. No native DB, feed, AI or user profile access.
-// Usage: node scripts/v05-performance-probe.mjs [--stories=5000] [--trials=5] [--port=4183] [--output=docs/evidence/v05-performance-run1.json]
+// Usage: node scripts/v05-performance-probe.mjs [--stories=5000] [--trials=5] [--port=4183] [--output=docs/evidence/v05-performance-run1.json] [--browser-executable=/usr/bin/chromium]
 //
 // Measures the areas left unmeasured by docs/daily-performance-baseline.md (0.3-era
 // list work) and docs/v04-performance-baseline.md (0.4 native ranking/snapshot):
@@ -34,6 +34,9 @@ const args = Object.fromEntries(
 const stories = Number(args.stories || 5000);
 const trials = Number(args.trials || 5);
 const port = Number(args.port || 4183);
+const browserExecutable = args["browser-executable"] ? resolve(root, args["browser-executable"]) : undefined;
+if (browserExecutable) assert(existsSync(browserExecutable), "browser executable does not exist");
+const browserLaunchOptions = { headless: true, ...(browserExecutable ? { executablePath: browserExecutable } : {}) };
 assert(Number.isInteger(stories) && stories >= 100 && stories <= 20000, "stories out of range");
 assert(Number.isInteger(trials) && trials >= 5 && trials <= 20, "trials must be >= 5");
 assert(Number.isInteger(port) && port >= 1024 && port <= 65535, "port out of range");
@@ -52,7 +55,10 @@ const hashFiles = [
   "src/HeadlineRow.tsx", "src/Coverage.tsx", "src/Briefing.tsx", "src/SectorSummary.tsx",
   "src/LiveDiscussion.tsx", "src/HiddenStories.tsx", "src/Summary.tsx", "src/StoryThumbnail.tsx",
   "src/MediaSession.tsx", "src/types.ts", "src/main.tsx", "package.json", "package-lock.json",
-  "vite.config.ts", "index.html",
+  "src/AlertHistory.tsx", "src/Settings.tsx", "src/EmptyHeadlines.tsx", "src/ReaderMedia.tsx",
+  "src/ModelCatalog.tsx", "src/SourceUrl.tsx", "src/MonitorControls.tsx", "src/mediaLoader.ts",
+  "src/usePaneWidths.ts", "src/PaneDivider.tsx", "src/Connections.tsx", "src/BenchmarkTable.tsx",
+  "src/styles.css", "src/daily-use.css", "vite.config.ts", "index.html", "scripts/v05-performance-probe.mjs",
 ];
 async function fingerprints() {
   return Object.fromEntries(
@@ -64,6 +70,10 @@ async function fingerprints() {
     ),
   );
 }
+
+// Include both builds in the provenance interval. A hash sampled after a build
+// could identify newer source files than the bundle actually served.
+const initialHashes = await fingerprints();
 
 // ---------------------------------------------------------------- production bundle
 // Real production asset bytes, in memory only. The seam is compiled away here, so
@@ -142,7 +152,6 @@ const expectedCounts = expectations(stories);
 // Single source of truth for the typed query: the battery, the assertions and the
 // evidence record all read this one constant.
 const TYPED_QUERY = "needle";
-const initialHashes = await fingerprints();
 const result = {
   schemaVersion: 1,
   startedAt,
@@ -171,6 +180,7 @@ const result = {
     totalMemoryBytes: os.totalmem(),
     freeMemoryBytesAtStart: os.freemem(),
     node: process.version,
+    browserExecutable: browserExecutable || "Playwright-managed Chromium",
     gitHead: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
     viewport: { width: 1440, height: 1000 },
     reducedMotion: "reduce",
@@ -686,13 +696,17 @@ async function interactionBattery(browser) {
     () => readyRows(page, result.expectedCounts.all)));
   await page.waitForTimeout(900);
 
+  const firstStory = page.locator(".story-list .headline").first();
+  const firstStoryTitle = await firstStory.innerText();
   steps.push(await step(page, "open-first-story-reader-pane",
-    () => page.locator(".story-list .headline").first().click(),
-    () => page.locator(".detail h2").waitFor()));
+    () => firstStory.click(),
+    () => page.waitForFunction(title => document.querySelector(".detail h2")?.textContent === title, firstStoryTitle)));
 
+  const thirdStory = page.locator("[data-testid=story-row]").nth(2).locator(".headline");
+  const thirdStoryTitle = await thirdStory.innerText();
   steps.push(await step(page, "reader-content-switch-to-third-story",
-    () => page.locator("[data-testid=story-row]").nth(2).locator(".headline").click(),
-    () => page.waitForFunction(() => /#\d+\s*$/.test(document.querySelector(".detail h2")?.textContent || ""))));
+    () => thirdStory.click(),
+    () => page.waitForFunction(title => document.querySelector(".detail h2")?.textContent === title, thirdStoryTitle)));
 
   steps.push(await step(page, "switch-to-daily-briefing",
     () => page.getByRole("button", { name: "Daily briefing" }).click(),
@@ -730,7 +744,7 @@ async function interactionBattery(browser) {
 let browser;
 try {
   for (let trial = 1; trial <= trials; trial++) {
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch(browserLaunchOptions);
     result.environment.chromium = browser.version();
     const record = { trial, startedAt: new Date().toISOString() };
     record.cold = await coldMeasure(browser);
@@ -768,7 +782,7 @@ try {
   }
 
   // ------------------------------------------------- isolated expression costs
-  browser = await chromium.launch({ headless: true });
+  browser = await chromium.launch(browserLaunchOptions);
   {
     const context = await browser.newContext({ viewport: result.environment.viewport, reducedMotion: "reduce" });
     const page = await context.newPage();
@@ -883,6 +897,7 @@ try {
   result.sourceHashesAtEnd = await fingerprints();
   result.changedDuringRun = hashFiles.filter(name => initialHashes[name] !== result.sourceHashesAtEnd[name]);
   result.finishedAt = new Date().toISOString();
+  assert.deepEqual(result.changedDuringRun, [], "Source files changed after the build began; discard these measurements and rerun");
   assert.equal(result.trials.length, trials, "All trials recorded");
   assert.equal(result.errors.length, 0, "Browser page errors");
   await save();

@@ -28,13 +28,16 @@ export default function EmptyHeadlines({ data, tab, query, kind, readingStatus, 
     title = enabled ? 'Your cache is empty' : 'No sources enabled';
     body = enabled ? 'Refresh enabled feeds to start reading. Source access and available excerpts may vary.' : 'Enable a permitted source to start collecting stories.';
     label = enabled ? 'Refresh feeds' : 'Manage sources'; action = enabled ? refresh : sources;
-  } else if (readingStatus !== 'all' || tab.mode === 'brief') {
+  } else if (readingStatus !== 'all') {
     // Each filter gets its own honest wording: "caught up" is only true for
     // the Unread filter, not for Read.
     title = readingStatus === 'unread' ? 'You’re caught up' : 'No stories match this filter';
-    body = tab.mode === 'brief' ? 'No new cached stories since your previous visit.'
-      : readingStatus === 'unread' ? 'There are no unread stories in this view.'
+    body = readingStatus === 'unread' ? 'There are no unread stories in this view.'
       : 'There are no read stories in this view.';
+    label = readingStatus === 'read' ? 'Clear filters' : 'Show all stories';
+    action = readingStatus === 'read' ? clear : browse;
+  } else if (tab.mode === 'brief') {
+    title = 'You’re caught up'; body = 'No new cached stories since your previous visit.';
     label = 'Show all stories'; action = browse;
   } else if (tab.mode === 'watchlist') {
     title = 'No stories match this watchlist'; body = 'Adjust its keywords, topics or sources, or browse all headlines.'; label = 'Edit watchlists'; action = watchlists;

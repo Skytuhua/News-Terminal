@@ -1,23 +1,38 @@
-# 0.5 native acceptance: detached-window check does not pass
+# 0.5 native acceptance and evidence limits
 
-## Result
+## Recorded Windows results
 
-`scripts/daily-native-smoke.mjs` passes **13 of 13** checks against the 0.5
-release executable, including `real detached native window has independent pane
-scope` and `reattach restores same tab main widths without copying detached
-preferences`. `scripts/v05-native-smoke.mjs` passes **10 of 10** twice
-consecutively, with a clean exit code 0.
+The committed Windows runs from 2026-09-30 record **13 of 13** daily checks in
+[`daily-native-v05-final.json`](evidence/daily-native-v05-final.json) and
+[`daily-native-v05-final2.json`](evidence/daily-native-v05-final2.json), including
+the detached pane scope, restart, and reattach checks. The 0.5 feature runs in
+[`v05-native-g2.json`](evidence/v05-native-g2.json) and
+[`v05-native-g3.json`](evidence/v05-native-g3.json) record **10 of 10** checks
+and graceful app exit code 0.
 
-Both runs use the real release executable, an isolated temporary appdata
-directory, synthetic fixtures imported through the validated backup API, and no
-mocked IPC or DOM. Source of truth is the executable built by
-`npx tauri build --no-bundle`; a plain `cargo build --release` does not embed
-the frontend assets and serves `about:blank`, which fails every check at launch.
+These historical runs use a native release executable, isolated temporary
+appdata, synthetic fixtures imported through the validated backup API, and no
+mocked IPC or DOM. They do not establish that the runners revised during review
+pass on Windows: this review environment runs Linux and cannot execute the
+Windows/WebView2 application.
+
+The daily artifacts include executable and runner SHA-256 hashes. The existing
+0.5 feature artifacts identify the embedded JavaScript and CSS, but contain no
+executable or runner hash; they cannot identify the Rust binary that produced
+their results. Future 0.5 feature runs now record both hashes and launch a
+temporary executable copy whose hash is checked before launch. The historical
+evidence files have been preserved unchanged.
+
+Build the revision under review with `npx tauri build --no-bundle` and rerun both
+native scripts on Windows before claiming current native acceptance. The Tauri
+CLI runs the frontend build command; a plain `cargo build --release` does not
+establish frontend freshness. Windows CI compiles and packages the app, but
+does not run these native smoke scripts.
 
 ## Resolved: the detached window was invisible to CDP
 
-The detached-window check previously never reached a ready CDP target. The
-window itself was never broken. Instrumentation showed all three of:
+The detached-window check previously never reached a ready CDP target.
+Instrumentation showed all three of:
 
 - the host recorded the detached tab correctly (`detachedTabs` reported
   `tabId: home`);
@@ -44,10 +59,17 @@ check was first written:
   tablist, the pattern the rest of the file already uses;
 - the reattach check read the reading pane width in the same tick as the tab
   click, so the divider attribute had settled at 470 while the measured pane
-  was still 430. It now waits for the width to settle before asserting.
+  was still 430. The first polling implementation accepted any returned state
+  object and therefore did not wait. The review correction returns a state
+  only when its rendered reading pane width is 470; it otherwise polls until
+  the existing timeout and preserves the width assertion.
 
 Neither change weakened an assertion: the expected values are unchanged, only
 the waiting and the addressing.
+
+The 0.5 feature runner also now marks the run failed and returns exit status 1
+when it records an uncaught frontend page error, even if every named check
+passes. Console errors remain recorded for diagnosis.
 
 ## Resolved: the exit code 1 was the harness
 
@@ -56,16 +78,18 @@ timestamps proved the app was alive and idle when the smoke's own `finally`
 block ran `taskkill /F` on it, 400 ms after cleanup began. Exit code 1 is what
 taskkill produces; there was no crash. Cleanup now sends `WM_CLOSE` to the owned
 window, as the 0.3-era smoke already did, and only force-kills if that is
-ignored. Two consecutive runs close gracefully with exit code 0.
+ignored. The two historical feature runs linked above close gracefully with
+exit code 0.
 
 ## Reproducing
 
 ```
 npx tauri build --no-bundle
-node scripts/daily-native-smoke.mjs --exe src-tauri/target/release/news-terminal.exe --prefix daily-native-v05
-node scripts/v05-native-smoke.mjs --prefix v05-native
+node scripts/daily-native-smoke.mjs --exe src-tauri/target/release/news-terminal.exe
+node scripts/v05-native-smoke.mjs --exe src-tauri/target/release/news-terminal.exe
 ```
 
+The default prefixes include a timestamp, so new runs get new evidence paths.
 Evidence lands in `docs/evidence/` as JSON plus screenshots. Neither script
 touches a production data directory, and the seven `msedgewebview2.exe` child
 processes observed on this host belong to another application and were left

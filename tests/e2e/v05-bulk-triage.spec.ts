@@ -52,6 +52,8 @@ test("bulk triage issues exactly one dispatch for the selected rows", async ({ p
   expect(writes[0].profileId).toBeTruthy();
   // A five-row batch must not turn into five round trips.
   expect(writes[0].items).toHaveLength(titles.length);
+  await expect.poll(() => page.evaluate(wanted => (window as any).__TEST_SNAPSHOT__()
+    .articles.filter((a: any) => wanted.includes(a.title)).every((a: any) => a.read), titles)).toBe(true);
 });
 
 test("selection is scoped to the page and never persisted", async ({ page }) => {
@@ -109,6 +111,8 @@ test("bulk hide states the count and writes every selected row", async ({ page }
   const expected = await idsFor(page, titles);
   expect(writes[0].items.map((i: any) => i.articleId).sort()).toEqual([...expected].sort());
   expect(writes[0].items.every((i: any) => i.hidden === true)).toBe(true);
+  await expect.poll(() => page.evaluate(wanted => (window as any).__TEST_SNAPSHOT__()
+    .articles.filter((a: any) => wanted.includes(a.title)).every((a: any) => a.hidden), titles)).toBe(true);
   // The selection is consumed by the action.
   await expect(page.getByRole("region", { name: "Bulk actions" })).toHaveCount(0);
 });

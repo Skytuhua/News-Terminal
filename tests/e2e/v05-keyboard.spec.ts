@@ -39,10 +39,7 @@ test("M toggles read on the selected story and is reversible", async ({ page }) 
   await expect.poll(async () => (await first(page)).read).toBe(true);
   await page.keyboard.press("m");
   await expect.poll(async () => (await first(page)).read).toBe(false);
-  // Wait for the reload to settle before toggling again. M reads the current
-  // read flag, so a second press issued before the first lands would toggle
-  // from a stale value and silently do the same thing twice.
-  await page.waitForTimeout(200);
+  // Read-toggle intents use confirmed host state even while a readback settles.
   await page.keyboard.press("m");
   await expect.poll(async () => (await first(page)).read).toBe(true);
 });

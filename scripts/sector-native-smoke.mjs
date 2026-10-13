@@ -108,9 +108,10 @@ try {
   });
   await check('native UI on-demand synthesis, source links and disclosures',async()=>{
     await page.reload();await page.getByRole('tablist',{name:'Workspace tabs'}).waitFor();await page.getByRole('button',{name:'Daily briefing',exact:true}).click();await page.getByLabel('Briefing date',{exact:true}).fill(preview.date);
-    const panel=page.getByRole('region',{name:`${preview.sectorTitle} source quotations`,exact:true});const generate=panel.getByRole('button',{name:'Generate sector summary',exact:true});await until(()=>generate.isEnabled());
+    const panel=page.getByRole('region',{name:`${preview.sectorTitle} source quotations`,exact:true});const generate=panel.getByRole('button',{name:'Generate sector summary',exact:true});
+    await panel.getByText('Review selected source inputs',{exact:true}).click();await until(()=>generate.isEnabled());
     assert.ok((await panel.innerText()).includes(`${preview.selectedCount} source stories selected · ${preview.eligibleCount} eligible · ${preview.excludedCount} excluded`));
-    await panel.getByText('Review selected source inputs',{exact:true}).click();for(const s of preview.sources){await until(async()=>(await panel.innerText()).includes(s.title));assert.equal(await panel.getByRole('link',{name:s.url,exact:true}).innerText(),s.url);}
+    for(const s of preview.sources){await until(async()=>(await panel.innerText()).includes(s.title));assert.equal(await panel.getByRole('link',{name:s.url,exact:true}).innerText(),s.url);}
     await shot('preview',panel);await generate.click();
     await until(async()=>{if(await panel.locator('.sector-summary-output').count())return true;const error=panel.getByRole('alert');if(await error.count())throw Error(await error.innerText());return false;},240000);
     const output=panel.locator('.sector-summary-output');evidence.uiOutputText=await output.innerText();evidence.uiBullets=await panel.locator('.sector-summary-bullets > li').evaluateAll(items=>items.map(li=>({text:li.querySelector('p')?.textContent,citations:[...li.querySelectorAll('[role=link]')].map(e=>e.textContent)})));save();
