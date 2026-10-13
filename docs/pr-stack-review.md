@@ -39,3 +39,7 @@ its source preview still kept it disabled. The layout test now includes a
 delayed preview and waits for the button to be enabled before focusing it;
 the focus and Enter assertions remain. Browser failures also produce GitHub
 annotations and retain their test-result artifacts for diagnosis.
+The provider-change test also delays snapshot readback and waits for the new
+consent state before opening its replacement disclosure. This prevents it
+from mistakenly interacting with the old component while retaining the
+cancellation and stale-output assertions.

@@ -139,6 +139,9 @@ for (const change of ["date", "profile", "input", "permission", "provider", "unm
       else await page.evaluate(change => {
         const w = window as any, s = w.__TEST_SNAPSHOT__();
         if (change === "provider") {
+          // Force the provider snapshot to arrive after the old disclosure
+          // can be found, exposing accidental interactions with that view.
+          w.__TEST_SNAPSHOT_DELAY__ = 200;
           w.__HOLD_PREVIEW__ = true;
           w.__TEST_PATCH__({ providers: s.providers.map((p: any) => ({ ...p, consented: false })) });
         }
@@ -150,8 +153,9 @@ for (const change of ["date", "profile", "input", "permission", "provider", "unm
         // 0.5: the preview is only re-requested when the reader reviews it, so
         // a provider change is observed by expanding the disclosure. The
         // request is deliberately held here, so this must not wait for it to
-        // resolve - but it must wait for the re-render that exposes the
-        // disclosure, or the click lands on a detached element.
+        // resolve. The old in-flight component also has an open disclosure;
+        // wait for the new provider's consent state before interacting.
+        await expect(combined(page).getByText("Enable a provider and give consent before generating.", { exact: true })).toBeVisible();
         const d = combined(page).locator("details")
           .filter({ hasText: "Review selected source inputs" }).first();
         await d.waitFor({ state: "attached" });
