@@ -280,9 +280,17 @@ test("sector generated view stays usable across desktop narrow and zoomed layout
   const errors: string[] = [];
   page.on("pageerror", e => errors.push(e.message));
   await page.emulateMedia({ reducedMotion: "reduce" });
+  // A visible Generate button stays disabled until its source preview arrives.
+  // Exercise that interval so keyboard focus cannot depend on a fast fixture.
+  await page.addInitScript(() => {
+    (window as any).__TEST_BEFORE_DISPATCH__ = async (r: any) => {
+      if (r.op === "sector_summary_preview") await new Promise(resolve => setTimeout(resolve, 500));
+    };
+  });
   await openBriefing(page);
   const panel = combined(page);
   const generate = panel.getByRole("button", { name: "Generate sector summary" });
+  await expect(generate).toBeEnabled();
   await generate.focus();
   await expect(generate).toBeFocused();
   await generate.press("Enter");

@@ -19,7 +19,7 @@ an explicit `--browser-executable` for machines with system Chromium.
 ## Local validation
 
 - Frontend production build and TypeScript check passed.
-- 37 frontend unit tests passed.
+- 50 unit tests passed, including the CI failure-reporting fixtures.
 - 237 browser fixture tests passed, including regression coverage for the fixes.
 - 159 headless Rust tests passed; six optional tests were explicitly ignored.
 - Rust formatting passed.
@@ -33,3 +33,9 @@ entry point. Browser fixtures do not establish Windows/WebView2 behavior.
 Fresh Windows CI must pass for the final revision before integration. Current
 native acceptance requires rebuilding and running the Windows smoke scripts;
 see [native evidence limits](v05-native-acceptance.md).
+
+Windows CI exposed a keyboard-test readiness race: Generate was focused while
+its source preview still kept it disabled. The layout test now includes a
+delayed preview and waits for the button to be enabled before focusing it;
+the focus and Enter assertions remain. Browser failures also produce GitHub
+annotations and retain their test-result artifacts for diagnosis.
