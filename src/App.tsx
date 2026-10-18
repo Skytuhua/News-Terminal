@@ -29,7 +29,7 @@ import {
   type WindowContext,
 } from "./ipc";
 import AlertHistory from "./AlertHistory";
-import { date, sourceFailed, filterArticles, focusSections, relatedCounts, reconcileArticles, topics, matchesReadingStatus, unreadCounts, type ReadingStatus } from "./model";
+import { date, sourceFailed, filterArticles, focusSections, relatedCounts, reconcileArticles, sameSnapshotValue, sameSearchInputs, sameBriefingInputs, topics, matchesReadingStatus, unreadCounts, type ReadingStatus } from "./model";
 import { coalescedRead } from "./coalescedRead";
 import SettingsPanel from "./Settings";
 import Coverage from "./Coverage";
@@ -82,7 +82,7 @@ export default function App() {
     return () => window.removeEventListener('resize', resized);
   }, []);
   const [data, setData] = useState<Snapshot>();
-  const [briefingInput, setBriefingInput] = useState("");
+  const [briefingInput, setBriefingInput] = useState(0);
   const [workspaceInvalid, setWorkspaceInvalid] = useState(false);
   const [profileId, setProfileId] = useState("default");
   const [profilePending, setProfilePending] = useState(false);
@@ -106,6 +106,7 @@ export default function App() {
   const [searching, setSearching] = useState(false);
   const [searchFailed, setSearchFailed] = useState(false);
   const [searchAttempt, setSearchAttempt] = useState(0);
+  const [searchRevision, setSearchRevision] = useState(0);
   const [selectedId, setSelectedId] = useState<string>();
   const [kind, setKind] = useState("");
   // 0.5: replaces the old Unread checkbox. All/Unread/Read, defaults to All,
@@ -120,6 +121,7 @@ export default function App() {
   const profileRef = useRef(profileId);
   profileRef.current = profileId;
   const dataRef = useRef(data);
+  const authoritativeSnapshot = useRef<Snapshot | undefined>(undefined);
   const loadedProfile = useRef("");
   const visited = useRef(new Set<string>());
   const loadGeneration = useRef(0);
@@ -164,15 +166,21 @@ export default function App() {
         profileRef.current = id;
         setProfileId(id);
       }
-      // Use the authoritative cache before the stable-reading projection below.
-      // Workspace saves, read markers and status polling are not input changes.
-      setBriefingInput(JSON.stringify([
-        next.profile.preferences,
-        next.sources.map(({ id, enabled, storage, aiAllowed, mediaAllowed }) => [id, enabled, storage, aiAllowed, mediaAllowed]),
-        next.articles.map(({ id, updatedAt, title, excerpt, url, sourceId, sourceName, publishedAt, topics, sections, topicLabels, region, language, kind, aiAllowed, hidden, media }) =>
-          [id, updatedAt, title, excerpt, url, sourceId, sourceName, publishedAt, topics, sections, topicLabels, region, language, kind, aiAllowed, hidden, media]),
-      ]));
       const old = dataRef.current;
+      const previousSnapshot = loadedProfile.current === id ? authoritativeSnapshot.current : undefined;
+      if (previousSnapshot) {
+        next.articles = reconcileArticles(previousSnapshot.articles, next.articles);
+        if (sameSnapshotValue(previousSnapshot.profile.preferences, next.profile.preferences))
+          next.profile.preferences = previousSnapshot.profile.preferences;
+        if (sameSnapshotValue(previousSnapshot.watchlists, next.watchlists))
+          next.watchlists = previousSnapshot.watchlists;
+      }
+      // Keep authoritative inputs before the visible stream defers arrivals or
+      // preserves its order. Workspace saves, read markers and status polling
+      // reuse the revision; changed source permissions invalidate it immediately.
+      if (!previousSnapshot || !sameBriefingInputs(previousSnapshot, next))
+        setBriefingInput(value => value + 1);
+      authoritativeSnapshot.current = { ...next };
       if (!reset && loadedProfile.current === id && old && old.articles.length > 0) {
         const map = new Map(next.articles.map((a) => [a.id, a]));
         const existing = new Set(old.articles.map((a) => a.id));
@@ -192,6 +200,8 @@ export default function App() {
         setResults(undefined);
       }
       if (old && loadedProfile.current === id) next.articles = reconcileArticles(old.articles, next.articles);
+      if (!old || loadedProfile.current !== id || !sameSearchInputs(old, next))
+        setSearchRevision(value => value + 1);
       loadedProfile.current = id;
       dataRef.current = next;
       setData(next);
@@ -245,6 +255,7 @@ export default function App() {
     visited.current.clear();
     loadedProfile.current = "";
     dataRef.current = undefined;
+    authoritativeSnapshot.current = undefined;
     contextAdopted.current = false;
     setWorkspaceInvalid(true);
     // Keep the settings dialog mounted, but remove every old reading surface.
@@ -296,6 +307,7 @@ export default function App() {
       contextAdopted.current = false;
       setSelectedId(undefined);
       dataRef.current = undefined;
+      authoritativeSnapshot.current = undefined;
       setData(undefined);
       await load(true);
       switchingProfile.current = false;
@@ -455,10 +467,6 @@ export default function App() {
       return { ...w, tabs };
     });
   }
-  const searchRevision = useMemo(() => JSON.stringify([
-    data?.profile.preferences,
-    data?.articles.map(({read: _read, saved: _saved, ...searchable}) => searchable),
-  ]), [data?.profile.preferences, data?.articles]);
   useEffect(() => {
     if (!active || !data) return;
     setSearchFailed(false);
@@ -540,7 +548,7 @@ export default function App() {
           data.profile.previousVisit,
           data.watchlists.find((w) => w.id === active.watchlistId),
         ).filter((a) => !kind || a.kind === kind)
-      : [], [active, data?.articles, data?.profile.previousVisit, data?.watchlists, reportView, results, acceptedArticles, kind]);
+      : [], [active?.id, active?.mode, active?.topic, active?.section, active?.watchlistId, data?.articles, data?.profile.previousVisit, data?.watchlists, reportView, results, acceptedArticles, kind]);
   const rows = useMemo(() => collectionRows.filter(a => matchesReadingStatus(a, readingStatus)), [collectionRows, readingStatus]);
   // 0.5: one projection for every navigation badge, so a badge can never
   // disagree with what its own destination lists. Unread only, never totals.
@@ -557,9 +565,13 @@ export default function App() {
   // Only the current collection may participate: hidden/deleted/filtered items leave.
   const readingSequence = useRef({ key: '', ids: new Set<string>() });
   const sequenceKey = JSON.stringify([profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, readingStatus]);
-  if (readingSequence.current.key !== sequenceKey) readingSequence.current = {key: sequenceKey, ids: new Set()};
-  const navigationRows = collectionRows.filter(a => matchesReadingStatus(a, readingStatus) || readingSequence.current.ids.has(a.id));
-  readingSequence.current.ids = new Set(navigationRows.map(a => a.id));
+  const navigation = useMemo(() => {
+    const previousIds = readingSequence.current.key === sequenceKey ? readingSequence.current.ids : new Set<string>();
+    const rows = collectionRows.filter(a => matchesReadingStatus(a, readingStatus) || previousIds.has(a.id));
+    return { key: sequenceKey, ids: new Set(rows.map(a => a.id)), rows };
+  }, [collectionRows, readingStatus, sequenceKey]);
+  readingSequence.current = navigation;
+  const navigationRows = navigation.rows;
   const pageSize = 100;
   // 0.5 bulk triage. Scoped to the mounted page, the active profile and the
   // current filter. Never persisted, and cleared whenever the collection it
@@ -573,7 +585,7 @@ export default function App() {
   const triageIds = useMemo(() => new Set(triage), [triage]);
   const lastPage = Math.max(0, Math.ceil(rows.length / pageSize) - 1);
   const currentPage = Math.min(page, lastPage);
-  const pageRows = rows.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+  const pageRows = useMemo(() => rows.slice(currentPage * pageSize, (currentPage + 1) * pageSize), [rows, currentPage]);
   const triageArticles = useMemo(
     () => pageRows.filter(a => triageIds.has(a.id)).slice(0, 200),
     [pageRows, triageIds],
@@ -1173,7 +1185,7 @@ export default function App() {
           onChange={value => pane.update('nav', value)}
           onCommit={value => pane.update('nav', value, true)}
         />
-        {active?.mode === "hidden" ? (!importing.current && !profilePending && !workspaceInvalid && <HiddenStories key={`${profileId}:${active.id}:${recoveryEpoch}`} profileId={profileId} replacementToken={data.replacementToken} isCurrent={() => !importing.current && !switchingProfile.current && dataRef.current?.replacementToken === data.replacementToken} browse={() => navigate({mode:"all", title:"Headlines"})} />) : active?.mode === "alerts" ? <AlertHistory key={`${profileId}`} profileId={profileId} /> : active?.mode === "briefing" ? <Briefing key={`${profileId}:${active.id}`} profileId={profileId} inputRevision={briefingInput} providers={data.providers} configure={() => setPanel("providers")} /> : active?.mode === "live" ? <LiveDiscussion key={`${profileId}:${active.id}`} /> : <>
+        {active?.mode === "hidden" ? (!importing.current && !profilePending && !workspaceInvalid && <HiddenStories key={`${profileId}:${active.id}:${recoveryEpoch}`} profileId={profileId} replacementToken={data.replacementToken} isCurrent={() => !importing.current && !switchingProfile.current && dataRef.current?.replacementToken === data.replacementToken} browse={() => navigate({mode:"all", title:"Headlines"})} />) : active?.mode === "alerts" ? <AlertHistory key={`${profileId}`} profileId={profileId} /> : active?.mode === "briefing" ? <Briefing key={`${profileId}:${active.id}`} profileId={profileId} inputRevision={String(briefingInput)} providers={data.providers} configure={() => setPanel("providers")} /> : active?.mode === "live" ? <LiveDiscussion key={`${profileId}:${active.id}`} /> : <>
         <main className="headlines" aria-label="Headlines">
             {alertWarning && (
               <div className="alert-warning" role="status" aria-label="Alert delivery problem">
