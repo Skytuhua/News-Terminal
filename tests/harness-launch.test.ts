@@ -30,9 +30,18 @@ async function freePort() {
 }
 
 function run(port: string, cwd = root, args = ["--list", "tests/e2e/reader.spec.ts", "--reporter=line"], extraEnv: NodeJS.ProcessEnv = {}) {
+  const resultsRoot = path.join(root, "test-results");
+  mkdirSync(resultsRoot, { recursive: true });
+  const directory = mkdtempSync(path.join(resultsRoot, "harness-run-"));
+  directories.push(directory);
   return spawnSync(process.execPath, [script, ...args], {
     cwd,
-    env: { ...process.env, NEWS_TERMINAL_E2E_PORT: port, ...extraEnv },
+    env: {
+      ...process.env,
+      NEWS_TERMINAL_E2E_PORT: port,
+      NEWS_TERMINAL_E2E_OUTPUT_DIR: path.join(directory, "results"),
+      ...extraEnv,
+    },
     encoding: "utf8",
     timeout: 45000,
     maxBuffer: 2 * 1024 * 1024,
@@ -96,10 +105,17 @@ test("fails on an occupied selected port without using or stopping its owner", a
 }, 60000);
 
 test("preserves a real test-discovery failure and releases its selected port", async () => {
+  const resultsRoot = path.join(root, "test-results");
+  mkdirSync(resultsRoot, { recursive: true });
+  const directory = mkdtempSync(path.join(resultsRoot, "harness-sibling-report-"));
+  directories.push(directory);
+  const report = path.join(directory, "report.json");
+  writeFileSync(report, JSON.stringify({ ownedRegressionFixture: true }));
   const port = await freePort();
   const result = run(String(port), root, ["no-such-harness-test.spec.ts", "--reporter=line"]);
   expect(result.status, result.stdout + result.stderr).toBe(1);
   expect(result.stdout + result.stderr).toContain("No tests found");
+  expect(existsSync(report), "Nested discovery must preserve sibling reports").toBe(true);
   const probe = createServer();
   try {
     await new Promise<void>((resolve, reject) => {
