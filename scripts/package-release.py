@@ -29,7 +29,63 @@ def release_version(root):
     return versions[0]
 
 
-REQUIRED_CHECKS = ('rust-format', 'rust-tests', 'rust-clippy', 'typescript', 'frontend-unit', 'browser-e2e', 'npm-audit', 'notice-tests', 'windows-notices', 'windows-build', 'native-smoke')
+REQUIRED_CHECKS = ('rust-format', 'rust-tests', 'rust-clippy', 'typescript', 'frontend-unit', 'browser-e2e', 'npm-audit', 'packaging-tests', 'installer-tests', 'release-runner-tests', 'notice-tests', 'windows-notices', 'windows-build', 'installer-payload', 'native-smoke')
+WEBVIEW2_MEMBER = '$TEMP/MicrosoftEdgeWebView2RuntimeInstaller.exe'
+PORTABLE_README = '''News Terminal portable application for Windows 10 or 11 (x64).
+Launch news-terminal.exe. The Microsoft Edge WebView2 Runtime must already be
+installed. This ZIP does not install prerequisites or include a runtime installer.
+Use the News Terminal setup.exe distribution to install WebView2 when it is missing,
+including when setup has no internet connection. Alternatively, obtain the free
+Evergreen Standalone Installer for your device from Microsoft:
+https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section
+
+Live feeds need internet. Saved local content remains available offline.
+No Ollama runtime, model, Python or repository helper scripts are bundled.
+Local AI is optional and separately provisioned; repository setup instructions
+are not portable commands. Configure an independently running loopback service.
+'''
+
+
+def windows_setup_policy(root):
+    """The inspected x64 NSIS contract, not a claim of installation testing."""
+    bundle = read_json(root / 'src-tauri/tauri.conf.json').get('bundle', {})
+    windows = bundle.get('windows', {})
+    nsis = windows.get('nsis', {})
+    if (bundle.get('active') is not True or bundle.get('targets') != ['nsis']
+            or windows.get('webviewInstallMode') != {'type': 'offlineInstaller', 'silent': True}
+            or windows['webviewInstallMode']['silent'] is not True
+            or nsis.get('installMode') != 'currentUser' or nsis.get('compression') != 'zlib'
+            or nsis.get('template') or nsis.get('installerHooks')
+            or windows.get('minimumWebview2Version')):
+        raise ValueError('Windows setup requires offlineInstaller, silent=true, currentUser and zlib without custom hooks/template or a runtime upgrade minimum')
+    return {'mode': 'offlineInstaller', 'scope': 'currentUser', 'silent': True,
+            'architecture': 'x64', 'payload_path': WEBVIEW2_MEMBER}
+
+
+def check_microsoft_signature(signature):
+    """Accept the Authenticode result, not a filename or self-declared publisher."""
+    if (not isinstance(signature, dict) or signature.get('status') != 'Valid'
+            or not isinstance(signature.get('subject'), str)
+            or re.search(r'(?:^|,\s*)O=Microsoft Corporation(?:,|$)', signature['subject']) is None
+            or re.fullmatch(r'[0-9A-Fa-f]{40}', str(signature.get('thumbprint', ''))) is None):
+        raise ValueError('WebView2 installer needs a valid Microsoft Corporation Authenticode signature')
+
+
+def check_webview2_evidence(root, payload):
+    expected = windows_setup_policy(root)
+    runtime = payload.get('webview2', {})
+    if (not isinstance(runtime, dict) or any(runtime.get(key) != value for key, value in expected.items())
+            or runtime.get('silent') is not True):
+        raise ValueError('Missing current offline WebView2 payload verification')
+    check_microsoft_signature(runtime.get('signature'))
+    digest = runtime.get('sha256', '')
+    size = runtime.get('bytes')
+    if (not isinstance(digest, str) or re.fullmatch(r'[0-9a-f]{64}', digest) is None
+            or type(size) is not int or size <= 0 or not payload.get('extraction_dir')):
+        raise ValueError('Invalid WebView2 payload hash, size or extraction directory')
+    extracted = Path(payload['extraction_dir']) / 'installer' / WEBVIEW2_MEMBER
+    if not extracted.is_file() or extracted.stat().st_size != size or sha256(extracted) != digest:
+        raise ValueError('Extracted WebView2 installer changed since payload verification')
 
 
 def sha256(path):
@@ -82,6 +138,7 @@ def validate_release(root):
     payload = read_json(payload_path)
     if payload.get('version') != version or payload.get('all_notice_bytes_match') is not True or payload.get('local_ai_excluded') is not True:
         raise ValueError('Missing current-version payload verification')
+    check_webview2_evidence(root, payload)
     if payload.get('installer_sha256') != sha256(installer) or payload.get('standalone_application_sha256') != sha256(app):
         raise ValueError('Build artifact hash changed since payload verification')
     if payload.get('input_sha256') != input_hashes(root):
@@ -164,7 +221,7 @@ def package_release(root):
                 if path.is_symlink() or not path.resolve().is_relative_to(root.resolve()):
                     raise ValueError('Unsafe portable member: ' + name)
                 output.write(path, 'News Terminal/' + name)
-            output.writestr('News Terminal/PORTABLE-README.txt', 'Launch news-terminal.exe. Requires an existing Windows WebView2 runtime.\nNo Ollama runtime, model, Python or repository helper scripts are bundled.\nLocal AI is optional and separately provisioned; repository setup instructions\nare not portable commands. Configure an independently running loopback service.\n')
+            output.writestr('News Terminal/PORTABLE-README.txt', PORTABLE_README)
         with zipfile.ZipFile(stage / zip_name) as output:
             if output.testzip() is not None:
                 raise ValueError('Portable ZIP integrity failure')

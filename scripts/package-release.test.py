@@ -31,7 +31,10 @@ class ReleaseToolTest(unittest.TestCase):
             path.write_text(data, encoding='utf-8')
         write('package.json', json.dumps({'name': 'news-terminal', 'version': version}))
         write('package-lock.json', json.dumps({'version': version, 'packages': {'': {'version': version}}}))
-        write('src-tauri/tauri.conf.json', json.dumps({'version': version}))
+        write('src-tauri/tauri.conf.json', json.dumps({'version': version, 'bundle': {
+            'active': True, 'targets': ['nsis'], 'windows': {
+                'webviewInstallMode': {'type': 'offlineInstaller', 'silent': True},
+                'nsis': {'compression': 'zlib', 'installMode': 'currentUser'}}}}))
         write('src-tauri/Cargo.toml', f'[package]\nname="news-terminal"\nversion={json.dumps(version)}\n')
         write('src-tauri/Cargo.lock', f'[[package]]\nname="news-terminal"\nversion={json.dumps(version)}\n')
 
@@ -55,6 +58,10 @@ class ReleaseToolTest(unittest.TestCase):
         app.write_bytes(b'TEST FIXTURE APPLICATION, NOT EXECUTABLE')
         extracted = self.root / 'extracted.exe'
         extracted.write_bytes(b'TEST FIXTURE EXTRACTED APPLICATION')
+        extraction = self.root / 'extraction'
+        runtime = extraction / 'installer' / module['WEBVIEW2_MEMBER']
+        runtime.parent.mkdir(parents=True)
+        runtime.write_bytes(b'TEST FIXTURE WEBVIEW2 INSTALLER, NOT EXECUTABLE')
         for path in (installer, app, extracted):
             os.utime(path, (start + 5, start + 5))
         evidence = self.root / 'docs/evidence'
@@ -68,7 +75,11 @@ class ReleaseToolTest(unittest.TestCase):
         report = {'passed': True, 'checks': checks, 'startedAt': datetime.fromtimestamp(start, timezone.utc).isoformat(), 'finishedAt': datetime.fromtimestamp(start + 15, timezone.utc).isoformat()}
         (evidence / 'release-checks.json').write_text(json.dumps(report))
         (evidence / 'native-smoke.json').write_text(json.dumps({'passed': True, 'executable': str(extracted)}))
-        payload = {'version': '0.2.0', 'all_notice_bytes_match': True, 'local_ai_excluded': True, 'installer_sha256': module['sha256'](installer), 'standalone_application_sha256': module['sha256'](app), 'packaged_application_sha256': module['sha256'](extracted), 'input_sha256': module['input_hashes'](self.root)}
+        payload = {'version': '0.2.0', 'all_notice_bytes_match': True, 'local_ai_excluded': True, 'installer_sha256': module['sha256'](installer), 'standalone_application_sha256': module['sha256'](app), 'packaged_application_sha256': module['sha256'](extracted), 'input_sha256': module['input_hashes'](self.root),
+                   'extraction_dir': str(extraction), 'webview2': {
+                       **module['windows_setup_policy'](self.root),
+                       'sha256': module['sha256'](runtime), 'bytes': runtime.stat().st_size,
+                       'signature': {'status': 'Valid', 'subject': 'CN=TEST FIXTURE, O=Microsoft Corporation, C=US', 'thumbprint': '0' * 40}}}
         (evidence / 'installer-payload.json').write_text(json.dumps(payload))
         return evidence, installer, app
 
@@ -167,10 +178,72 @@ class ReleaseToolTest(unittest.TestCase):
             self.assertIsNone(archive.testzip())
             self.assertEqual(archive.read('News Terminal/docs/references.md'), (self.root / 'docs/references.md').read_bytes())
             self.assertFalse(any('local-ai' in p or 'scripts/' in p or p.endswith('.gguf') for p in archive.namelist()))
+            readme = archive.read('News Terminal/PORTABLE-README.txt').decode()
+            self.assertIn('must already be\ninstalled', readme)
+            self.assertIn('https://developer.microsoft.com/en-us/microsoft-edge/webview2/', readme)
+            self.assertIn('setup.exe', readme)
+            self.assertFalse(any(name.endswith('MicrosoftEdgeWebView2RuntimeInstaller.exe') for name in archive.namelist()))
         before = {p.name: p.read_bytes() for p in release.iterdir()}
         with self.assertRaisesRegex(ValueError, 'exists|overwrite'):
             module['package_release'](self.root)
         self.assertEqual(before, {p.name: p.read_bytes() for p in release.iterdir()})
+
+    def test_rejects_missing_changed_or_untrusted_runtime_evidence(self):
+        module = self.load()
+        evidence, _, _ = self.fixture(module)
+        path = evidence / 'installer-payload.json'
+        original = path.read_bytes()
+        for field, value in (('mode', 'skip'), ('scope', 'perMachine'), ('silent', False),
+                             ('architecture', 'arm64'), ('payload_path', 'other.exe'),
+                             ('sha256', '1' * 64), ('bytes', 0), ('signature', {'status': 'NotSigned'})):
+            payload = json.loads(original)
+            payload['webview2'][field] = value
+            path.write_text(json.dumps(payload))
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'WebView2'):
+                module['package_release'](self.root)
+            self.assertFalse((self.root / 'release').exists())
+        payload = json.loads(original)
+        del payload['webview2']
+        path.write_text(json.dumps(payload))
+        with self.assertRaisesRegex(ValueError, 'WebView2'):
+            module['validate_release'](self.root)
+        path.write_bytes(original)
+        runtime = Path(json.loads(original)['extraction_dir']) / 'installer' / module['WEBVIEW2_MEMBER']
+        runtime.write_bytes(b'TAMPERED TEST FIXTURE')
+        with self.assertRaisesRegex(ValueError, 'WebView2'):
+            module['package_release'](self.root)
+        self.assertFalse((self.root / 'release').exists())
+
+    def test_rejects_online_or_elevated_setup_configuration(self):
+        module = self.load()
+        self.versions()
+        path = self.root / 'src-tauri/tauri.conf.json'
+        original = path.read_bytes()
+        for section, field, value in (('webviewInstallMode', 'type', 'skip'),
+                                      ('webviewInstallMode', 'type', 'embedBootstrapper'),
+                                      ('webviewInstallMode', 'silent', False),
+                                      ('nsis', 'installMode', 'both'),
+                                      ('nsis', 'installMode', 'perMachine'),
+                                      ('nsis', 'compression', 'lzma'),
+                                      ('nsis', 'template', 'custom.nsi')):
+            config = json.loads(original)
+            config['bundle']['windows'][section][field] = value
+            path.write_text(json.dumps(config))
+            with self.subTest(field=field, value=value), self.assertRaisesRegex(ValueError, 'Windows setup'):
+                module['windows_setup_policy'](self.root)
+
+    def test_requires_installer_inspection_and_packaging_test_gates(self):
+        module = self.load()
+        evidence, _, _ = self.fixture(module)
+        path = evidence / 'release-checks.json'
+        original = path.read_bytes()
+        for missing in ('installer-payload', 'installer-tests', 'packaging-tests'):
+            report = json.loads(original)
+            report['checks'] = [row for row in report['checks'] if row['name'] != missing]
+            path.write_text(json.dumps(report))
+            with self.subTest(missing=missing), self.assertRaisesRegex(ValueError, 'checks'):
+                module['package_release'](self.root)
+            self.assertFalse((self.root / 'release').exists())
 
     def test_version_is_strict_and_bound_to_every_root_manifest(self):
         module = self.load()

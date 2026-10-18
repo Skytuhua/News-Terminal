@@ -98,8 +98,13 @@ npm run test:native:features
 
 The standalone executable is `src-tauri/target/release/news-terminal.exe`.
 The NSIS installer is under `src-tauri/target/release/bundle/nsis/`.
-Builds are unsigned. WebView2 must already be installed; the package does
-not bundle or automatically install Microsoft runtimes.
+Builds are unsigned. NSIS installers newly built from this source bundle
+Microsoft's offline WebView2 installer and install the runtime when it is
+missing, using a current-user setup. The standalone executable and portable ZIP
+still require an existing WebView2 Runtime. Building the bundled prerequisite
+needs access to Microsoft's Evergreen download. This configuration change does
+not publish a new release. Follow [installer payload verification](installer-payload.md#current-release-owner-sequence)
+for the build, extraction and packaged-application release gates.
 
 The native smoke runner launches the actual executable with fresh temporary
 data, fetches live feeds, exercises IPC/UI/native detachment/restart recovery,
