@@ -366,16 +366,24 @@ async fn compatible_adapter_stops_before_send_on_missing_rights_or_consent() {
     let p = provider("http://127.0.0.1:1/v1");
     let mut a = article();
     a["aiAllowed"] = json!(false);
-    let error = summarize(&[p.clone()], &a, Arc::new(AtomicBool::new(false)))
-        .await
-        .unwrap_err();
+    let error = summarize(
+        std::slice::from_ref(&p),
+        &a,
+        Arc::new(AtomicBool::new(false)),
+    )
+    .await
+    .unwrap_err();
     assert_eq!(error, "Source permission does not allow AI summarization");
     a["aiAllowed"] = json!(true);
     a["storage"] = json!("metadata");
     assert_eq!(
-        summarize(&[p.clone()], &a, Arc::new(AtomicBool::new(false)))
-            .await
-            .unwrap_err(),
+        summarize(
+            std::slice::from_ref(&p),
+            &a,
+            Arc::new(AtomicBool::new(false))
+        )
+        .await
+        .unwrap_err(),
         "Source permission does not allow AI summarization"
     );
     let mut disabled = p.clone();
