@@ -3,11 +3,36 @@ import { fixture } from "./fixture";
 test("browser without a native runtime never fabricates news", async ({
   page,
 }) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
   await page.goto("/");
   await expect(page.getByText("Desktop runtime required")).toBeVisible();
   await expect(page.getByRole("button", { name: "Refresh feeds" })).toHaveCount(
     0,
   );
+  // Let the committed screen's passive effects and rejected promises settle.
+  await page.evaluate(() => new Promise<void>(resolve =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+  ));
+  expect(errors).toEqual([]);
+});
+test("fixture: alert listener setup failures are visible without an unhandled rejection", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.addInitScript(() => {
+    window.addEventListener = new Proxy(window.addEventListener, {
+      apply(addListener, target, args) {
+        if (args[0] === "notification-status") throw new Error("Fixture notification listener rejected");
+        return Reflect.apply(addListener, target, args);
+      },
+    });
+  });
+  await fixture(page);
+  const warning = page.getByRole("status", { name: "Alert delivery problem" });
+  await expect(warning).toContainText("Alert delivery status is unavailable: Error: Fixture notification listener rejected");
+  expect(errors).toEqual([]);
+  await warning.getByRole("button", { name: "Show alert history" }).click();
+  await expect(page.getByTestId("alert-receipt").first()).toBeVisible();
 });
 test("fixture: select, save, search cached content and open original", async ({
   page,
