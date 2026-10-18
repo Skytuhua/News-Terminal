@@ -1,4 +1,4 @@
-import type { Article, FocusSection, Source, Tab, Watchlist } from "./types";
+import type { Article, FocusSection, Snapshot, Source, Tab, Watchlist } from "./types";
 export const sourceFailed = (source: Source) => source.enabled && Number.isFinite(source.failures) && (source.failures ?? 0) > 0;
 // 0.5 cache disclosure. The host prunes silently: an unsaved story disappears
 // after 30 days, or once it falls outside the newest 5000, whichever comes
@@ -153,13 +153,77 @@ export function unreadCounts(
   };
 }
 
+// Snapshots contain JSON data. Compare values without allocating serialized
+// copies of every article. Object key order and omitted undefined properties do
+// not change that data; array order (including history and media) does.
+export function sameSnapshotValue(previous: unknown, next: unknown): boolean {
+  if (previous === next) return true;
+  if (previous === null || next === null || typeof previous !== "object" || typeof next !== "object") return false;
+  if (Array.isArray(previous)) {
+    if (!Array.isArray(next) || previous.length !== next.length) return false;
+    for (let i = 0; i < previous.length; i++)
+      if (!sameSnapshotValue(previous[i] ?? null, next[i] ?? null)) return false;
+    return true;
+  }
+  if (Array.isArray(next)) return false;
+  const before = previous as Record<string, unknown>;
+  const after = next as Record<string, unknown>;
+  let beforeCount = 0;
+  for (const key of Object.keys(before)) {
+    if (before[key] === undefined) continue;
+    beforeCount++;
+    if (!Object.hasOwn(after, key) || !sameSnapshotValue(before[key], after[key])) return false;
+  }
+  let afterCount = 0;
+  for (const key of Object.keys(after)) if (after[key] !== undefined) afterCount++;
+  return beforeCount === afterCount;
+}
+
 export function reconcileArticles(previous: Article[], next: Article[]) {
+  if (previous === next) return previous;
   const byId = new Map(previous.map(article => [article.id, article]));
   const reconciled = next.map(article => {
     const old = byId.get(article.id);
-    return old && JSON.stringify(old) === JSON.stringify(article) ? old : article;
+    return old && sameSnapshotValue(old, article) ? old : article;
   });
   return reconciled.length === previous.length && reconciled.every((article, i) => article === previous[i]) ? previous : reconciled;
+}
+
+function sameSearchArticle(previous: Article, next: Article) {
+  if (previous === next) return true;
+  // Search previously fingerprinted every field except these two local markers.
+  // Keep unknown wire fields in the comparison so future metadata invalidates it.
+  const before = previous as unknown as Record<string, unknown>;
+  const after = next as unknown as Record<string, unknown>;
+  const searchable = (article: Record<string, unknown>) => Object.keys(article)
+    .filter(key => key !== "read" && key !== "saved" && article[key] !== undefined);
+  const keys = searchable(before);
+  return keys.length === searchable(after).length && keys.every(key =>
+    Object.hasOwn(after, key) && sameSnapshotValue(before[key], after[key]));
+}
+
+export function sameSearchInputs(previous: Snapshot, next: Snapshot) {
+  return sameSnapshotValue(previous.profile.preferences, next.profile.preferences) &&
+    previous.articles.length === next.articles.length &&
+    previous.articles.every((article, i) => sameSearchArticle(article, next.articles[i]));
+}
+
+const briefingArticleFields = [
+  "id", "updatedAt", "title", "excerpt", "url", "sourceId", "sourceName", "publishedAt", "topics",
+  "sections", "topicLabels", "region", "language", "kind", "aiAllowed", "hidden", "media",
+] as const satisfies readonly (keyof Article)[];
+const briefingSourceFields = ["id", "enabled", "storage", "aiAllowed", "mediaAllowed"] as const satisfies readonly (keyof Source)[];
+function sameFields<T>(previous: T, next: T, fields: readonly (keyof T)[]) {
+  // The former array projection serialized absent optional fields as null.
+  return previous === next || fields.every(key => sameSnapshotValue(previous[key] ?? null, next[key] ?? null));
+}
+
+export function sameBriefingInputs(previous: Snapshot, next: Snapshot) {
+  return sameSnapshotValue(previous.profile.preferences, next.profile.preferences) &&
+    previous.sources.length === next.sources.length &&
+    previous.sources.every((source, i) => sameFields(source, next.sources[i], briefingSourceFields)) &&
+    previous.articles.length === next.articles.length &&
+    previous.articles.every((article, i) => sameFields(article, next.articles[i], briefingArticleFields));
 }
 export function relatedCounts(articles: readonly Article[]) {
   const counts = new Map<string, number>();
