@@ -1,6 +1,8 @@
 // Windows/WebView2 + real Rust host acceptance for the 0.5 features.
 // SYNTHETIC fixtures via the validated native import only.
 // node scripts/v05-native-smoke.mjs [--exe src-tauri/target/release/news-terminal.exe] [--prefix v05-native-review1]
+// --ci-offline adds an outbound block for the owned app before its startup
+// refresh. It is restricted to disposable GitHub-hosted Windows jobs.
 // Does NOT build, modify production data, mock IPC, start servers or models, or
 // stop unowned processes. Owns and terminates only the process it starts.
 //
@@ -23,6 +25,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const { values } = parseArgs({ options: {
   exe: { type: 'string', default: 'src-tauri/target/release/news-terminal.exe' },
   prefix: { type: 'string', default: `v05-native-${new Date().toISOString().replace(/[^0-9]/g, '')}` },
+  'ci-offline': { type: 'boolean', default: false },
 } });
 assert.match(values.prefix, /^v05-native-[\w-]+$/);
 const base = resolve(root, 'docs/evidence', values.prefix);
@@ -38,7 +41,7 @@ const evidence = { startedAt: new Date().toISOString(), executable: resolve(root
     'Detached-window behavior is not checked here; use scripts/daily-native-smoke.mjs. See docs/v05-native-acceptance.md.',
     'No network/AI/feed quality, installer, physical DPI, or Windows notification toast acceptance is implied.',
   ] };
-let app, browser, main, dataDirectory;
+let app, browser, main, dataDirectory, ciFirewallAttempted = false;
 const save = () => writeFileSync(`${base}.json`, JSON.stringify(evidence, null, 2));
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 async function until(fn, message = 'Condition did not settle', timeout = 30000) {
@@ -51,6 +54,12 @@ const invoke = (page, request) =>
 const snapshot = (page = main) => invoke(page, { op: 'snapshot', profileId: 'default' });
 const rows = (page = main) => page.getByTestId('story-row');
 const state = (a) => ({ read: a.read, saved: a.saved, hidden: a.hidden });
+function ciFirewall(action) {
+  return JSON.parse(execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-File',
+    join(root, 'scripts/ci-native-firewall.ps1'), '-Action', action,
+    ...(action === 'Block' ? ['-Program', evidence.launchedExecutable] : [])],
+  { encoding: 'utf8', timeout: 30000 }));
+}
 function osWindows(close=false) {
   // Visible windows with a non-empty title only. Without those two filters the
   // enumeration also returns IME helper windows owned by the same process,
@@ -101,10 +110,21 @@ try {
   assert.ok(existsSync(evidence.executable), 'Native executable does not exist');
   evidence.executableSha256 = sha(readFileSync(evidence.executable));
   evidence.scriptSha256 = sha(readFileSync(fileURLToPath(import.meta.url)));
-  dataDirectory = mkdtempSync(join(tmpdir(), 'v05-native-'));
+  if (values['ci-offline']) {
+    assert.equal(process.env.GITHUB_ACTIONS, 'true', '--ci-offline requires GitHub Actions');
+    assert.equal(process.env.RUNNER_ENVIRONMENT, 'github-hosted', '--ci-offline requires a disposable hosted runner');
+    assert.ok(process.env.RUNNER_TEMP, '--ci-offline requires the job temporary directory');
+  }
+  dataDirectory = mkdtempSync(join(values['ci-offline'] ? process.env.RUNNER_TEMP : tmpdir(), 'v05-native-'));
+  evidence.dataDirectory = dataDirectory;
   evidence.launchedExecutable = join(dataDirectory, 'v05-native-app.exe');
   copyFileSync(evidence.executable, evidence.launchedExecutable);
   assert.equal(sha(readFileSync(evidence.launchedExecutable)), evidence.executableSha256);
+  if (values['ci-offline']) {
+    ciFirewallAttempted = true;
+    evidence.ciFirewall = ciFirewall('Block');
+    save();
+  }
   mkdirSync(join(dataDirectory, 'webview'), { recursive: true });
   const port = await new Promise((done, reject) => { const s = createServer(); s.on('error', reject);
     s.listen(0, '127.0.0.1', () => { const n = s.address().port; s.close(() => done(n)); }); });
@@ -388,22 +408,34 @@ try {
   evidence.cleanupStartedAt = new Date().toISOString();
   evidence.appAliveAtCleanup = !!(app && app.exitCode === null);
   save();
-  try { await browser?.close(); } catch {}
-  // Graceful close first (WM_CLOSE to the owned window, as the daily smoke
-  // does), then force only if the app ignores it. The previous direct
-  // taskkill /F produced exit code 1 and looked like an unexplained crash;
-  // attribution showed the app was alive and idle when killed.
-  if (app && app.exitCode === null) {
-    // WM_CLOSE to the owned window, exactly as the daily smoke does it.
-    osWindows(true);
-    await until(async () => app.exitCode !== null, 'graceful close timeout', 8000).catch(() => {});
-    const forced = app.exitCode === null;
-    if (forced) {
-      const r = spawnSync('taskkill.exe', ['/PID', String(app.pid), '/T', '/F'], { encoding: 'utf8' });
-      evidence.cleanup = { pid: app.pid, status: r.status, forced: true };
-    } else {
-      evidence.cleanup = { pid: app.pid, forced: false, exitCode: app.exitCode };
+  try {
+    try { await browser?.close(); } catch {}
+    // Graceful close first (WM_CLOSE to the owned window, as the daily smoke
+    // does), then force only if the app ignores it. The previous direct
+    // taskkill /F produced exit code 1 and looked like an unexplained crash;
+    // attribution showed the app was alive and idle when killed.
+    if (app && app.exitCode === null) {
+      // WM_CLOSE to the owned window, exactly as the daily smoke does it.
+      osWindows(true);
+      await until(async () => app.exitCode !== null, 'graceful close timeout', 8000).catch(() => {});
+      const forced = app.exitCode === null;
+      if (forced) {
+        const r = spawnSync('taskkill.exe', ['/PID', String(app.pid), '/T', '/F'], { encoding: 'utf8' });
+        evidence.cleanup = { pid: app.pid, status: r.status, forced: true };
+      } else {
+        evidence.cleanup = { pid: app.pid, forced: false, exitCode: app.exitCode };
+      }
+      save();
     }
-    save();
+  } finally {
+    if (ciFirewallAttempted) {
+      try { evidence.ciFirewallCleanup = ciFirewall('Cleanup'); }
+      catch (error) {
+        evidence.cleanupError = String(error).slice(0, 2000);
+        evidence.passed = false;
+        process.exitCode = 1;
+      }
+      save();
+    }
   }
 }
