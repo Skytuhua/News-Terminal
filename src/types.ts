@@ -146,8 +146,9 @@ export type Workspace = { tabs: Tab[]; activeTabId: string; revision?: number };
 export type Provider = {
   id: string;
   name: string;
-  kind: "ollama" | "gemini" | "groq";
+  kind: "ollama" | "openai-local" | "gemini" | "groq";
   model: string;
+  baseUrl?: string;
   enabled: boolean;
   consented: boolean;
   hasKey: boolean;

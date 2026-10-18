@@ -73,7 +73,7 @@ export default function SectorSummary({ profileId, day, sectorId, sectorTitle, p
     try { await dispatch({ op: "open_original", url }); }
     catch (e) { setError(String(e)); }
   }
-  const ready = providers.some(p => p.enabled && p.consented && (p.kind === "ollama" || p.hasKey));
+  const ready = providers.some(p => p.enabled && p.consented && (p.kind === "ollama" || p.kind === "openai-local"));
   // The preview is only displayed inside the collapsed source-inputs review,
   // and Generate stays disabled until it arrives, so an unexpanded preview is
   // work with no reader-visible purpose. Check permitted inputs on first
@@ -100,7 +100,7 @@ export default function SectorSummary({ profileId, day, sectorId, sectorTitle, p
   return <section className="sector-summary" aria-label={`${sectorTitle} source quotations`}>
     <div className="section-heading"><h4>Sector source quotations</h4><button className="quiet" onClick={configure}>Configure AI</button></div>
     <p className="fine">AI selects exact passages from individual source inputs; it does not combine them into a paraphrase or verify facts.</p>
-    <p className="fine">On demand only. Nothing is sent to AI until you generate. Enabled, consented providers may be tried in fallback order.</p>
+    <p className="fine">On demand only. Nothing is sent to AI until you generate. Enabled, consented local providers may be tried in fallback order.</p>
     {preview ? <>
       <p>{preview.selectedCount} source stories selected · {preview.eligibleCount} eligible · {preview.excludedCount} excluded</p>
       <p className="fine">{preview.coverageLabel}</p>
