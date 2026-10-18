@@ -257,18 +257,34 @@ async fn live_usgs_public_feed() {
 async fn ollama_adapter_real_http_fixture_not_live_model() {
     let listener = std::net::TcpListener::bind("127.0.0.1:11434")
         .expect("Port 11434 is occupied; do not interrupt the user's Ollama");
-    let body =
-        json!({"done":true,"message":{"content":"Clearly labeled fixture output."}}).to_string();
-    let (_url, rx) = http_fixture_listener(
-        listener,
+    let tags = json!({"models":[{"name":"test-fixture:latest"}]}).to_string();
+    let (_, tags_rx) = http_fixture_listener(
+        listener.try_clone().unwrap(),
         format!(
-            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
-            body.len()
+            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{tags}",
+            tags.len()
         ),
         Duration::ZERO,
     );
+    let body =
+        json!({"done":true,"message":{"content":"Clearly labeled fixture output."}}).to_string();
+    let fixture = std::thread::spawn(move || {
+        assert!(tags_rx
+            .recv_timeout(Duration::from_secs(3))
+            .unwrap()
+            .starts_with("GET /api/tags "));
+        let (_, rx) = http_fixture_listener(
+            listener,
+            format!(
+                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                body.len()
+            ),
+            Duration::ZERO,
+        );
+        rx.recv_timeout(Duration::from_secs(3)).unwrap()
+    });
     let result = summarize(&[json!({"id":"test-local","kind":"ollama","enabled":true,"consented":true,"model":"test-fixture"})],&json!({"aiAllowed":true,"url":"https://example.com/story","excerpt":"Fixture excerpt"}),Arc::new(AtomicBool::new(false))).await.unwrap();
-    let request = rx.recv().unwrap();
+    let request = fixture.join().unwrap();
     assert!(request.starts_with("POST /api/chat "));
     assert_eq!(result["provider"], "test-local");
     assert_eq!(result["text"], "Clearly labeled fixture output.");

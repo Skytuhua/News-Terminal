@@ -187,7 +187,18 @@ pub(super) fn validate_backup(raw: &str) -> Result<Value> {
                 sources.insert(id);
             }
             "provider" => {
-                keys(v, &["id", "name", "kind", "model", "enabled", "consented"])?;
+                keys(
+                    v,
+                    &[
+                        "id",
+                        "name",
+                        "kind",
+                        "model",
+                        "baseUrl",
+                        "enabled",
+                        "consented",
+                    ],
+                )?;
                 validate_provider(v)?;
                 if v["id"] != id {
                     return Err("Provider identity mismatch".into());
@@ -240,7 +251,8 @@ pub(super) fn validate_backup(raw: &str) -> Result<Value> {
     if !profiles.contains("default")
         || profiles.len() > 32
         || sources.len() > MAX_SOURCES
-        || providers != HashSet::from(["ollama", "gemini", "groq"])
+        || !HashSet::from(["ollama", "gemini", "groq"]).is_subset(&providers)
+        || providers.len() > 4
         || workspaces != profiles
     {
         return Err("Backup missing required records or exceeds limits".into());
