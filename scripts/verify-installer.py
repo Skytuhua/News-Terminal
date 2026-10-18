@@ -68,10 +68,20 @@ def microsoft_signature(path):
                "$s = Get-AuthenticodeSignature -LiteralPath $env:NEWS_TERMINAL_WEBVIEW2_INSTALLER; "
                "[pscustomobject]@{status=$s.Status.ToString(); subject=$s.SignerCertificate.Subject; "
                "thumbprint=$s.SignerCertificate.Thumbprint} | ConvertTo-Json -Compress")
-    result = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', command],
-                            env={**os.environ, 'NEWS_TERMINAL_WEBVIEW2_INSTALLER': str(path)},
-                            capture_output=True, text=True, encoding='utf-8', errors='replace', check=True,
-                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0), timeout=45)
+    # An intermediate Python process can pass PowerShell 7 module paths to
+    # Windows PowerShell. Let only the child rebuild its compatible defaults.
+    child_env = {key: value for key, value in os.environ.items() if key.upper() != 'PSMODULEPATH'}
+    child_env['NEWS_TERMINAL_WEBVIEW2_INSTALLER'] = str(path)
+    try:
+        result = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', command],
+                                env=child_env,
+                                capture_output=True, text=True, encoding='utf-8', errors='replace', check=True,
+                                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0), timeout=45)
+    except subprocess.CalledProcessError as error:
+        detail = '\n'.join(f'{label}: {output.strip()[-3000:]}'
+                           for label, output in (('stderr', error.stderr), ('stdout', error.stdout)) if output)
+        raise ValueError(f'Authenticode probe failed with exit {error.returncode}:\n'
+                         f'{detail or "(no captured output)"}') from error
     signature = json.loads(result.stdout.lstrip('\ufeff'))
     TOOLS['check_microsoft_signature'](signature)
     return signature

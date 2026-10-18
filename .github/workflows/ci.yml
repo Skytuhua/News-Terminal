@@ -8,12 +8,45 @@ permissions:
 jobs:
   windows:
     runs-on: windows-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Record Windows verification prerequisites
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force docs/evidence | Out-Null
+          $sevenzip = (Get-Command 7z.exe -ErrorAction Stop).Source
+          $formats = & $sevenzip i
+          if ($LASTEXITCODE -ne 0 -or ($formats -join "`n") -notmatch '\bNsis\b') {
+            throw 'Full 7z.exe with NSIS support is required; reduced 7zr is insufficient.'
+          }
+          "NEWS_TERMINAL_SEVENZIP=$sevenzip" >> $env:GITHUB_ENV
+          $runtimeId = '{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'
+          $runtime = @(
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\$runtimeId"
+            "HKCU:\SOFTWARE\Microsoft\EdgeUpdate\Clients\$runtimeId"
+          ) | ForEach-Object {
+            $item = Get-ItemProperty -LiteralPath $_ -Name pv -ErrorAction SilentlyContinue
+            if ($item -and $item.pv -and $item.pv -ne '0.0.0.0') {
+              @{ registryKey = $_; version = $item.pv }
+            }
+          }
+          @{
+            image = $env:ImageOS; imageVersion = $env:ImageVersion
+            python = (& python --version); sevenzip = $sevenzip; formats = $formats
+            webview2 = @($runtime); interactive = [Environment]::UserInteractive
+            sessionId = (Get-Process -Id $PID).SessionId
+          } | ConvertTo-Json -Depth 5 | Tee-Object docs/evidence/ci-windows-tools.json
+          if (-not $runtime) {
+            throw 'Native verification requires an existing WebView2 Runtime; CI does not execute prerequisite installers.'
+          }
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -21,6 +54,15 @@ jobs:
         with:
           workspaces: src-tauri
       - run: npm ci
+      - name: Packaging regression tests
+        timeout-minutes: 5
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          foreach ($script in 'package-release', 'verify-installer', 'verify-release') {
+            & python "scripts/$script.test.py" 2>&1 | Tee-Object "docs/evidence/ci-$script-tests.log"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
       - run: npm run typecheck
       - run: npm test
       - run: npx playwright install chromium
@@ -43,6 +85,47 @@ jobs:
       - run: cargo test --manifest-path src-tauri/Cargo.toml
       - run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
       - run: npm run tauri -- build --bundles nsis
+      - name: Inspect rebuilt offline installer payload
+        id: installer_payload
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          & python scripts/verify-installer.py --sevenzip $env:NEWS_TERMINAL_SEVENZIP 2>&1 | Tee-Object docs/evidence/ci-installer-payload.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item docs/evidence/installer-payload.json docs/evidence/ci-installer-payload.json
+      - name: Native v0.5 fixture smoke from inspected payload
+        id: native_smoke
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          $payload = Get-Content -Raw docs/evidence/ci-installer-payload.json | ConvertFrom-Json
+          $executable = Join-Path $payload.extraction_dir 'installer/news-terminal.exe'
+          if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) {
+            throw 'Installer inspection did not leave the packaged executable.'
+          }
+          & node scripts/v05-native-smoke.mjs --exe $executable --prefix "v05-native-ci-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT" --ci-offline 2>&1 | Tee-Object docs/evidence/ci-native-smoke.log
+          exit $LASTEXITCODE
+      - name: Clean up owned native CI process and firewall rule
+        if: ${{ always() && steps.native_smoke.outcome != '' && steps.native_smoke.outcome != 'skipped' }}
+        timeout-minutes: 2
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          & powershell.exe -NoProfile -NonInteractive -File scripts/ci-native-firewall.ps1 -Action Cleanup 2>&1 | Tee-Object docs/evidence/ci-native-cleanup.log
+          exit $LASTEXITCODE
+      - name: Upload Windows verification evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            docs/evidence/ci-*
+            docs/evidence/v05-native-ci-${{ github.run_id }}-${{ github.run_attempt }}*
+            src-tauri/target/release/nsis/x64/installer.nsi
+          if-no-files-found: warn
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         with:
           name: news-terminal-windows-unsigned

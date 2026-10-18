@@ -1,5 +1,6 @@
 """Installer verification unit tests; no installer execution or publishing."""
 from pathlib import Path
+import os
 import runpy
 import tempfile
 import unittest
@@ -115,6 +116,49 @@ class InstallerTest(unittest.TestCase):
                              ('subject', 'CN=Microsoft Corporation'), ('thumbprint', 'missing')):
             with self.subTest(field=field, value=value), self.assertRaisesRegex(ValueError, 'Microsoft'):
                 module['TOOLS']['check_microsoft_signature']({**signature, field: value})
+
+    @unittest.skipUnless(os.name == 'nt', 'Requires Windows PowerShell and real Authenticode verification')
+    def test_authenticode_recovers_from_incompatible_inherited_module_path(self):
+        import shutil
+        from unittest.mock import patch
+        module = self.module()
+        powershell = shutil.which('powershell.exe')
+        self.assertIsNotNone(powershell, 'Windows PowerShell must be available for installer verification')
+        with tempfile.TemporaryDirectory(prefix='news-terminal-incompatible-modules-') as temp:
+            utility = Path(temp) / 'Microsoft.PowerShell.Utility'
+            utility.mkdir()
+            (utility / 'Microsoft.PowerShell.Utility.psd1').write_text(
+                "@{ RootModule = 'Microsoft.PowerShell.Utility.psm1'; ModuleVersion = '99.0'; "
+                "PowerShellVersion = '7.0'; FunctionsToExport = @('ConvertTo-Json'); "
+                "CmdletsToExport = @(); AliasesToExport = @() }\n", encoding='utf-8')
+            (utility / 'Microsoft.PowerShell.Utility.psm1').write_text(
+                "function ConvertTo-Json { throw 'Incompatible fixture module must never run' }\n",
+                encoding='utf-8')
+            # Reproduce the incompatible module shadowing inherited through an
+            # intermediate Python process, without requiring pwsh on the host.
+            module_path = temp + os.pathsep + os.environ.get('PSModulePath', '')
+            with patch.dict(os.environ, {'PSModulePath': module_path}):
+                signature = module['microsoft_signature'](Path(powershell))
+                self.assertEqual(signature['status'], 'Valid')
+                self.assertIn('O=Microsoft Corporation', signature['subject'])
+                self.assertEqual(os.environ['PSModulePath'], module_path,
+                                 'The helper must preserve the parent module path')
+
+    def test_authenticode_failure_reports_bounded_captured_output(self):
+        import subprocess
+        from unittest.mock import patch
+        module = self.module()
+        error = subprocess.CalledProcessError(
+            1, ['powershell.exe'], output='x' * 12000 + 'stdout diagnostic',
+            stderr='y' * 12000 + 'module autoload failed')
+        with patch('subprocess.run', side_effect=error):
+            with self.assertRaisesRegex(ValueError, 'Authenticode probe failed with exit 1') as caught:
+                module['microsoft_signature'](Path('runtime.exe'))
+        message = str(caught.exception)
+        self.assertIn('module autoload failed', message)
+        self.assertIn('stdout diagnostic', message)
+        self.assertLessEqual(len(message), 6500)
+        self.assertIs(caught.exception.__cause__, error)
 
     def test_deflate_detection_collision_uses_lossless_inspection_copy(self):
         import struct
