@@ -8,6 +8,19 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   timeout: 30000,
+  projects: [
+    {
+      name: "startup",
+      testMatch: "**/startup.setup.ts",
+      timeout: 60000,
+      use: { trace: "retain-on-failure" },
+    },
+    {
+      name: "chromium",
+      testMatch: "**/*.spec.ts",
+      dependencies: ["startup"],
+    },
+  ],
   outputDir: harness.outputDir,
   use: {
     baseURL: harness.baseURL,
