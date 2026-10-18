@@ -47,6 +47,19 @@ or browser. `npm run test:e2e -- tests/e2e/reader.spec.ts` runs a focused journe
 The runner resolves the checkout from its own location, so an absolute invocation
 also works from another folder, including paths containing spaces.
 
+Browser journeys depend on a separately reported `startup` project. It loads the
+unmocked browser screen once with a 60-second startup test budget, so Vite's first
+application transforms finish before ordinary tests spend their 30-second
+budget. Startup uses the configured browser and base URL, records page and local
+asset failures, and blocks journeys if the application does not load. Failure
+artifacts include a trace and `browser-startup.json`. Browser launch and teardown
+have their own Playwright limits.
+
+Filename and grep filters, including `--project=chromium`, retain this dependency.
+Listing, help and a selection with no matching tests do not launch a browser.
+Playwright's explicit `--no-deps` option skips startup; use it only when that
+bypass is intended. Direct Playwright invocations use the same project setup.
+
 For a separate worktree or concurrent run, choose an unused local port in
 PowerShell:
 
