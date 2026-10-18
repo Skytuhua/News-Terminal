@@ -36,6 +36,41 @@ test("contrast themes retain row and workspace selection away from keyboard focu
   await page.screenshot({ path: testInfo.outputPath("contrast-selections.png") });
 });
 
+test("contrast themes show keyboard focus separately from persistent button selection", async ({ page }, testInfo) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await fixture(page);
+  const selectionOutline = (control: Locator) => control.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return [style.outlineStyle, style.outlineWidth, style.outlineColor, style.outlineOffset];
+  });
+  async function checkFocus(name: string, control: Locator, elsewhere: Locator) {
+    // Establish keyboard modality before focusing a selected control.
+    await page.keyboard.press("Tab");
+    await elsewhere.focus();
+    const bounds = (await control.boundingBox())!;
+    const clip = { x: bounds.x - 5, y: bounds.y - 5, width: bounds.width + 10, height: bounds.height + 10 };
+    const selection = await selectionOutline(control);
+    expect(selection[0]).not.toBe("none");
+    const before = await page.screenshot({ clip });
+    await control.focus();
+    expect(await control.evaluate((element) => element.matches(":focus-visible"))).toBe(true);
+    const focused = await page.screenshot({ clip, path: testInfo.outputPath(`contrast-${name}-focused.png`) });
+    expect(focused.equals(before), `${name} must gain a visible keyboard focus cue`).toBe(false);
+    expect(await selectionOutline(control), `${name} must keep its selection marker`).toEqual(selection);
+    await elsewhere.focus();
+    expect(await selectionOutline(control)).toEqual(selection);
+    expect((await page.screenshot({ clip })).equals(before), `${name} must retain only its selection cue after focus leaves`).toBe(true);
+  }
+  const settings = page.getByRole("button", { name: "Settings", exact: true });
+  await checkFocus("navigation", page.getByRole("button", { name: "All headlines", exact: true }), settings);
+  await checkFocus("image-mode", page.locator(".image-mode button[aria-pressed='true']"), settings);
+  await settings.click();
+  const closeSettings = page.locator(".settings > header button");
+  await checkFocus("settings", page.locator(".settings-layout > nav button[aria-current='page']"), closeSettings);
+  await page.getByRole("navigation", { name: "Settings sections" }).getByRole("button", { name: "Sources & health", exact: true }).click();
+  await checkFocus("source-filter", page.locator(".source-filter-chips button.chosen"), closeSettings);
+});
+
 test("a 320px reading window keeps actions inside its toolbar", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 320, height: 480 });
   await fixture(page);

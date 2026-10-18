@@ -1263,6 +1263,24 @@ summary { cursor: pointer; padding: 5px 0; }
     outline: 2px solid Highlight;
     outline-offset: -2px;
   }
+  nav button.chosen:focus-visible,
+  .settings-layout > nav button[aria-current="page"]:focus-visible,
+  .source-filter-chips button.chosen:focus-visible,
+  .image-mode button[aria-pressed="true"]:focus-visible {
+    position: relative;
+  }
+  /* Keep the inner selection marker while adding a separate keyboard ring. */
+  nav button.chosen:focus-visible::after,
+  .settings-layout > nav button[aria-current="page"]:focus-visible::after,
+  .source-filter-chips button.chosen:focus-visible::after,
+  .image-mode button[aria-pressed="true"]:focus-visible::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border: 2px solid Highlight;
+    border-radius: inherit;
+    pointer-events: none;
+  }
   :focus-visible { outline-color: Highlight; }
 }
 @media (prefers-reduced-motion: reduce) {
