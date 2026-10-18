@@ -2,7 +2,7 @@
 // node scripts/daily-native-smoke.mjs [--exe src-tauri/target/release/news-terminal.exe] [--prefix daily-native-release]
 // Does NOT build, modify production data, mock IPC, start servers/models, or stop unowned processes.
 import { chromium, expect } from '@playwright/test';
-import { spawn, spawnSync, execFileSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { mkdtempSync, mkdirSync, existsSync, readFileSync, writeFileSync, copyFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
@@ -11,6 +11,8 @@ import { createServer } from 'node:net';
 import { createHash } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import assert from 'node:assert/strict';
+import { disconnectNativeBrowser, finalizeNativeEvidence, ownedNativeWindows,
+  releaseFailedChildHandles, stopOwnedProcess } from './native-process-cleanup.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const { values } = parseArgs({ options: { exe: {type:'string', default:'src-tauri/target/release/news-terminal.exe'}, prefix: {type:'string', default:`daily-native-${new Date().toISOString().replace(/[^0-9]/g,'')}`} } });
@@ -18,7 +20,7 @@ assert.match(values.prefix, /^daily-native-[\w-]+$/);
 const base = resolve(root, 'docs/evidence', values.prefix);
 mkdirSync(resolve(root,'docs/evidence'), {recursive:true});
 const sha = b => createHash('sha256').update(b).digest('hex');
-const evidence = { startedAt:new Date().toISOString(), executable:resolve(root,values.exe), fixtureLabel:'SYNTHETIC DAILY NATIVE FIXTURE — not real news', fixtureCount:251, checks:[], launches:[], screenshots:[], pageErrors:[], consoleErrors:[], limitations:[
+const evidence = { startedAt:new Date().toISOString(), passed:false, executable:resolve(root,values.exe), fixtureLabel:'SYNTHETIC DAILY NATIVE FIXTURE — not real news', fixtureCount:251, checks:[], launches:[], screenshots:[], pageErrors:[], consoleErrors:[], limitations:[
   'Only the recorded executable hash is accepted. No build or claim of source-to-binary freshness is made.',
   '251 explicitly synthetic stories imported through the real validated native backup API into newly-created temporary appdata. IPC and DOM are not mocked.',
   'Screenshots are actual native WebView2 content, not OS window chrome. Native window identities are independently recorded with Win32.',
@@ -26,6 +28,7 @@ const evidence = { startedAt:new Date().toISOString(), executable:resolve(root,v
   'No network/AI/feed quality, hot-unplug, installer, or physical DPI acceptance is implied. No unrelated process or existing model service is touched.'
 ] };
 let app, browser, main, detached, dataDirectory;
+process.exitCode=1;
 const save = () => writeFileSync(`${base}.json`, JSON.stringify(evidence,null,2));
 const delay = ms => new Promise(r=>setTimeout(r,ms));
 async function until(fn, message='Condition did not settle', timeout=30000) {
@@ -46,27 +49,7 @@ async function check(name,fn,{required=false}={}) {
   catch(e) {c.passed=false;c.error=String(e.stack||e); if(main&&!main.isClosed()){c.body=await main.locator('body').innerText().catch(String);await shot(`failure-${evidence.checks.length}`).catch(()=>{});}if(required){save();throw e;}}
   save();return c.details;
 }
-const osPython=String.raw`
-import ctypes as c, ctypes.wintypes as w, json, sys
-u=c.windll.user32
-u.GetWindowThreadProcessId.argtypes=[w.HWND,c.POINTER(w.DWORD)]
-u.IsWindowVisible.argtypes=[w.HWND]
-u.GetWindowTextW.argtypes=[w.HWND,w.LPWSTR,c.c_int]
-u.PostMessageW.argtypes=[w.HWND,w.UINT,w.WPARAM,w.LPARAM]
-a=json.loads(sys.argv[1]); windows=[]
-@c.WINFUNCTYPE(w.BOOL,w.HWND,w.LPARAM)
-def cb(h,p):
-    pid=w.DWORD();u.GetWindowThreadProcessId(h,c.byref(pid))
-    if pid.value==a['pid'] and u.IsWindowVisible(h):
-        t=c.create_unicode_buffer(512);u.GetWindowTextW(h,t,512)
-        if t.value:
-            windows.append(dict(hwnd=int(h),pid=pid.value,title=t.value))
-            if a.get('close') and t.value=='News Terminal':u.PostMessageW(h,16,0,0)
-    return True
-u.EnumWindows(cb,0)
-print(json.dumps(windows))
-`;
-function nativeWindows(close=false) {return JSON.parse(execFileSync(process.env.DAILY_NATIVE_PYTHON||'python',['-c',osPython,JSON.stringify({pid:app.pid,close})],{encoding:'utf8',timeout:15000}));}
+function nativeWindows(close=false) {return ownedNativeWindows(app.pid,{close,python:process.env.DAILY_NATIVE_PYTHON||'python'});}
 async function findPage(predicate) {
   return until(async()=>{for(const c of browser.contexts())for(const p of c.pages())try {if(predicate(await invoke(p,{op:'window_context'})))return p;}catch{}return false;},'Native window target not ready');
 }
@@ -80,15 +63,21 @@ async function launch() {
   const run={port,startedAt:new Date().toISOString(),stderr:''};evidence.launches.push(run);
   app=spawn(evidence.launchedExecutable,[],{env:{...process.env,NEWS_TERMINAL_DATA_DIR:dataDirectory,NEWS_TERMINAL_CDP_PORT:String(port),NEWS_TERMINAL_WEBVIEW_DATA_DIR:join(dataDirectory,'webview')},stdio:'pipe'});
   run.pid=app.pid;let spawnError;app.on('error',e=>spawnError=e);app.stderr.on('data',b=>run.stderr=(run.stderr+b).slice(-12000));app.stdout.on('data',()=>{});
+  app.on('exit',(code,signal)=>{run.appExit={code,signal,at:new Date().toISOString()};save();});
   await until(async()=>{if(spawnError)throw spawnError;if(app.exitCode!==null)throw Error(`Owned process exited ${app.exitCode}`);try {browser=await chromium.connectOverCDP(`http://127.0.0.1:${port}`,{timeout:1000});return true;}catch{return false;}},'CDP did not open',45000);
-  main=await findPage(c=>c.label==='main');await ready(main);run.url=main.url();run.windows=nativeWindows();save();return main;
+  main=await findPage(c=>c.label==='main');await ready(main);run.url=main.url();run.windows=await nativeWindows();save();return main;
 }
 async function stop(graceful=true) {
-  if(!app)return;const run=evidence.launches.at(-1);run.termination={pid:app.pid,requestedGraceful:graceful,forceKilled:false};
-  if(app.exitCode===null&&graceful) {run.termination.windows=nativeWindows(true);await until(()=>app.exitCode!==null,'Native WM_CLOSE timeout',10000).catch(()=>{});}
-  if(app.exitCode===null) {run.termination.forceKilled=true;const r=spawnSync('taskkill.exe',['/PID',String(app.pid),'/T','/F'],{encoding:'utf8'});run.termination.taskkill={status:r.status,stdout:r.stdout,stderr:r.stderr};await until(()=>app.exitCode!==null,'Owned cleanup did not exit',10000);}
-  run.termination.exitCode=app.exitCode;run.termination.finishedAt=new Date().toISOString();
-  if(browser)await browser.close().catch(()=>{});browser=null;app=null;save();
+  if(!app)return;const run=evidence.launches.at(-1);
+  assert.equal(graceful,true,'Daily acceptance always requires graceful shutdown');
+  try {
+    // A failed restart cleanup must not be retried and overwritten in finally.
+    run.termination??=await stopOwnedProcess(app,{requestClose:()=>nativeWindows(true),gracefulTimeout:10000});
+    if(!run.termination.passed)throw Error(run.termination.error);
+  } finally {
+    try {await disconnectNativeBrowser(browser);}
+    finally {browser=null;if(app.exitCode!==null||app.signalCode!==null)app=null;save();}
+  }
 }
 async function paneState(page) {
   return {context:await invoke(page,{op:'window_context'}),ui:await page.evaluate(()=>({width:innerWidth,reading:Number(document.querySelector('[aria-label="Reading pane width"]')?.getAttribute('aria-valuenow')),navigation:Number(document.querySelector('[aria-label="Navigation pane width"]')?.getAttribute('aria-valuenow')),actualReading:document.querySelector('.detail')?.getBoundingClientRect().width,bodyWidth:document.body.scrollWidth,lang:document.documentElement.lang})),storage:await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage).filter(([k])=>k.startsWith('news-terminal:panes:'))))};
@@ -104,12 +93,13 @@ let orderedIds=[],firstId,firstTitle,mainHomeWidths,mainOtherWidths,detachedWidt
 try {
   assert.equal(process.platform,'win32');assert.ok(existsSync(evidence.executable));
   evidence.executableSha256=sha(readFileSync(evidence.executable));evidence.executableModifiedAt=statSync(evidence.executable).mtime.toISOString();evidence.scriptSha256=sha(readFileSync(fileURLToPath(import.meta.url)));
+  evidence.cleanupHelperSha256=sha(readFileSync(new URL('./native-process-cleanup.mjs',import.meta.url)));
   dataDirectory=mkdtempSync(join(tmpdir(),'news-terminal-daily-native-'));evidence.dataDirectory=dataDirectory;evidence.launchedExecutable=join(dataDirectory,'daily-native-app.exe');copyFileSync(evidence.executable,evidence.launchedExecutable);assert.equal(sha(readFileSync(evidence.launchedExecutable)),evidence.executableSha256);
   await launch();
   await check('actual native runtime and embedded assets',async()=>{
     const session=await main.context().newCDPSession(main);await session.send('Page.enable');const {frameTree}=await session.send('Page.getResourceTree');const urls=await main.evaluate(()=>[...document.querySelectorAll('script[src],link[rel="stylesheet"]')].map(e=>e.src||e.href));const assets=[];
     for(const url of urls){const r=await session.send('Page.getResourceContent',{frameId:frameTree.frame.id,url});assets.push({url,sha256:sha(Buffer.from(r.content,r.base64Encoded?'base64':'utf8'))});}await session.detach();assert.ok(assets.length>=2);
-    const windows=nativeWindows();assert.equal(windows.length,1);return {assets,windows,context:await invoke(main,{op:'window_context'}),webviewDirectory:join(dataDirectory,'webview')};
+    const windows=await nativeWindows();assert.equal(windows.length,1);return {assets,windows,context:await invoke(main,{op:'window_context'}),webviewDirectory:join(dataDirectory,'webview')};
   },{required:true});
   await check('isolated validated synthetic import with exact count and no active sources',async()=>{
     const start=await snapshot();for(const s of start.sources.filter(s=>s.enabled))await invoke(main,{op:'source_update',sourceId:s.id,enabled:false});
@@ -159,15 +149,15 @@ try {
   },{required:true});
   await check('real detached native window has independent pane scope',async()=>{
     await main.getByRole('button',{name:'Detach tab',exact:true}).click();detached=await findPage(c=>c.detached&&c.tabId==='home');await ready(detached);const monitors=await invoke(detached,{op:'window_monitors'});const target=[...monitors.monitors].sort((a,b)=>b.width/b.scaleFactor-a.width/a.scaleFactor)[0];await invoke(detached,{op:'window_move',monitorId:target.id,layout:'full'});
-    await expect(divider(detached)).toHaveAttribute('aria-valuenow','390');await setReadingByKeyboard(detached,330);await divider(detached,'Navigation').focus();await detached.keyboard.press('Home');detachedWidths=await paneState(detached);await expect(divider(main)).toHaveAttribute('aria-valuenow','430');const windows=nativeWindows();assert.equal(windows.length,2);assert.equal(detachedWidths.context.detached,true);await shot('detached-pane-width',detached);return {detachedWidths,main:await paneState(main),windows};
+    await expect(divider(detached)).toHaveAttribute('aria-valuenow','390');await setReadingByKeyboard(detached,330);await divider(detached,'Navigation').focus();await detached.keyboard.press('Home');detachedWidths=await paneState(detached);await expect(divider(main)).toHaveAttribute('aria-valuenow','430');const windows=await nativeWindows();assert.equal(windows.length,2);assert.equal(detachedWidths.context.detached,true);await shot('detached-pane-width',detached);return {detachedWidths,main:await paneState(main),windows};
   },{required:true});
   await check('real app close and restart retains main/detached pane preferences',async()=>{
     evidence.beforeRestart={main:await paneState(main),detached:await paneState(detached),states:[{id:firstId,...state(await article(firstId))},{id:orderedIds[99],...state(await article(orderedIds[99]))}]};save();await stop(true);const ended=evidence.launches.at(-1);assert.equal(ended.termination.forceKilled,false);assert.equal(ended.termination.exitCode,0);await launch();assert.notEqual(evidence.launches.at(-1).pid,ended.pid);
-    detached=await findPage(c=>c.detached&&c.tabId==='home');await ready(detached);await expect(divider(main)).toHaveAttribute('aria-valuenow','430');await expect(divider(detached)).toHaveAttribute('aria-valuenow','330');await expect(divider(detached,'Navigation')).toHaveAttribute('aria-valuenow','160');evidence.afterRestart={main:await paneState(main),detached:await paneState(detached),windows:nativeWindows()};
+    detached=await findPage(c=>c.detached&&c.tabId==='home');await ready(detached);await expect(divider(main)).toHaveAttribute('aria-valuenow','430');await expect(divider(detached)).toHaveAttribute('aria-valuenow','330');await expect(divider(detached,'Navigation')).toHaveAttribute('aria-valuenow','160');evidence.afterRestart={main:await paneState(main),detached:await paneState(detached),windows:await nativeWindows()};
     assert.deepEqual(evidence.afterRestart.main.storage,evidence.beforeRestart.main.storage);assert.deepEqual(evidence.afterRestart.detached.storage,evidence.beforeRestart.detached.storage);for(const before of evidence.beforeRestart.states)assert.deepEqual({id:before.id,...state(await article(before.id))},before);assert.equal((await snapshot()).articles.length,evidence.fixtureCount);await expect(detached.locator('.detail h2')).toHaveText((await article(orderedIds.at(-1))).title);await expect(detached.locator(`[data-article-id="${orderedIds.at(-1)}"]`)).toBeInViewport();await shot('main-restarted');await shot('detached-restarted',detached);return evidence.afterRestart;
   },{required:true});
   await check('reattach restores same tab main widths without copying detached preferences',async()=>{
-    await detached.getByRole('button',{name:/Reattach/i}).click();await until(()=>detached.isClosed(),'Detached native target did not close');await main.getByRole('tablist',{name:'Workspace tabs'}).getByRole('tab').first().click();await expect(divider(main)).toHaveAttribute('aria-valuenow','470');await expect(divider(main,'Navigation')).toHaveAttribute('aria-valuenow','225');assert.equal(nativeWindows().length,1);
+    await detached.getByRole('button',{name:/Reattach/i}).click();await until(()=>detached.isClosed(),'Detached native target did not close');await main.getByRole('tablist',{name:'Workspace tabs'}).getByRole('tab').first().click();await expect(divider(main)).toHaveAttribute('aria-valuenow','470');await expect(divider(main,'Navigation')).toHaveAttribute('aria-valuenow','225');assert.equal((await nativeWindows()).length,1);
     const final=await until(async()=>{
       const current=await paneState(main);
       return current.ui.actualReading===470?current:false;
@@ -178,6 +168,7 @@ try {
 } catch(e) {evidence.fatalError=String(e.stack||e);}
 finally {
   try {await stop(true);}catch(e){evidence.cleanupError=String(e.stack||e);}
-  evidence.finishedAt=new Date().toISOString();evidence.summary={checks:evidence.checks.length,passed:evidence.checks.filter(c=>c.passed).length,failed:evidence.checks.filter(c=>!c.passed).length};evidence.passed=!evidence.fatalError&&!evidence.cleanupError&&evidence.summary.failed===0;save();
+  finalizeNativeEvidence(evidence,13,evidence.launches.map(run=>run.termination),2);save();
+  if(!evidence.passed)releaseFailedChildHandles(app);
 }
 console.log(JSON.stringify({evidence:`${base}.json`,passed:evidence.passed,summary:evidence.summary,failures:evidence.checks.filter(c=>!c.passed).map(c=>({name:c.name,error:c.error})),fatalError:evidence.fatalError,cleanupError:evidence.cleanupError},null,2));process.exitCode=evidence.passed?0:1;
