@@ -168,7 +168,7 @@ kbd {
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  min-width: 360px;
+  min-width: 320px;
   overflow: hidden;
 }
 .topbar {
@@ -509,7 +509,8 @@ kbd {
   scrollbar-width: thin;
 }
 .detail-toolbar {
-  height: 45px;
+  min-height: 45px;
+  height: auto;
   padding: 6px 15px;
   display: flex;
   align-items: center;
@@ -1242,6 +1243,28 @@ summary { cursor: pointer; padding: 5px 0; }
 .monitor-row > div { flex: 1; min-width: 0; }
 .monitor-row p { margin-top: 5px; }
 .monitor-note { margin-top: 20px; }
+@media (max-width: 400px) {
+  .topbar .quiet { padding-inline: 6px; }
+  .topbar kbd { display: none; }
+  .brand { gap: 6px; }
+  .filters { flex-wrap: wrap; }
+  .detail-toolbar > span:not(.spacer) { flex: 1 0 calc(100% - 40px); }
+  .detail-toolbar > .spacer { display: none; }
+  .detail-toolbar > button:last-child { margin-inline-start: auto; }
+}
+@media (forced-colors: active) {
+  .story-row.selected,
+  .story-row.triaged,
+  .tab.active,
+  nav button.chosen,
+  .settings-layout > nav button[aria-current="page"],
+  .source-filter-chips button.chosen,
+  .image-mode button[aria-pressed="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+  :focus-visible { outline-color: Highlight; }
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

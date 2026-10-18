@@ -19,7 +19,7 @@
   color: var(--muted);
   flex-shrink: 0;
 }
-nav button.chosen .nav-count { color: var(--foreground); }
+nav button.chosen .nav-count { color: var(--text); }
 /* 0.5 bulk triage bar. Appears only with a non-empty selection, states the
    count in text, and sits above the list rather than floating over it. */
 /* 0.5 source search and filter. */
@@ -33,7 +33,7 @@ nav button.chosen .nav-count { color: var(--foreground); }
   font-size: 12px;
   padding: 3px 8px;
 }
-.source-filter-chips button.chosen { border-color: var(--accent); color: var(--foreground); }
+.source-filter-chips button.chosen { border-color: var(--accent); color: var(--text); }
 /* The audit found 13x13px source checkboxes, below a usable pointer target.
    The visual box stays 13px; the hit area is enlarged instead, so the list
    keeps its density while the control is actually clickable. */
@@ -57,8 +57,8 @@ nav button.chosen .nav-count { color: var(--foreground); }
   flex-wrap: wrap;
   padding: 8px 0;
   font-size: 12px;
-  color: var(--muted-foreground);
-  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
   margin-bottom: 10px;
 }
 .retention-list { margin: 0 0 10px; padding-left: 18px; font-size: 12px; }
@@ -81,34 +81,34 @@ nav button.chosen .nav-count { color: var(--foreground); }
   display: flex;
   gap: 10px;
   padding: 7px 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
   font-size: 12px;
 }
-.receipts time { flex: 0 0 11em; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.receipts time { flex: 0 0 11em; color: var(--muted); font-variant-numeric: tabular-nums; }
 .bulk-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
   border-bottom: 1px solid var(--line);
-  background: var(--surface-raised, var(--surface));
+  background: var(--raised);
   flex-shrink: 0;
   font-size: 12px;
   flex-wrap: wrap;
 }
 .bulk-actions > [role="status"] { margin-right: auto; color: var(--muted); }
 .bulk-actions button { font-size: 12px; padding: 4px 8px; }
-.story-row.triaged { background: var(--accent-soft); }
+.story-row.triaged { background: var(--selected); }
 .triage-box { align-self: start; margin-top: 2px; }
 .image-mode { display: flex; gap: 3px; }
-.image-mode button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.image-mode button[aria-pressed="true"] { background: var(--selected); border-color: var(--accent); }
 /* 0.5 bulk triage adds a leading checkbox, so the row needs a third column.
    Without this the checkbox wraps onto an implicit second grid row and every
    headline grows ~30px, which measurably costs visible rows at small sizes. */
 .story-row { grid-template-columns: auto auto minmax(0, 1fr); }
 .story-row:not(:has(.row-thumbnail)) { grid-template-columns: auto minmax(0, 1fr); }
 .story-row .row-thumbnail { display: block; margin: 0; width: 124px; min-width: 124px; height: auto; align-self: start; overflow: hidden; border: 0; border-radius: 4px; background: transparent; }
-.thumbnail-frame { height: 84px; width: 124px; overflow: hidden; background: var(--surface-raised, var(--surface)); border: 1px solid var(--line); border-radius: 4px; }
+.thumbnail-frame { height: 84px; width: 124px; overflow: hidden; background: var(--raised); border: 1px solid var(--line); border-radius: 4px; }
 .story-row .thumbnail-frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .thumbnail-placeholder { display: flex; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: var(--muted); font-size: 12px; }
 /* 0.5 M2: raise every sub-12px node to the 12px floor DESIGN.md states. */
@@ -163,6 +163,7 @@ nav button.chosen .nav-count { color: var(--foreground); }
   main.headlines .list-heading > div { min-width: 0; }
   main.headlines .list-heading p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .search, .filters { padding: 6px 12px; }
+  main.headlines .story-row { padding-block: 8px; }
   .image-controls { padding: 4px 12px; max-height: 44px; }
 }
 @media (max-width: 540px) {
