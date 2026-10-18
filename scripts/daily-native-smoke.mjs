@@ -13,7 +13,7 @@ import { parseArgs } from 'node:util';
 import assert from 'node:assert/strict';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const { values } = parseArgs({ options: { exe: {type:'string', default:'src-tauri/target/debug/news-terminal.exe'}, prefix: {type:'string', default:`daily-native-${new Date().toISOString().replace(/[^0-9]/g,'')}`} } });
+const { values } = parseArgs({ options: { exe: {type:'string', default:'src-tauri/target/release/news-terminal.exe'}, prefix: {type:'string', default:`daily-native-${new Date().toISOString().replace(/[^0-9]/g,'')}`} } });
 assert.match(values.prefix, /^daily-native-[\w-]+$/);
 const base = resolve(root, 'docs/evidence', values.prefix);
 mkdirSync(resolve(root,'docs/evidence'), {recursive:true});
