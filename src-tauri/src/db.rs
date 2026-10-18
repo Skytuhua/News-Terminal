@@ -3,6 +3,9 @@ mod backup;
 use crate::rights;
 use backup::validate_backup;
 #[cfg(test)]
+#[path = "../tests/local_ai/database.rs"]
+mod local_ai_tests;
+#[cfg(test)]
 #[path = "../tests/rights/rights_database.rs"]
 mod rights_tests;
 use rusqlite::{params, Connection, OptionalExtension};
@@ -76,11 +79,17 @@ pub fn canonical_url(s: &str) -> Result<String> {
 pub fn validate_provider(v: &Value) -> Result<()> {
     let id = text(v, "id", 20)?;
     let kind = text(v, "kind", 20)?;
-    if id != kind || !["ollama", "gemini", "groq"].contains(&kind) {
+    if id != kind || !["ollama", "gemini", "groq", "openai-local"].contains(&kind) {
         return Err("Unsupported provider".into());
     }
     text(v, "name", 100)?;
     text(v, "model", 200)?;
+    if kind == "openai-local" {
+        crate::services::validate_local_model(text(v, "model", 200)?, 200)?;
+        crate::services::openai_local_base_url(text(v, "baseUrl", 256)?)?;
+    } else if v.get("baseUrl").is_some() {
+        return Err("Only the local OpenAI-compatible provider accepts a base URL".into());
+    }
     boolean(&v["enabled"])?;
     boolean(&v["consented"])?;
     Ok(())
@@ -1318,7 +1327,13 @@ impl Database {
             "provider_save" => {
                 let p = &r["provider"];
                 validate_provider(p)?;
-                let safe = json!({"id":p["id"],"kind":p["kind"],"name":p["name"],"model":p["model"],"enabled":p["enabled"],"consented":p["consented"]});
+                let mut safe = json!({"id":p["id"],"kind":p["kind"],"name":p["name"],"model":p["model"],"enabled":p["enabled"],"consented":p["consented"]});
+                if p["kind"] == "openai-local" {
+                    safe["baseUrl"] = json!(crate::services::openai_local_base_url(text(
+                        p, "baseUrl", 256
+                    )?,)?
+                    .as_str());
+                }
                 self.put("provider", p["id"].as_str().unwrap(), "", &safe)?;
                 Ok(Value::Null)
             }

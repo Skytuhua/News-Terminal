@@ -20,7 +20,7 @@ export default function Summary({
   const [status, setStatus] = useState("");
   const request = useRef<string | undefined>(undefined);
   const ready = providers.some(
-    (p) => p.enabled && p.consented && (p.kind === "ollama" || p.hasKey),
+    (p) => p.enabled && p.consented && (p.kind === "ollama" || p.kind === "openai-local"),
   );
   useEffect(
     () => () => {
@@ -78,7 +78,7 @@ export default function Summary({
         </button>
       </div>
       <p className="fine">
-        On demand only. Enabled, consented providers may be tried in fallback
+        On demand only. Enabled, consented local providers may be tried in fallback
         order; your original excerpt remains available if every provider fails.
       </p>
       {!article.aiAllowed && (

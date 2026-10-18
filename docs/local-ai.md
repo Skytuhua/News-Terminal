@@ -1,6 +1,70 @@
 # Optional local AI for News Terminal (Windows x64)
 
-This is a real, free local inference setup, not a news fixture or cloud subscription. It does not install a service, modify startup or global PATH/environment, or change application settings. The application owner must select the Ollama provider/model separately.
+AI is optional and summaries are requested explicitly. News Terminal supports
+Ollama and an optional local OpenAI-compatible server such as LM Studio or
+llama.cpp. The application blocks cloud provider kinds in zero-paid mode.
+
+## Connect an existing LM Studio or llama.cpp server
+
+In **Settings > AI providers > Local OpenAI-compatible**, enter the exact model
+identifier configured in your server and its API base URL. For LM Studio, a
+common base is `http://127.0.0.1:1234/v1`. For llama.cpp, use the port you set
+when starting the server, for example `http://127.0.0.1:8080/v1` when you used
+`--port 8080`. The server and model must already be available.
+
+The accepted base is HTTP with `127.0.0.1`, `[::1]`, or `localhost`, an explicit
+non-default port (1 through 65535, excluding port 80), and `/v1`. A trailing slash
+is accepted. `localhost` is normalized to `127.0.0.1` before connecting, so it
+does not rely on DNS. Credentials in URLs, query strings, fragments, LAN hosts,
+cloud URLs and alternate API paths are rejected. Authenticated local servers
+are not supported by this adapter; no API key is loaded or saved for it.
+
+The form starts disabled and without consent. Choose **Enabled**, give consent
+to sending permitted excerpts, and save. Saving only stores configuration and
+does not contact the server. Editing the endpoint or model clears the form's
+consent checkbox. Summaries still require a separate Generate action and the
+existing source and item permissions. If both local providers are enabled and
+consented, fallback tries Ollama before the compatible server.
+
+**Local transport does not establish local execution.** Ollama can use cloud
+models through localhost, and LM Studio LM Link can send localhost requests to
+a preferred remote device. Disable Ollama cloud features (`OLLAMA_NO_CLOUD=1`,
+with a runtime restart), LM Link and other remote delegation in the runtime you
+choose. News Terminal does not inspect or attest the server process. Ollama's
+native adapter checks the selected `/api/tags` entry and rejects known remote
+metadata before sending excerpts, but trusts the server's metadata. Both local
+adapters also reject model identifiers containing `cloud`, preserving the
+existing conservative guard against explicit cloud model tags.
+
+The compatible adapter sends plain-text messages to `/v1/chat/completions` with
+`stream:false` and an output cap of 512 tokens for article summaries or 1024
+tokens for sector quotations. It does not invoke tools, fetch article URLs,
+install models or manage the runtime. Sector results still select host-created
+quotation candidates and are validated against the supplied source inputs.
+Requests use no proxies or redirects, a 5-second connection timeout and a
+15-second HTTP deadline; the existing summary operation also has attempt and
+overall limits. Responses are bounded to 64 KiB, and malformed, tool, refusal,
+empty or incomplete compatible responses are rejected. Cancel discards the
+pending result; immediate cancellation of the server's computation is not
+guaranteed. A cold or busy model may time out. Originals remain readable.
+
+Backups contain only the local endpoint, model and public provider settings.
+Import disables providers and resets consent. Old backups without the optional
+compatible provider remain accepted; backups containing it require this version
+or a newer compatible host. Never put runtime credentials in provider fields.
+
+References, checked 18 October 2026:
+[LM Studio chat API](https://lmstudio.ai/docs/developer/openai-compat/chat-completions),
+[LM Link routing](https://lmstudio.ai/docs/developer/core/lmlink),
+[llama.cpp server API](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md),
+[Ollama cloud configuration](https://docs.ollama.com/faq).
+
+## Existing isolated Ollama setup
+
+The following records the previously verified local inference setup. Its scripts
+do not install a service, modify startup or global PATH/environment, or change
+application settings. The application owner selects the Ollama provider/model
+separately or uses the existing **Use local AI** action.
 
 ## Exact configuration
 
@@ -83,6 +147,11 @@ Copies are retained under `.local-ai/licenses/`. The standalone ZIP also retains
 
 ## Repository and packaging boundary
 
-Only `scripts/local-ai*`, `docs/local-ai*`, and machine-local `.local-ai/` were created/edited for this setup. `.local-ai/.gitignore` contains `*`, and `git check-ignore` verified runtime/model artifacts and the nested ignore file itself are ignored. No application Cargo, frontend, database, settings, or other user profiles were changed.
+The original runtime setup created only `scripts/local-ai*`, `docs/local-ai*`,
+and machine-local `.local-ai/`. `.local-ai/.gitignore` contains `*`, and
+`git check-ignore` verified runtime/model artifacts and the nested ignore file
+itself are ignored. The optional application adapter described above is separate
+from this retained runtime and model evidence; its fixture tests do not establish
+live inference or hardware performance for LM Studio or llama.cpp.
 
 The inspected Tauri bundle configuration uses an explicit resource allowlist (`resources/installer-notices`, `resources/licenses`, and `THIRD_PARTY_NOTICES.md`) and frontend `dist`; `.local-ai/` is not included. Do not add this directory to bundle resources or copy it into `dist`. A final installer/executable payload check belongs to the release owner.

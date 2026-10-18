@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { X } from "lucide-react";
-import type { Snapshot, Source, Watchlist } from "./types";
+import type { Provider, Snapshot, Source, Watchlist } from "./types";
 import { dispatch, type Request } from "./ipc";
 import {
   list, date, sourceFailed, sourceEligibleAt,
@@ -804,44 +804,56 @@ export default function Settings({
             <>
               <p className="intro">
                 AI is optional. No excerpt is sent when you open a story. Only
-                enabled providers with your consent can receive content,
-                including on fallback. Cloud free tiers have quotas and can
-                change; verify your account’s billing policy.
+                enabled local providers with your consent can receive content,
+                including on fallback. Cloud AI providers are blocked in
+                zero-paid mode.
               </p>
               <p className="fine">
-                Fallback follows the desktop host’s provider order. Keys are
-                stored in the Windows credential store, never in this workspace
-                or its backups.
+                Fallback tries Ollama, then the local OpenAI-compatible server.
+                Local connections do not use API keys. Existing cloud keys stay
+                in the Windows credential store and are never exported.
+              </p>
+              <p className="fine">
+                A localhost address only identifies the server connection. That
+                server can forward requests to another machine. Disable Ollama
+                cloud features, LM Studio LM Link, and other remote routing in
+                your runtime before enabling it here.
               </p>
               <section className="local-ai-setup">
                 <h3>Connect the installed local model</h3>
                 <p className="fine">Use local AI checks Ollama on 127.0.0.1:11434 for qwen3:4b-instruct-2507-q4_K_M. By clicking, you consent to processing permitted excerpts locally. This does not install a runtime, enable cloud providers, change source permissions or generate a summary.</p>
                 <button className="primary" disabled={busy} onClick={() => void run({ op: "local_ai_connect" }, "Local AI connected. The installed model is shown below; source permissions are unchanged.")}>{busy ? "Checking local AI…" : "Use local AI"}</button>
               </section>
-              {(["ollama", "gemini", "groq"] as const).map((kind) => {
-                const p = data.providers.find((p) => p.kind === kind) || {
+              {(["ollama", "openai-local", "gemini", "groq"] as const).map((kind) => {
+                const local = kind === "ollama" || kind === "openai-local";
+                const p: Provider = data.providers.find((p) => p.kind === kind) || {
                   id: kind,
                   name:
                     kind === "ollama"
                       ? "Ollama"
-                      : kind === "gemini"
-                        ? "Gemini"
-                        : "Groq",
+                      : kind === "openai-local"
+                        ? "Local OpenAI-compatible"
+                        : kind === "gemini"
+                          ? "Gemini"
+                          : "Groq",
                   kind,
                   model:
                     kind === "ollama"
                       ? "llama3.2"
-                      : kind === "gemini"
-                        ? "gemini-2.5-flash"
-                        : "llama-3.3-70b-versatile",
+                      : kind === "openai-local"
+                        ? ""
+                        : kind === "gemini"
+                          ? "gemini-2.5-flash"
+                          : "llama-3.3-70b-versatile",
                   enabled: false,
                   consented: false,
                   hasKey: false,
+                  ...(kind === "openai-local" ? { baseUrl: "http://127.0.0.1:1234/v1" } : {}),
                 };
                 return (
                   <form
                     className="provider-form"
-                    key={`${p.id}:${p.model}:${p.enabled}:${p.consented}:${p.hasKey}`}
+                    key={`${p.id}:${p.model}:${p.baseUrl ?? ""}:${p.enabled}:${p.consented}:${p.hasKey}`}
                     onSubmit={async (e) => {
                       e.preventDefault();
                       const form = e.currentTarget;
@@ -861,6 +873,7 @@ export default function Settings({
                             model: String(f.get("model")).trim(),
                             enabled: f.has("enabled"),
                             consented: f.has("consented"),
+                            ...(kind === "openai-local" ? { baseUrl: String(f.get("baseUrl")).trim() } : {}),
                           },
                           ...(apiKey ? { apiKey } : {}),
                         },
@@ -876,20 +889,41 @@ export default function Settings({
                           type="checkbox"
                           aria-label={`Enable ${p.name}`}
                           defaultChecked={p.enabled}
+                          disabled={!local}
                         />
                         Enabled
                       </label>
                     </div>
                     <p className="fine">
                       {kind === "ollama"
-                        ? "Runs on your local Ollama service. Install and pull the selected model separately."
-                        : `Cloud provider · ${p.hasKey ? "A key is saved" : "No key saved"}`}
+                        ? "Connects to Ollama on 127.0.0.1:11434. Install and pull the selected local model separately."
+                        : kind === "openai-local"
+                          ? "Connects to an existing LM Studio, llama.cpp, or compatible local server. Start the server and choose its exact model identifier. Saving does not contact the server or generate a summary."
+                          : `Blocked in zero-paid mode · ${p.hasKey ? "A key is saved" : "No key saved"}`}
                     </p>
                     <div className="form-grid">
                       <Field label={`${p.name} model`}>
-                        <input name="model" required defaultValue={p.model} />
+                        <input name="model" required maxLength={200} defaultValue={p.model}
+                          onChange={e => {
+                            if (kind !== "openai-local") return;
+                            const consent = e.currentTarget.form?.elements.namedItem("consented") as HTMLInputElement | null;
+                            if (consent) consent.checked = false;
+                          }} />
                       </Field>
-                      {kind !== "ollama" && (
+                      {kind === "openai-local" && (
+                        <Field label="Local OpenAI-compatible base URL"
+                          hint="HTTP only, an explicit non-default port, and /v1. Use 127.0.0.1, [::1], or localhost. LM Studio commonly uses port 1234; use the port configured in llama.cpp.">
+                          <input name="baseUrl" type="url" required maxLength={256}
+                            defaultValue={p.baseUrl ?? "http://127.0.0.1:1234/v1"}
+                            autoComplete="off" spellCheck={false}
+                            onChange={e => {
+                              // A changed recipient needs a deliberate fresh disclosure choice.
+                              const consent = e.currentTarget.form?.elements.namedItem("consented") as HTMLInputElement | null;
+                              if (consent) consent.checked = false;
+                            }} />
+                        </Field>
+                      )}
+                      {!local && (
                         <Field
                           label={`${p.name} API key`}
                           hint="Leave blank to keep the current key."
@@ -913,6 +947,7 @@ export default function Settings({
                         type="checkbox"
                         name="consented"
                         defaultChecked={p.consented}
+                        disabled={!local}
                       />
                       {`I consent to sending excerpts to ${p.name}`}
                     </label>

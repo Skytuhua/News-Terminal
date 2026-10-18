@@ -64,6 +64,27 @@ may prevent cleanup and artifact upload; GitHub disposes of the hosted job VM.
 The option is rejected outside GitHub-hosted jobs. The default local harness
 behavior and product code are unchanged.
 
+## Windows PowerShell module compatibility
+
+The job starts the inspector and native harness from PowerShell 7. Their Python
+and Node processes then invoke Windows PowerShell 5.1. Microsoft documents that
+these [intermediate processes can pass incompatible PowerShell 7 module paths][6]
+to Windows PowerShell and break module autoloading. Both launchers remove every
+case-insensitive `PSModulePath` key from the child environment, letting Windows
+PowerShell rebuild its default paths. The parent environment is unchanged.
+
+The Authenticode probe still receives the literal installer filename as environment
+data and requires the existing valid Microsoft publisher signature. A failed
+probe reports its exit code and the last 3,000 characters of each captured output
+stream, while preserving the original exception and failing verification. The
+native launcher retains its hosted-runner checks, exact owned executable rule,
+timeouts and cleanup behavior.
+
+The Windows regression prepends a fixture `Microsoft.PowerShell.Utility` module
+requiring PowerShell 7 to the inherited module path, then calls the real signature
+helper on Windows' signed `powershell.exe`. It requires a valid Microsoft signature
+and an unchanged parent module path. It does not require PowerShell 7 to be installed.
+
 ## Runner assumptions and limits
 
 GitHub's [runner reference][1] identifies `windows-latest` with Windows Server 2025
@@ -85,17 +106,30 @@ The larger daily native suite still covers detached windows and restart separate
 
 ## Validation
 
-On Linux after rebasing onto the setup feature base:
+On Linux after merging main at `cd24327` into the CI branch:
 
 - `package-release.test.py`: 9 passed.
-- `verify-installer.test.py`: 7 passed, 1 historical Windows artifact test skipped.
+- `verify-installer.test.py`: 8 passed, 2 skipped (the real Windows Authenticode
+  regression and the historical local installer fixture).
 - `verify-release.test.py`: 3 passed.
 - `node --check scripts/v05-native-smoke.mjs`: passed.
-- The updated workflow parsed as YAML; the main-only push trigger and offline
-  setup configuration were checked against the feature base.
+- The captured-output regression failed against the old signature helper and
+  passed after the diagnostic change.
+- Initial CI validation parsed the workflow as YAML and checked the main-only
+  push trigger and offline setup configuration against the feature base.
 - `git diff --check`: passed.
 
-These checks do not validate PowerShell or Windows Firewall execution. A
+An isolated Windows probe confirmed the incompatible-module fixture's behavior
+against a signed WebView2 runtime. The old helper failed with
+`CouldNotAutoloadMatchingModule` for `ConvertTo-Json`; removing `PSModulePath` from
+the child environment returned a valid Microsoft signature for the same file.
+The committed Windows regression against `powershell.exe` also failed against the
+old helper and passed after the fix. On Windows 11 x64 with Python 3.14, all 21
+applicable packaging checks passed; only the historical local-installer fixture
+was skipped. Node syntax, PowerShell parsing and Git whitespace checks passed.
+PowerShell parsing did not execute any firewall action.
+
+The Linux checks do not validate PowerShell or Windows Firewall execution. A
 GitHub-hosted Windows run remains required to establish actual prerequisite
 availability, extraction, signature checks, native interaction, the outbound
 block and cleanup after both success and failure. No Windows firewall rule,
@@ -106,3 +140,4 @@ runtime installer or app was run on a user's machine while preparing this change
 [3]: https://learn.microsoft.com/en-us/powershell/module/netsecurity/new-netfirewallrule
 [4]: https://learn.microsoft.com/en-us/powershell/module/netsecurity/get-netfirewallprofile
 [5]: https://docs.github.com/en/actions/reference/workflows-and-actions/variables
+[6]: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_psmodulepath?view=powershell-7.5#starting-windows-powershell-from-powershell-7

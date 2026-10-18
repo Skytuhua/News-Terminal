@@ -55,10 +55,12 @@ const snapshot = (page = main) => invoke(page, { op: 'snapshot', profileId: 'def
 const rows = (page = main) => page.getByTestId('story-row');
 const state = (a) => ({ read: a.read, saved: a.saved, hidden: a.hidden });
 function ciFirewall(action) {
+  // A pwsh -> Node -> Windows PowerShell launch otherwise inherits PS7 modules.
+  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => key.toUpperCase() !== 'PSMODULEPATH'));
   return JSON.parse(execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-File',
     join(root, 'scripts/ci-native-firewall.ps1'), '-Action', action,
     ...(action === 'Block' ? ['-Program', evidence.launchedExecutable] : [])],
-  { encoding: 'utf8', timeout: 30000 }));
+  { env, encoding: 'utf8', timeout: 30000 }));
 }
 function osWindows(close=false) {
   // Visible windows with a non-empty title only. Without those two filters the
