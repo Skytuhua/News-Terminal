@@ -41,7 +41,7 @@ export default function ModelCatalog() {
     {snapshot && <><MetadataFreshness value={snapshot} /><p className="fine">{snapshot.complete ? "Complete" : "Unavailable"} OpenRouter catalog · {snapshot.totalCount || 0} models reported · availability means listed in metadata, not tested inference.</p></>}
     {!!snapshot?.changes?.length && <details><summary>Changes in latest snapshot ({snapshot.changes.length})</summary><ul>{snapshot.changes.map(change => <li key={`${change.kind}:${change.modelId}`}>{change.label}: {change.modelId}{change.fields?.length ? ` · ${change.fields.join(", ")}` : ""}</li>)}</ul></details>}
     <div className="model-grid">
-      {rows.map(model => <article key={model.id} className="model-row" style={{padding:"12px 0",borderBottom:"1px solid var(--border)",overflowWrap:"anywhere"}}>
+      {rows.map(model => <article key={model.id} className="model-row" style={{padding:"12px 0",borderBottom:"1px solid var(--line)",overflowWrap:"anywhere"}}>
         <strong>{model.id}</strong><div>{model.name} · {model.provider}</div>
         <div><span>{model.releaseDateLabel}</span>{model.addedToOpenRouter ? ` · ${date(model.addedToOpenRouter)}` : " · unknown"}</div>
         {model.firstSeen && <div>First seen here · {date(model.firstSeen)}</div>}
