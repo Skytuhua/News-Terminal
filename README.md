@@ -40,7 +40,7 @@ The core reader requires no News Terminal account, subscription or hosted backen
 
 Under **Artifacts**, download `news-terminal-windows-unsigned`, unzip it, and run the installer or application. GitHub sign-in is required; artifacts are available while GitHub retains them. These are **unsigned development builds**, so Windows may show a SmartScreen warning. No tagged release is published yet.
 
-Install [Microsoft WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) if it is missing. The installer does not bundle or automatically install it.
+The linked development build requires an existing [Microsoft WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section). Installers newly built from this source bundle the offline WebView2 installer and install the runtime when it is missing. The standalone application and portable ZIP still require WebView2 to be installed separately.
 
 ### Build from source
 
@@ -59,7 +59,7 @@ To create your own installer:
 npm run tauri -- build --bundles nsis
 ```
 
-Find it under `src-tauri/target/release/bundle/nsis/`. The standalone application is `src-tauri/target/release/news-terminal.exe`.
+Find it under `src-tauri/target/release/bundle/nsis/`. The standalone application is `src-tauri/target/release/news-terminal.exe`. The build machine needs access to Microsoft's Evergreen runtime download for the bundled prerequisite. See [installer payload verification](docs/installer-payload.md#current-release-owner-sequence) before distributing a new build.
 
 ### Make it yours
 

@@ -1,6 +1,97 @@
 # Windows installer payload review
 
-## v0.2 release-tooling preparation — not a built release
+## Current Windows setup contract
+
+The current configuration bundles the Microsoft Edge WebView2 Evergreen
+Standalone Installer with `offlineInstaller` and `silent: true`. NSIS installs
+News Terminal for `currentUser` and retains solid zlib compression. The inspected
+application target is x64. This prepares missing-runtime setup without an
+installation-time download. The build machine still needs access to Microsoft's
+Evergreen download when Tauri resolves or obtains that installer.
+
+This change has Python fixture verification. It does not establish that a new
+offline installer was built, that an installer was executed, or that a clean
+Windows machine passed first launch. Historical hashes and skip-mode payload
+findings below remain historical until fresh Windows verification succeeds.
+
+### Setup and portable behavior
+
+The pinned Tauri CLI 2.11.5 template checks WebView2 registration under HKLM and
+HKCU. When the runtime is absent during a normal setup, it extracts
+`$TEMP/MicrosoftEdgeWebView2RuntimeInstaller.exe`, runs it with `/silent /install`,
+waits, and aborts installation on failure. `currentUser` selects
+`RequestExecutionLevel user`. This uses Tauri's installer behavior and adds no
+custom prerequisite execution in the application. See the [pinned template][9]
+and [bundler](https://github.com/tauri-apps/tauri/blob/tauri-cli-v2.11.5/crates/tauri-bundler/src/bundle/windows/nsis/mod.rs).
+
+Microsoft's installer supports unelevated per-user setup. Existing machine-wide
+Edge Update servicing can result in a machine-wide runtime. Enterprise policy or
+a failed runtime installation can still prevent setup. See [Microsoft's
+distribution guidance][10]. The existing shared runtime is left installed when
+News Terminal is uninstalled.
+
+The portable ZIP still requires an existing WebView2 Runtime. Its
+`PORTABLE-README.txt` links to Microsoft's download page and recommends the setup
+distribution when automatic prerequisite installation is needed. Live feeds need
+internet; saved content remains local. Neither distribution adds local-AI models,
+an Ollama runtime, paid-provider credentials or repository helper scripts.
+
+### Current release-owner sequence
+
+Finish all source, tests, configuration, documentation and notice edits first.
+Use Python 3.11 or newer, as required by the existing packaging scripts, and a
+full official 7-Zip executable with NSIS support. On the Windows build host:
+
+```powershell
+python scripts/license-notices.py --strict-windows
+python scripts/verify-release.py --sevenzip 'C:/Tools/7-Zip/7z.exe'
+python scripts/package-release.py --check-only
+# Assemble downloads only after the preceding gates pass:
+python scripts/package-release.py
+```
+
+The gate runner builds the NSIS package, inspects both layers, and then passes
+the extracted packaged executable to the native smoke test. It stops on the
+first failure and keeps that command's real output and exit code. It does not
+run the installer. The release packager requires those inspection and test gates
+in addition to the existing release checks.
+
+The inspector verifies the generated offline/current-user/x64/silent settings,
+an empty bootstrapper path, and the expected WebView2 `File` directive. The outer
+payload must contain exactly one runtime installer at the temporary member path,
+with the same bytes as the generated script's input. A read-only Windows
+Authenticode check must report a valid Microsoft Corporation signature. Missing,
+changed or additional redistributables fail verification. The uninstaller must
+contain no runtime installer. The existing complete file allowlist, plugin-byte
+checks, notice-byte checks, compression checks and three-byte Tauri application
+marker check remain in force.
+
+Fresh payload evidence records runtime mode, scope, architecture, member path,
+SHA-256, size and signing certificate. Packaging rejects old skip-mode evidence,
+untrusted signature results and changed extracted runtime bytes. The actual
+runtime is selected by the pinned [Evergreen download helper][11]; its version
+and hash are not pinned by `offlineInstaller`. The new Microsoft component notice
+is required in the extracted notice set. Existing historical provenance is kept.
+
+### Windows validation still required
+
+Before making first-run support claims, use disposable Windows VM snapshots to
+check a standard-user installation with WebView2 absent, both online and offline;
+healthy HKLM and HKCU runtime installations; runtime setup failure; reinstall;
+and launch from both the setup completion screen and the Start menu. Record the
+OS build, architecture, privileges, runtime version and result. Do not remove a
+runtime from a user's working machine for this test.
+
+The release target is Windows 10/11 x64. Native ARM64, 32-bit Windows, legacy
+Windows versions and every enterprise policy combination are outside this
+validation. Microsoft documents current OS support separately from Tauri's
+legacy Windows 7 installer notes.[12] A package build or browser test pass is not
+evidence that these installation cases were exercised.
+
+## Historical v0.2 release-tooling preparation
+
+The following section records the earlier skip-mode tooling and release sequence.
+Use the current contract and sequence above for new releases.
 
 The packaging/inspection tools now obtain the version from the root npm manifest,
 lockfile root entries, Cargo manifest/lock root entry, and Tauri configuration.
@@ -275,3 +366,7 @@ use the final-artifact procedure after regeneration instead of rerunning it.
 [6] https://raw.githubusercontent.com/kichik/nsis/7359413009afd4f0fff472d841fc2f2cc0e0a5f8/Contrib/Modern%20UI/License.txt
 [7] https://raw.githubusercontent.com/tauri-apps/tauri/tauri-cli-v2.11.5/LICENSE_MIT
 [8] https://github.com/kichik/nsis/tree/7359413009afd4f0fff472d841fc2f2cc0e0a5f8
+[9]: https://github.com/tauri-apps/tauri/blob/tauri-cli-v2.11.5/crates/tauri-bundler/src/bundle/windows/nsis/installer.nsi
+[10]: https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution
+[11]: https://github.com/tauri-apps/tauri/blob/tauri-cli-v2.11.5/crates/tauri-bundler/src/bundle/windows/util.rs
+[12]: https://learn.microsoft.com/en-us/deployedge/microsoft-edge-supported-operating-systems

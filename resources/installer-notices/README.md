@@ -22,6 +22,10 @@ application's Cargo/npm inventory.
   alongside them as provenance, not as a resolved dependency inventory.
 - **Tauri 2.11.5 installer template/helpers**: `tauri-template-LICENSE_MIT`
   preserves the upstream MIT notice.
+- **Microsoft Edge WebView2 Evergreen Runtime**: the Windows setup bundles the
+  Microsoft-signed standalone installer for missing-runtime setup.
+  `Microsoft-WebView2-Runtime.md` identifies the component, Microsoft terms and
+  privacy links, and the distinction between setup and the portable ZIP.
 
 NSIS COPYING also contains bzip2 and LZMA/CPL terms. It is preserved unabridged;
 that does **not** assert that those compression modules are present in this
@@ -52,6 +56,8 @@ or a controlled rebuild is still needed to close that precise dependency
 provenance gap. The application's separately generated Cargo inventory must
 not be treated as the plug-in's build inventory.
 
-This package is factual attribution and provenance evidence, not blanket legal
-clearance. No Microsoft WebView2 runtime/bootstrapper or VC redistributable
-installer is intended to be redistributed in the zlib/skip configuration.
+This package records attribution and provenance. The historical zlib/skip
+evidence describes a package without WebView2. Current setup uses
+zlib/offlineInstaller and must pass fresh runtime signature, hash and payload
+checks. Historical provenance files do not identify the newly bundled Evergreen
+installer. No VC redistributable installer is selected by this change.
