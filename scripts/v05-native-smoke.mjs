@@ -11,7 +11,7 @@
 // article_state_many and alert_receipts - therefore have no native evidence at
 // all until this runs. This script is that evidence.
 import { chromium, expect } from '@playwright/test';
-import { spawn, spawnSync, execFileSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -20,6 +20,8 @@ import { createHash } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
+import { disconnectNativeBrowser, finalizeNativeEvidence, nativeCommandJson, ownedNativeWindows,
+  releaseFailedChildHandles, stopOwnedProcess } from './native-process-cleanup.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const { values } = parseArgs({ options: {
@@ -32,7 +34,7 @@ const base = resolve(root, 'docs/evidence', values.prefix);
 mkdirSync(resolve(root, 'docs/evidence'), { recursive: true });
 const sha = (b) => createHash('sha256').update(b).digest('hex');
 const FIXTURE_COUNT = 6;
-const evidence = { startedAt: new Date().toISOString(), executable: resolve(root, values.exe),
+const evidence = { startedAt: new Date().toISOString(), passed: false, executable: resolve(root, values.exe),
   fixtureLabel: 'SYNTHETIC 0.5 FIXTURE — not real news', fixtureCount: FIXTURE_COUNT,
   checks: [], launches: [], screenshots: [], pageErrors: [], consoleErrors: [], limitations: [
     'Only the recorded executable hash is accepted. No build or claim of source-to-binary freshness is made.',
@@ -42,6 +44,7 @@ const evidence = { startedAt: new Date().toISOString(), executable: resolve(root
     'No network/AI/feed quality, installer, physical DPI, or Windows notification toast acceptance is implied.',
   ] };
 let app, browser, main, dataDirectory, ciFirewallAttempted = false;
+process.exitCode = 1;
 const save = () => writeFileSync(`${base}.json`, JSON.stringify(evidence, null, 2));
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 async function until(fn, message = 'Condition did not settle', timeout = 30000) {
@@ -54,38 +57,16 @@ const invoke = (page, request) =>
 const snapshot = (page = main) => invoke(page, { op: 'snapshot', profileId: 'default' });
 const rows = (page = main) => page.getByTestId('story-row');
 const state = (a) => ({ read: a.read, saved: a.saved, hidden: a.hidden });
-function ciFirewall(action) {
+async function ciFirewall(action) {
   // A pwsh -> Node -> Windows PowerShell launch otherwise inherits PS7 modules.
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => key.toUpperCase() !== 'PSMODULEPATH'));
-  return JSON.parse(execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-File',
+  return nativeCommandJson('powershell.exe', ['-NoProfile', '-NonInteractive', '-File',
     join(root, 'scripts/ci-native-firewall.ps1'), '-Action', action,
     ...(action === 'Block' ? ['-Program', evidence.launchedExecutable] : [])],
-  { env, encoding: 'utf8', timeout: 30000 }));
+  { env, timeout: 30000 });
 }
 function osWindows(close=false) {
-  // Visible windows with a non-empty title only. Without those two filters the
-  // enumeration also returns IME helper windows owned by the same process,
-  // which made a correct single-window launch look like four.
-  const osPython = String.raw`
-import ctypes as c, ctypes.wintypes as w, json, sys
-u=c.windll.user32
-u.GetWindowThreadProcessId.argtypes=[w.HWND,c.POINTER(w.DWORD)]
-u.IsWindowVisible.argtypes=[w.HWND]
-u.GetWindowTextW.argtypes=[w.HWND,w.LPWSTR,c.c_int]
-a=json.loads(sys.argv[1]); windows=[]
-@c.WINFUNCTYPE(w.BOOL,w.HWND,w.LPARAM)
-def cb(h,p):
-    pid=w.DWORD();u.GetWindowThreadProcessId(h,c.byref(pid))
-    if pid.value==a['pid'] and u.IsWindowVisible(h):
-        t=c.create_unicode_buffer(512);u.GetWindowTextW(h,t,512)
-        if t.value:
-            windows.append(dict(hwnd=int(h),pid=pid.value,title=t.value,visible=True))
-            if a.get('close') and t.value=='News Terminal': u.PostMessageW(h,16,0,0)
-    return True
-u.EnumWindows(cb,0)
-print(json.dumps(windows))`;
-  return JSON.parse(execFileSync(process.env.V05_NATIVE_PYTHON || 'python',
-    ['-c', osPython, JSON.stringify({ pid: app.pid, ...(close ? { close: true } : {}) })], { encoding: 'utf8', timeout: 15000 }));
+  return ownedNativeWindows(app.pid, { close, python: process.env.V05_NATIVE_PYTHON || 'python' });
 }
 async function ready(page) {
   page.setDefaultTimeout(20000);
@@ -112,6 +93,7 @@ try {
   assert.ok(existsSync(evidence.executable), 'Native executable does not exist');
   evidence.executableSha256 = sha(readFileSync(evidence.executable));
   evidence.scriptSha256 = sha(readFileSync(fileURLToPath(import.meta.url)));
+  evidence.cleanupHelperSha256 = sha(readFileSync(new URL('./native-process-cleanup.mjs', import.meta.url)));
   if (values['ci-offline']) {
     assert.equal(process.env.GITHUB_ACTIONS, 'true', '--ci-offline requires GitHub Actions');
     assert.equal(process.env.RUNNER_ENVIRONMENT, 'github-hosted', '--ci-offline requires a disposable hosted runner');
@@ -124,7 +106,7 @@ try {
   assert.equal(sha(readFileSync(evidence.launchedExecutable)), evidence.executableSha256);
   if (values['ci-offline']) {
     ciFirewallAttempted = true;
-    evidence.ciFirewall = ciFirewall('Block');
+    evidence.ciFirewall = await ciFirewall('Block');
     save();
   }
   mkdirSync(join(dataDirectory, 'webview'), { recursive: true });
@@ -137,6 +119,8 @@ try {
     NEWS_TERMINAL_WEBVIEW_DATA_DIR: join(dataDirectory, 'webview') }, stdio: 'pipe' });
   run.pid = app.pid; let spawnError;
   app.on('error', (e) => { spawnError = e; });
+  // This is when Node observes exit, not an independent OS exit timestamp.
+  app.on('exit', (code, signal) => { evidence.appExit = { code, signal, at: new Date().toISOString() }; save(); });
   app.stderr.on('data', (b) => { run.stderr = (run.stderr + b).slice(-12000); });
   app.stdout.on('data', () => {});
   await until(async () => { if (spawnError) throw spawnError;
@@ -149,7 +133,6 @@ try {
   await ready(main);
   // Track why the window disappears, so a silent exit is not mistaken for a
   // product failure with no evidence behind it.
-  app.on('exit', (code, signal) => { evidence.appExit = { code, signal, at: new Date().toISOString() }; save(); });
   main.on('close', () => { evidence.mainPageClosed = new Date().toISOString(); save(); });
   main.on('crash', () => { evidence.mainPageCrashed = new Date().toISOString(); save(); });
 
@@ -164,8 +147,9 @@ try {
       assets.push({ url, sha256: sha(Buffer.from(r.content, r.base64Encoded ? 'base64' : 'utf8')) }); }
     await session.detach();
     assert.ok(assets.length >= 2);
-    assert.equal(osWindows().length, 1);
-    return { assets, windows: osWindows() };
+    const windows = await osWindows();
+    assert.equal(windows.length, 1);
+    return { assets, windows };
   }, { required: true });
 
   await check('isolated validated synthetic import with exact count and no active sources', async () => {
@@ -384,60 +368,37 @@ try {
     });
   });
 
-  const passed = evidence.checks.filter((c) => c.passed).length;
-  const failed = evidence.checks.filter((c) => !c.passed).length;
-  evidence.summary = { checks: evidence.checks.length, passed, failed };
-  evidence.pageErrorCount = evidence.pageErrors.length;
-  evidence.consoleErrorCount = evidence.consoleErrors.length;
-  evidence.passed = failed === 0 && evidence.pageErrorCount === 0;
-  save();
-  console.log(JSON.stringify({ evidence: `${base}.json`, passed: evidence.passed, summary: evidence.summary,
-    pageErrors: evidence.pageErrors, consoleErrors: evidence.consoleErrors }, null, 2));
-  if (!evidence.passed) process.exitCode = 1;
 } catch (error) {
   evidence.fatalError = String(error).slice(0, 2000);
   save();
-  console.log(JSON.stringify({ evidence: `${base}.json`, passed: false,
-    summary: { checks: evidence.checks.length, passed: evidence.checks.filter((c) => c.passed).length,
-      failed: evidence.checks.filter((c) => !c.passed).length },
-    failures: evidence.checks.filter((c) => !c.passed).map((c) => ({ name: c.name, error: c.error })),
-    fatalError: evidence.fatalError }, null, 2));
-  process.exitCode = 1;
 } finally {
-  // Mark cleanup BEFORE acting, so the exit timestamp can be attributed: an
-  // appExit at or after this point was caused by our own taskkill, while one
-  // before it happened during the checks and is a genuine crash.
+  // Keep the CDP connection until the owned native exit has been observed.
+  // Disconnecting CDP first also closes Playwright page objects; it does not
+  // establish that the actual native window has closed.
   evidence.cleanupStartedAt = new Date().toISOString();
-  evidence.appAliveAtCleanup = !!(app && app.exitCode === null);
+  evidence.appAliveAtCleanup = !!(app && app.exitCode === null && app.signalCode === null);
   save();
   try {
-    try { await browser?.close(); } catch {}
-    // Graceful close first (WM_CLOSE to the owned window, as the daily smoke
-    // does), then force only if the app ignores it. The previous direct
-    // taskkill /F produced exit code 1 and looked like an unexplained crash;
-    // attribution showed the app was alive and idle when killed.
-    if (app && app.exitCode === null) {
-      // WM_CLOSE to the owned window, exactly as the daily smoke does it.
-      osWindows(true);
-      await until(async () => app.exitCode !== null, 'graceful close timeout', 8000).catch(() => {});
-      const forced = app.exitCode === null;
-      if (forced) {
-        const r = spawnSync('taskkill.exe', ['/PID', String(app.pid), '/T', '/F'], { encoding: 'utf8' });
-        evidence.cleanup = { pid: app.pid, status: r.status, forced: true };
-      } else {
-        evidence.cleanup = { pid: app.pid, forced: false, exitCode: app.exitCode };
-      }
-      save();
+    if (app?.pid) {
+      evidence.cleanup = await stopOwnedProcess(app, { requestClose: () => osWindows(true), gracefulTimeout: 8000 });
+      if (!evidence.cleanup.passed) evidence.cleanupError = evidence.cleanup.error;
     }
-  } finally {
+  } catch (error) { evidence.cleanupError = String(error).slice(0, 2000); }
+  finally {
+    try { await disconnectNativeBrowser(browser); }
+    catch (error) { evidence.cleanupError = [evidence.cleanupError, String(error).slice(0, 2000)].filter(Boolean).join('; '); }
     if (ciFirewallAttempted) {
-      try { evidence.ciFirewallCleanup = ciFirewall('Cleanup'); }
+      try { evidence.ciFirewallCleanup = await ciFirewall('Cleanup'); }
       catch (error) {
-        evidence.cleanupError = String(error).slice(0, 2000);
-        evidence.passed = false;
-        process.exitCode = 1;
+        evidence.cleanupError = [evidence.cleanupError, String(error).slice(0, 2000)].filter(Boolean).join('; ');
       }
-      save();
     }
+    finalizeNativeEvidence(evidence, 10, [evidence.cleanup]);
+    save();
+    if (!evidence.passed) releaseFailedChildHandles(app);
   }
 }
+console.log(JSON.stringify({ evidence: `${base}.json`, passed: evidence.passed, summary: evidence.summary,
+  pageErrors: evidence.pageErrors, consoleErrors: evidence.consoleErrors,
+  fatalError: evidence.fatalError, cleanup: evidence.cleanup, cleanupError: evidence.cleanupError }, null, 2));
+process.exitCode = evidence.passed ? 0 : 1;

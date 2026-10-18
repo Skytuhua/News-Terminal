@@ -26,8 +26,10 @@ evidence files have been preserved unchanged.
 Build the revision under review with `npx tauri build --no-bundle` and rerun both
 native scripts on Windows before claiming current native acceptance. The Tauri
 CLI runs the frontend build command; a plain `cargo build --release` does not
-establish frontend freshness. Windows CI compiles and packages the app, but
-does not run these native smoke scripts.
+establish frontend freshness. Windows CI now builds and inspects the NSIS
+payload, then runs the feature smoke against the inspected packaged executable.
+The daily smoke still needs a separate Windows run. CI requires an existing
+WebView2 Runtime. It does not run NSIS setup or the WebView2 installer.
 
 ## Resolved: the detached window was invisible to CDP
 
@@ -71,15 +73,66 @@ The 0.5 feature runner also now marks the run failed and returns exit status 1
 when it records an uncaught frontend page error, even if every named check
 passes. Console errors remain recorded for diagnosis.
 
-## Resolved: the exit code 1 was the harness
+## Historical shutdown evidence
 
-The app also appeared to exit with code 1 in several runs. Attribution
-timestamps proved the app was alive and idle when the smoke's own `finally`
-block ran `taskkill /F` on it, 400 ms after cleanup began. Exit code 1 is what
-taskkill produces; there was no crash. Cleanup now sends `WM_CLOSE` to the owned
-window, as the 0.3-era smoke already did, and only force-kills if that is
-ignored. The two historical feature runs linked above close gracefully with
-exit code 0.
+Earlier runs recorded the app alive when the smoke's own `finally` block ran
+`taskkill /F`, followed by app exit code 1. The two historical feature runs
+linked above subsequently recorded graceful exit code 0 after switching to
+`WM_CLOSE`. Those artifacts remain unchanged.
+
+The 2026-10-18 PR 16 CI report exposed a separate acceptance error: all ten
+feature checks passed, the harness recorded a force attempt with command
+status 255, and the app's exit code 0 was observed later. The script still
+returned success. Its discarded command output prevents diagnosing why
+`taskkill` returned 255. A delayed exit event alone does not establish when the
+OS process ended or which action ended it. Synchronous helper commands block
+Node from observing events, and disconnecting CDP closes Playwright page
+objects without proving that their native windows closed.
+
+## Final cleanup is part of acceptance
+
+Both runners now begin with a failing process exit status and compute their
+overall result only after cleanup. Individual `PASS` lines describe completed
+checks. The final JSON, final console summary, and process exit status must all
+agree before accepting the run.
+
+The shared `scripts/native-process-cleanup.mjs` helper keeps the existing
+graceful deadlines: eight seconds for feature shutdown and ten seconds for
+each daily shutdown. The Win32 helper uses pointer-sized argument types,
+checks the owned main-window PID and `PostMessageW` result, and records its
+window snapshot before posting. Window enumeration, force cleanup, and CI
+firewall commands run asynchronously so Node can observe the app's exit while
+they run. Their command deadlines remain bounded; CDP disconnect has a five
+second limit, and the force command and subsequent exit observation share a
+ten second limit. No graceful deadline was increased.
+
+Passing requires the expected ten feature checks or thirteen daily checks,
+no fatal or page error, and successful cleanup of every expected launch. The
+owned app must still be alive when cleanup begins and must exit normally with
+code 0 after a successful close request, without a force attempt. The daily
+runner applies this to both the restart and the final shutdown. An early exit,
+close-request failure, expired graceful deadline, nonzero exit, force attempt,
+or CI firewall cleanup error fails the final result. An eventual exit code 0
+does not erase an earlier failure. Console errors and bounded native stderr
+remain available for review; their presence is not automatically classified
+as a process-cleanup failure.
+
+Existing `pid`, `forced`, `exitCode`, and daily `forceKilled` fields remain.
+The force flags record an attempted fallback, while `taskkill` retains its
+actual status, signal, error, stdout and stderr. Timestamps such as
+`exitObservedAt` and `appExit.at` describe Node's observations, not an
+independent OS clock. Both reports also record the shared helper's SHA-256.
+If the OS refuses owned-process cleanup, the report remains failed and names
+the surviving PID. The harness releases its own pipe handles so the failure
+can exit; the CI cleanup step retains the outbound rule until that exact app
+is gone. The rule applies to the copied application executable only.
+
+The focused lifecycle regressions use owned Node processes and injected
+cleanup-command outcomes. They cover delayed exit code 0 after a failed force
+attempt, an app that remains alive, a rejected close request, early and nonzero
+exit, helper deadlines, both daily outcomes, and failure before either real
+runner launches an app. These tests do not establish Windows/WebView2 shutdown
+behavior. Rerun both packaged native fixtures on Windows for that evidence.
 
 ## Reproducing
 
