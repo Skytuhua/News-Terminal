@@ -40,6 +40,39 @@ cargo test --manifest-path src-tauri/Cargo.toml
 cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 ```
 
+### Independent browser harnesses
+
+`npm run test:e2e:list` lists available browser checks without launching a server
+or browser. `npm run test:e2e -- tests/e2e/reader.spec.ts` runs a focused journey.
+The runner resolves the checkout from its own location, so an absolute invocation
+also works from another folder, including paths containing spaces.
+
+For a separate worktree or concurrent run, choose an unused local port in
+PowerShell:
+
+```powershell
+$env:NEWS_TERMINAL_E2E_PORT = '1432'
+$env:NEWS_TERMINAL_E2E_OUTPUT_DIR = 'test-results/reader-check'
+npm run test:e2e -- tests/e2e/reader.spec.ts
+```
+
+The wrappers and direct Playwright configuration use the same validated port.
+An occupied port fails; the harness does not attach to an existing server or
+stop its owner. Vite dependency caches are separate for each checkout and port.
+Artifacts use the selected output directory. It must be `test-results` or a
+folder beneath it because Playwright clears test output before a run. The default
+HTML report remains `playwright-report`; a custom output directory gets a sibling
+directory with `-report` appended. Relative paths resolve within the checkout.
+An optional `NEWS_TERMINAL_BROWSER_EXECUTABLE` selects an installed Chromium
+executable. The default remains Playwright's installed Chromium. A system browser
+run establishes behavior for that browser version only.
+
+Set `NEWS_TERMINAL_E2E_SERVER=external` only when invoking Playwright directly
+against a fixture server you already own on the selected port. The npm wrapper
+starts and closes its own fixture server and returns the test process exit code.
+CI runs branch changes through pull requests and runs the merged main revision
+once, avoiding duplicate push and PR jobs for each feature branch.
+
 Catalog and notice checks:
 
 ```sh
@@ -58,6 +91,8 @@ individually and preserve the checked-in lockfiles.
 npm run tauri -- build --bundles nsis
 node scripts/native-smoke.mjs
 node scripts/focus-native-smoke.mjs --exe src-tauri/target/release/news-terminal.exe
+npm run test:native:daily
+npm run test:native:features
 ```
 
 The standalone executable is `src-tauri/target/release/news-terminal.exe`.
