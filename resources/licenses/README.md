@@ -57,8 +57,8 @@ Python 3.11+ (stdlib only). Generation and checking are offline; prerequisite in
 
 ## Lockfile / manifest fingerprints
 
-- `package.json`: `24abb6853999610305c82dd5b39d0cf5abcc3b12f98fee5b90a123cd57af618a`
-- `package-lock.json`: `c94f9691b3322d4f3767ab1a45a01eb8b72af237ffc1810bf93ede606273baee`
+- `package.json`: `fb3dc0173940ba1985e963564983bb31c68dd9928df58b489a5a9fb6f4122b88`
+- `package-lock.json`: `8bf3489247561d75c2ddececeb087afa20b71474cfd6254844abee6e36a35aa6`
 - `src-tauri/Cargo.toml`: `07381f9d85832832d077ef6662148a53969db4bc850d377f435b49a18c5e6326`
 - `src-tauri/Cargo.lock`: `196929a4006a666bd6a13dc9acd2f3ea34fc7d1ecb717185894d87896e8328b7`
 

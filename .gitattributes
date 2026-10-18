@@ -2,3 +2,9 @@
 resources/licenses/** -text
 resources/installer-notices/** -text
 THIRD_PARTY_NOTICES.md -text
+
+# Keep lock-bound license inputs stable across Windows checkouts.
+package.json text eol=lf
+package-lock.json text eol=lf
+src-tauri/Cargo.toml text eol=lf
+src-tauri/Cargo.lock text eol=lf
