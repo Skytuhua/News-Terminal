@@ -157,7 +157,9 @@ try {
     assert.deepEqual(evidence.afterRestart.main.storage,evidence.beforeRestart.main.storage);assert.deepEqual(evidence.afterRestart.detached.storage,evidence.beforeRestart.detached.storage);for(const before of evidence.beforeRestart.states)assert.deepEqual({id:before.id,...state(await article(before.id))},before);assert.equal((await snapshot()).articles.length,evidence.fixtureCount);await expect(detached.locator('.detail h2')).toHaveText((await article(orderedIds.at(-1))).title);await expect(detached.locator(`[data-article-id="${orderedIds.at(-1)}"]`)).toBeInViewport();await shot('main-restarted');await shot('detached-restarted',detached);return evidence.afterRestart;
   },{required:true});
   await check('reattach restores same tab main widths without copying detached preferences',async()=>{
-    await detached.getByRole('button',{name:/Reattach/i}).click();await until(()=>detached.isClosed(),'Detached native target did not close');await main.getByRole('tablist',{name:'Workspace tabs'}).getByRole('tab').first().click();await expect(divider(main)).toHaveAttribute('aria-valuenow','470');await expect(divider(main,'Navigation')).toHaveAttribute('aria-valuenow','225');assert.equal((await nativeWindows()).length,1);
+    // The detached target can close before the main context shows home again.
+    // Wait for that tab instead of selecting the still-visible second tab.
+    await detached.getByRole('button',{name:/Reattach/i}).click();await until(()=>detached.isClosed(),'Detached native target did not close');await main.locator('#workspace-tab-home').click();await expect(divider(main)).toHaveAttribute('aria-valuenow','470');await expect(divider(main,'Navigation')).toHaveAttribute('aria-valuenow','225');assert.equal((await nativeWindows()).length,1);
     const final=await until(async()=>{
       const current=await paneState(main);
       return current.ui.actualReading===470?current:false;
