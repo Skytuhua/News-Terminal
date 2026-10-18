@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { createServer, type Server } from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -61,6 +61,27 @@ test("rejects the checkout itself as a directory that Playwright would clear", a
   expect(result.stderr).toContain("NEWS_TERMINAL_E2E_OUTPUT_DIR");
 }, 60000);
 
+test("rejects an output directory beneath a junction that escapes test-results", async () => {
+  const target = mkdtempSync(path.join(tmpdir(), "news terminal external output "));
+  directories.push(target);
+  const resultsRoot = path.join(root, "test-results");
+  mkdirSync(resultsRoot, { recursive: true });
+  const directory = mkdtempSync(path.join(resultsRoot, "harness-link-"));
+  directories.push(directory);
+  const link = path.join(directory, "external");
+  symlinkSync(target, link, "junction");
+  const child = path.join(target, "preserve");
+  mkdirSync(child);
+  const marker = path.join(child, "marker.txt");
+  writeFileSync(marker, "Owned regression fixture; must remain untouched.");
+  const result = run(String(await freePort()), root, ["--list", "tests/e2e/reader.spec.ts", "--reporter=line"], {
+    NEWS_TERMINAL_E2E_OUTPUT_DIR: path.join(link, "preserve"),
+  });
+  expect(result.status, result.stdout + result.stderr).toBe(1);
+  expect(result.stderr).toContain("NEWS_TERMINAL_E2E_OUTPUT_DIR");
+  expect(existsSync(marker)).toBe(true);
+}, 60000);
+
 test("fails on an occupied selected port without using or stopping its owner", async () => {
   const owner = createServer();
   const port = await listen(owner);
@@ -76,7 +97,7 @@ test("fails on an occupied selected port without using or stopping its owner", a
 
 test("preserves a real test-discovery failure and releases its selected port", async () => {
   const port = await freePort();
-  const result = run(String(port), root, ["--list", "no-such-harness-test.spec.ts", "--reporter=line"]);
+  const result = run(String(port), root, ["no-such-harness-test.spec.ts", "--reporter=line"]);
   expect(result.status, result.stdout + result.stderr).toBe(1);
   expect(result.stdout + result.stderr).toContain("No tests found");
   const probe = createServer();

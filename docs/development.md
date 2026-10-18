@@ -60,8 +60,9 @@ The wrappers and direct Playwright configuration use the same validated port.
 An occupied port fails; the harness does not attach to an existing server or
 stop its owner. Vite dependency caches are separate for each checkout and port.
 Artifacts use the selected output directory. It must be `test-results` or a
-folder beneath it because Playwright clears test output before a run. The default
-HTML report remains `playwright-report`; a custom output directory gets a sibling
+folder beneath it because Playwright clears test output before a run. The
+path must contain no symbolic links or junctions. The default HTML report remains
+`playwright-report`; a custom output directory gets a sibling
 directory with `-report` appended. Relative paths resolve within the checkout.
 An optional `NEWS_TERMINAL_BROWSER_EXECUTABLE` selects an installed Chromium
 executable. The default remains Playwright's installed Chromium. A system browser

@@ -1,4 +1,5 @@
 import path from "node:path";
+import { lstatSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 export const root = fileURLToPath(new URL("../", import.meta.url));
@@ -14,6 +15,20 @@ export function browserHarnessOptions(env = process.env) {
   const relative = path.relative(resultsRoot, outputDir);
   if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
     throw new Error("NEWS_TERMINAL_E2E_OUTPUT_DIR must be test-results or a folder beneath it; Playwright clears this directory.");
+  }
+  // A lexical child of test-results can still escape it through a symlink or
+  // Windows junction. Reject those before Playwright removes generated output.
+  let directory = root;
+  for (const part of path.relative(root, outputDir).split(path.sep)) {
+    directory = path.join(directory, part);
+    try {
+      if (lstatSync(directory).isSymbolicLink()) {
+        throw new Error("NEWS_TERMINAL_E2E_OUTPUT_DIR must not contain a symbolic link or junction; Playwright clears this directory.");
+      }
+    } catch (error) {
+      if (error.code === "ENOENT") break;
+      throw error;
+    }
   }
   return {
     port,

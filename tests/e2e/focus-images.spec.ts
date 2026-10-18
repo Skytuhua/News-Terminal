@@ -52,7 +52,7 @@ for (const viewport of [{width:1440,height:900}, {width:1024,height:768}, {width
     await page.screenshot({path:info.outputPath(`images-${viewport.width}.png`)});
     if (viewport.width === 1440) {
       // 200% desktop zoom has half the logical viewport and twice the device scale.
-      const zoomContext = await browser.newContext({viewport:{width:720,height:450},deviceScaleFactor:2,baseURL:'http://127.0.0.1:1420'});
+      const zoomContext = await browser.newContext({viewport:{width:720,height:450},deviceScaleFactor:2,baseURL:info.project.use.baseURL});
       const zoomPage = await zoomContext.newPage();
       await fixture(zoomPage, {v02:true});
       await zoomPage.getByRole('button', {name:'Enable automatic images'}).click();
