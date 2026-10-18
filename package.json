@@ -9,6 +9,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "node scripts/run-playwright.mjs",
+    "test:e2e:list": "node scripts/run-playwright.mjs --list",
+    "test:native:daily": "node scripts/daily-native-smoke.mjs --exe src-tauri/target/release/news-terminal.exe",
+    "test:native:features": "node scripts/v05-native-smoke.mjs --exe src-tauri/target/release/news-terminal.exe",
     "tauri": "tauri"
   },
   "dependencies": {
