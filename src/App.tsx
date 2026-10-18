@@ -533,11 +533,15 @@ export default function App() {
   // delivered one. The text is host-authored and shown verbatim.
   const [alertWarning, setAlertWarning] = useState("");
   useEffect(() => {
+    if (!runtimeAvailable) return;
     let stop = () => {};
     let live = true;
     void subscribeAlertStatus((message) => {
       if (live && message) setAlertWarning(message);
-    }).then((un) => { if (live) stop = un; else un(); });
+    }).then((un) => { if (live) stop = un; else un(); })
+      .catch((error) => {
+        if (live) setAlertWarning(`Alert delivery status is unavailable: ${String(error)}`);
+      });
     return () => { live = false; stop(); };
   }, []);
   const collectionRows = useMemo(() =>
