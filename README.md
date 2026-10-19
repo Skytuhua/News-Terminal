@@ -73,7 +73,7 @@ The AI section separates **News**, **Models** and **Benchmarks**. Browse OpenRou
 
 Summaries support **local Ollama** and an **OpenAI-compatible local server**, such as LM Studio or llama.cpp. Install and start your runtime and model separately.
 
-In **Preferences**, enter the provider's model identifier, enable it, give consent and save its settings. For **Local OpenAI-compatible**, enter the server's HTTP loopback base URL, such as `http://127.0.0.1:1234/v1`, using its configured port and exact model identifier. Saving settings does not contact the server or generate a summary. A loopback address identifies the connection; configure the server itself to keep inference local.
+Open **Preferences**, choose **AI providers**, then enter the provider's model identifier, enable it, give consent and save its settings. For **Local OpenAI-compatible**, enter the server's HTTP loopback base URL, such as `http://127.0.0.1:1234/v1`, using its configured port and exact model identifier. Saving settings does not contact the server or generate a summary. A loopback address identifies the connection; configure the server itself to keep inference local.
 
 AI starts disabled and requires your consent plus source-level permission; most bundled feeds are not approved for AI processing. Cloud summary execution is blocked in this build. Generated text and selected quotations are unverified. Check the linked originals.
 
