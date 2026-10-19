@@ -249,6 +249,14 @@ fn ollama_completion_rejects_malformed_stop_reasons_and_tools() {
 // A bounded, test-only HTTP server on an ephemeral loopback port. It reads the
 // full request body so the tests observe actual wire content, not only headers.
 fn fixture(response: String, delay: Duration) -> (String, std::sync::mpsc::Receiver<String>) {
+    fixture_with_accept_notice(response, delay, None)
+}
+
+fn fixture_with_accept_notice(
+    response: String,
+    delay: Duration,
+    accepted: Option<std::sync::mpsc::Sender<()>>,
+) -> (String, std::sync::mpsc::Receiver<String>) {
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
     let base_url = format!("http://{}/v1", listener.local_addr().unwrap());
     let (tx, rx) = std::sync::mpsc::channel();
@@ -267,9 +275,17 @@ fn fixture(response: String, delay: Duration) -> (String, std::sync::mpsc::Recei
                 Err(_) => return,
             }
         };
+        // Windows accepts sockets with the listener's nonblocking mode.
+        stream.set_nonblocking(false).unwrap();
         stream
             .set_read_timeout(Some(Duration::from_secs(3)))
             .unwrap();
+        stream
+            .set_write_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
+        if let Some(accepted) = accepted {
+            accepted.send(()).unwrap();
+        }
         let mut bytes = Vec::new();
         let mut buf = [0; 4096];
         loop {
@@ -296,6 +312,41 @@ fn fixture(response: String, delay: Duration) -> (String, std::sync::mpsc::Recei
         let _ = stream.write_all(response.as_bytes());
     });
     (base_url, rx)
+}
+
+#[test]
+fn compatible_fixture_waits_for_delayed_headers_and_split_request_body() {
+    let (accepted, connected) = std::sync::mpsc::channel();
+    let (base, received) = fixture_with_accept_notice(
+        "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".into(),
+        Duration::ZERO,
+        Some(accepted),
+    );
+    let url = Url::parse(&base).unwrap();
+    let mut client =
+        std::net::TcpStream::connect((url.host_str().unwrap(), url.port().unwrap())).unwrap();
+    client
+        .set_read_timeout(Some(Duration::from_secs(1)))
+        .unwrap();
+    connected.recv_timeout(Duration::from_secs(1)).unwrap();
+    // The accepted socket must wait for actual bytes instead of abandoning a
+    // connection whose client has not sent its headers or full body yet.
+    for part in [
+        "POST /v1/chat/completions HTTP/1.1\r\nHost: fixture\r\nContent-Length: 7\r\n\r\npar",
+        "tial",
+    ] {
+        assert!(matches!(
+            received.recv_timeout(Duration::from_millis(50)),
+            Err(std::sync::mpsc::RecvTimeoutError::Timeout)
+        ));
+        client.write_all(part.as_bytes()).unwrap();
+    }
+    let request = received.recv_timeout(Duration::from_secs(1)).unwrap();
+    assert!(request.starts_with("POST /v1/chat/completions HTTP/1.1\r\n"));
+    assert!(request.ends_with("\r\n\r\npartial"));
+    let mut response = String::new();
+    client.read_to_string(&mut response).unwrap();
+    assert!(response.starts_with("HTTP/1.1 200 OK\r\n"));
 }
 
 fn json_response(value: Value) -> String {
