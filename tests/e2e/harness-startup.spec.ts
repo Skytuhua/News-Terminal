@@ -1,7 +1,7 @@
 import { test, expect, type TestInfo } from "@playwright/test";
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { once } from "node:events";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -17,7 +17,7 @@ function stopChild(child: ChildProcess) {
   }
 }
 
-async function runStartupProbe(info: TestInfo, brokenAsset = false) {
+async function runStartupProbe(info: TestInfo, failure?: "startup" | "ordinary") {
   const directory = info.outputPath("startup-probe");
   mkdirSync(directory, { recursive: true });
   let compilation: Promise<void> | undefined;
@@ -25,7 +25,7 @@ async function runStartupProbe(info: TestInfo, brokenAsset = false) {
   const server = createServer(async (request, response) => {
     response.setHeader("Cache-Control", "no-store");
     if (request.url === "/entry.js") {
-      if (brokenAsset) {
+      if (failure === "startup") {
         response.writeHead(500, { "Content-Type": "text/javascript" });
         response.end("Synthetic startup transform failure");
         return;
@@ -36,6 +36,13 @@ async function runStartupProbe(info: TestInfo, brokenAsset = false) {
       await compilation;
       response.writeHead(200, { "Content-Type": "text/javascript" });
       response.end("document.body.innerHTML = '<h2>Desktop runtime required</h2>';");
+    } else if (request.url === "/ordinary-failure") {
+      response.writeHead(200, { "Content-Type": "text/html" });
+      response.end(`<!doctype html><h1>Ordinary trace DOM marker</h1><script type="module">
+        console.info("Ordinary trace console marker");
+        await fetch("/trace-request-failed").catch(() => {});
+        throw new Error("Ordinary trace page error marker");
+      </script>`);
     } else {
       response.writeHead(200, { "Content-Type": "text/html" });
       response.end('<!doctype html><script type="module" src="/entry.js"></script>');
@@ -72,6 +79,17 @@ import { writeFileSync } from "node:fs";
 test("ordinary navigation retains its five-second budget", async ({ page }, info) => {
   writeFileSync(${JSON.stringify(marker)}, "ordinary test started");
   expect(info.timeout).toBe(5000);
+  expect(info.retry).toBe(0);
+  expect(info.project.retries).toBe(0);
+  if (${failure === "ordinary"}) {
+    await page.route("**/trace-request-failed", route => route.abort("failed"));
+    const pageError = page.waitForEvent("pageerror");
+    await page.goto("/ordinary-failure");
+    expect((await pageError).message).toBe("Ordinary trace page error marker");
+    await expect(page.getByRole("heading", { name: "Ordinary trace DOM marker", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Deliberately missing ordinary heading", exact: true })).toBeVisible({ timeout: 500 });
+    return;
+  }
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Desktop runtime required" })).toBeVisible();
 });
@@ -90,7 +108,7 @@ test("ordinary navigation retains its five-second budget", async ({ page }, info
     const [code] = await once(child, "exit");
     expect(timedOut, output).toBe(false);
     expect(existsSync(report), output).toBe(true);
-    return { code, output, report, marker, result: JSON.parse(readFileSync(report, "utf8")) };
+    return { code, output, report, marker, directory, result: JSON.parse(readFileSync(report, "utf8")) };
   } finally {
     if (timeout) clearTimeout(timeout);
     if (compileTimer) clearTimeout(compileTimer);
@@ -102,25 +120,100 @@ test("ordinary navigation retains its five-second budget", async ({ page }, info
   }
 }
 
+function resultsForProject(suites: any[], project: string): any[] {
+  return suites.flatMap(suite => [
+    ...suite.specs.flatMap((spec: any) => spec.tests
+      .filter((test: any) => test.projectName === project)
+      .flatMap((test: any) => test.results)),
+    ...resultsForProject(suite.suites ?? [], project),
+  ]);
+}
+
+function traceArchives(directory: string) {
+  return readdirSync(path.join(directory, "nested-results"), { recursive: true })
+    .filter(name => typeof name === "string" && name.endsWith(".zip"));
+}
+
 test("cold startup finishes before the ordinary navigation budget begins", async ({}, info) => {
   test.setTimeout(60000);
   const probe = await runStartupProbe(info);
   expect(probe.code, probe.output).toBe(0);
   expect(probe.result.stats.unexpected).toBe(0);
   expect(existsSync(probe.marker)).toBe(true);
+  for (const project of ["startup", "chromium"]) {
+    const results = resultsForProject(probe.result.suites, project);
+    expect(results).toHaveLength(1);
+    expect(results[0].attachments.filter((attachment: any) => attachment.name === "trace")).toEqual([]);
+  }
+  expect(traceArchives(probe.directory)).toEqual([]);
 });
 
 test("startup asset failure stops ordinary tests and remains reportable", async ({}, info) => {
   test.setTimeout(60000);
-  const probe = await runStartupProbe(info, true);
+  const probe = await runStartupProbe(info, "startup");
   expect(probe.code, probe.output).toBe(1);
   expect(probe.result.stats.unexpected).toBe(1);
   expect(probe.result.stats.skipped).toBe(1);
   expect(existsSync(probe.marker)).toBe(false);
+  const results = resultsForProject(probe.result.suites, "startup");
+  expect(results).toHaveLength(1);
+  expect(results[0].attachments.filter((attachment: any) => attachment.name === "trace")).toHaveLength(1);
+  expect(traceArchives(probe.directory)).toHaveLength(1);
   const annotation = spawnSync(process.execPath,
     [path.join(root, "scripts/report-playwright-failures.mjs"), probe.report], { encoding: "utf8" });
   expect(annotation.status, annotation.stderr).toBe(0);
   expect(annotation.stdout).toContain("::error ");
   expect(annotation.stdout).toContain("[startup]");
   expect(annotation.stdout).toContain("HTTP 500");
+});
+
+test("ordinary first-attempt failure retains an inspectable browser trace", async ({}, info) => {
+  test.setTimeout(60000);
+  const probe = await runStartupProbe(info, "ordinary");
+  expect(probe.code, probe.output).toBe(1);
+  expect(probe.result.stats.unexpected).toBe(1);
+  expect(probe.result.stats.skipped).toBe(0);
+  const results = resultsForProject(probe.result.suites, "chromium");
+  expect(results).toHaveLength(1);
+  const result = results[0];
+  expect(result.status).toBe("failed");
+  expect(result.retry).toBe(0);
+  expect(result.errors.map((error: any) => error.message).join("\n"))
+    .toContain("Deliberately missing ordinary heading");
+  const traces = result.attachments.filter((attachment: any) => attachment.name === "trace");
+  expect(traces, "The original failed attempt must retain its trace").toHaveLength(1);
+  expect(traces[0].contentType).toBe("application/zip");
+  expect(statSync(traces[0].path).size).toBeGreaterThan(0);
+  expect(traceArchives(probe.directory)).toHaveLength(1);
+
+  // Read the archive through the installed Playwright CLI in this probe's own
+  // directory. No private Playwright import or additional browser is needed.
+  const inspectTrace = (...args: string[]) => {
+    const inspection = spawnSync(process.execPath,
+      [path.join(root, "node_modules/playwright/cli.js"), "trace", ...args], {
+        cwd: probe.directory, encoding: "utf8", timeout: 5000, maxBuffer: 1024 * 1024,
+      });
+    expect(inspection.error, inspection.stderr).toBeUndefined();
+    expect(inspection.status, inspection.stdout + inspection.stderr).toBe(0);
+    return inspection.stdout;
+  };
+  try {
+    inspectTrace("open", traces[0].path);
+    const console = inspectTrace("console", "--browser");
+    expect(console).toContain("Ordinary trace console marker");
+    expect(console).toContain("Ordinary trace page error marker");
+    expect(inspectTrace("errors")).toContain("Deliberately missing ordinary heading");
+    const requests = inspectTrace("requests", "--failed", "--grep", "trace-request-failed");
+    expect(requests).toContain("trace-request-failed");
+    expect(requests).toContain("ERR");
+    const extracted = path.join(probe.directory, ".playwright-cli", "trace");
+    const snapshots = readdirSync(extracted).filter(name => name.endsWith(".trace"))
+      .flatMap(name => readFileSync(path.join(extracted, name), "utf8").split("\n")
+        .filter(Boolean).map(line => JSON.parse(line)))
+      .filter(event => event.type === "frame-snapshot");
+    expect(snapshots.some(event => JSON.stringify(event.snapshot.html).includes("Ordinary trace DOM marker")),
+      "The retained trace must include the rendered DOM, not only source text").toBe(true);
+  } finally {
+    inspectTrace("close");
+  }
 });

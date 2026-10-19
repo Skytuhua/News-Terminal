@@ -13,7 +13,6 @@ export default defineConfig({
       name: "startup",
       testMatch: "**/startup.setup.ts",
       timeout: 60000,
-      use: { trace: "retain-on-failure" },
     },
     {
       name: "chromium",
@@ -26,6 +25,7 @@ export default defineConfig({
     baseURL: harness.baseURL,
     launchOptions: { executablePath: harness.executablePath },
     viewport: { width: 1440, height: 960 },
+    trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
   webServer: externalServer
