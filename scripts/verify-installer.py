@@ -124,7 +124,10 @@ def check_payload_tree(root, destination, label, plugins, webview2_source=None):
     if label == 'installer' and webview2_source is not None:
         if TOOLS['sha256'](webview2_source) != TOOLS['sha256'](destination / TOOLS['WEBVIEW2_MEMBER']):
             raise ValueError('Packaged WebView2 installer bytes differ from the generated NSIS input')
-    return {folder + '_files_compared': sum(name.startswith(folder + '/') for name in notices) for folder in ('licenses', 'installer-notices')}
+    report = {folder + '_files_compared': sum(name.startswith(folder + '/') for name in notices) for folder in ('licenses', 'installer-notices')}
+    if label == 'installer':
+        report['packaged_uninstaller_sha256'] = TOOLS['sha256'](destination / 'uninstall.exe')
+    return report
 
 
 def inspection_copy(archive, destination):
@@ -234,7 +237,8 @@ def verify_installer(root, sevenzip, out):
     packaged = out / 'installer/news-terminal.exe'
     check_application(standalone.read_bytes(), packaged.read_bytes())
     if (before != TOOLS['input_hashes'](root) or installer_hash != TOOLS['sha256'](exe)
-            or standalone_hash != TOOLS['sha256'](standalone) or runtime_hash != TOOLS['sha256'](runtime_source)):
+            or standalone_hash != TOOLS['sha256'](standalone) or runtime_hash != TOOLS['sha256'](runtime_source)
+            or report['packaged_uninstaller_sha256'] != TOOLS['sha256'](out / 'installer/uninstall.exe')):
         raise ValueError('Release inputs changed during extraction')
     report['webview2'] = {**TOOLS['windows_setup_policy'](root), 'sha256': runtime_hash,
                           'bytes': runtime_source.stat().st_size, 'signature': signature,

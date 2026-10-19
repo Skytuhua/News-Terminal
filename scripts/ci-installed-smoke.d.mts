@@ -1,0 +1,11 @@
+export function hostedContext(platform: string, architecture: string, env: Record<string, string | undefined>, root: string): { runDirectory: string; installDirectory: string; ruleName: string };
+export function assertFreshState(state: Record<string, unknown>): void;
+export function nsisArguments(directory: string, uninstall: boolean): string[];
+export function finalizeInstalledEvidence(report: Record<string, unknown>): number;
+export function assertInstalledState(state: Record<string, unknown>, directory: string, version: string): void;
+export function assertUninstalledState(state: Record<string, unknown>, directory: string): void;
+export function assertFirstRunDefaults(snapshot: Record<string, unknown>, media: Record<string, unknown>): void;
+export function runInstalledSteps(report: Record<string, unknown>, operations: Record<string, () => Promise<unknown>>, changed?: () => void): Promise<number>;
+export function observeInstalledOperation<T>(name: string, operation: () => Promise<T>, milliseconds?: number): Promise<T>;
+export function waitForInstalledState<T>(fn: () => Promise<T>, message: string, milliseconds?: number): Promise<T>;
+export function snapshotApplicationData(directory: string, required?: boolean): Promise<Record<string, { sha256: string; bytes: number }>>;
