@@ -53,10 +53,15 @@ scripts/ci-installed-smoke.mjs then performs these seven stages:
    process exists, then copies the exact inspected installed uninstaller bytes
    into its owned run container and executes them with NSIS's _?= option.
    Program files, Add/Remove Programs registration, and shortcuts must disappear.
-   The nonempty SQLite database and window-layout file must remain byte-for-byte
-   identical to their post-shutdown state. The manufacturer install-location
-   preference must remain, matching the pinned silent-uninstall contract.
-   WebView2 must still be registered.
+   The complete default application-data file inventory must remain unchanged
+   from its post-shutdown state: every relative file path, byte count, and SHA-256
+   hash must match. The snapshot includes all present SQLite WAL/SHM sidecars,
+   backups, and nested files; the main database and window-layout file remain
+   required and nonempty. SQLite can commit transactions to the WAL before they
+   reach the main file, so preserving the main file alone is insufficient.[sqlite-wal]
+   The snapshot only reads file bytes and never opens or checkpoints SQLite.
+   The manufacturer install-location preference must remain, matching the pinned
+   silent-uninstall contract. WebView2 must still be registered.
 7. **Final source binding.** Inputs, source revision, helper scripts, workflow,
    original setup, and extracted payload must still match the opening binding.
 
@@ -76,6 +81,14 @@ journal, exact executable path, and file hash before touching a process. The
 workflow enables fallback cleanup only after this invocation records that it
 created the fresh run directory and journal. A refused preflight cannot adopt
 a preexisting journal. Cleanup never stops a process by name or removes WebView2.
+
+Application-data snapshots use the existing Python prerequisite and the same
+30-second JSON-helper limit. They check the root's ancestors before descending,
+reject symbolic links and Windows reparse points before traversal, and accept
+only ordinary directories and regular files. All regular files are hashed
+recursively, including empty files; empty directories and filesystem metadata
+are not preservation entries. The snapshot is taken after graceful app exit,
+within the new application-data directory owned by this disposable job.
 
 The pinned NSIS installer itself can silently stop a same-name current-user
 process. This is why the guard checks for any news-terminal.exe before
@@ -116,9 +129,12 @@ The workflow uploads the ci-installed JSON, screenshots, logs, and ownership
 journal with its other Windows evidence. The report includes the OS and image
 version, session and user identity, administrator status, runtime registry
 versions, all command results, observed native window/PID, embedded asset hashes,
-first-run state, preserved-file hashes, and final cleanup. The large source hash
-map remains in the original installer report; the installed report records its
-digest and count.
+first-run state, preserved-file hashes, and final cleanup. In
+preservedApplicationData, files records the complete inventory before uninstall;
+filesAfterUninstall records the inventory afterward, before comparison. A
+missing, changed, or added file fails the stage and retains both completed
+snapshots for review. The large source hash map remains in the original installer
+report; the installed report records its digest and count.
 
 This gate does not establish missing-WebView2 setup, a fully disconnected
 machine, standard-user/UAC behavior, an interactive setup finish-page launch,
@@ -148,5 +164,6 @@ gate.
 [nsis]: https://nsis.sourceforge.io/Docs/Chapter3.html#installerusage
 [github]: https://docs.github.com/en/actions/reference/runners/github-hosted-runners
 [webview2]: https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution
+[sqlite-wal]: https://sqlite.org/wal.html#the_wal_file
 [template]: https://github.com/tauri-apps/tauri/blob/tauri-cli-v2.11.5/crates/tauri-bundler/src/bundle/windows/nsis/installer.nsi
 [utils]: https://github.com/tauri-apps/tauri/blob/tauri-cli-v2.11.5/crates/tauri-bundler/src/bundle/windows/nsis/utils.nsh

@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { win32, join, resolve } from 'node:path';
 import { execFile, spawn } from 'node:child_process';
-import { appendFileSync, constants, copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { appendFileSync, constants, copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createServer } from 'node:net';
 import { fileURLToPath } from 'node:url';
@@ -148,6 +148,76 @@ const sha = path => createHash('sha256').update(readFileSync(path)).digest('hex'
 const alive = child => child && child.exitCode === null && child.signalCode === null;
 const delay = ms => new Promise(done => setTimeout(done, ms));
 
+export async function snapshotApplicationData(directory, required = true) {
+  // Use the existing Python prerequisite for one bounded, read-only inventory.
+  // Never open SQLite: committed state may still be in its WAL after app exit.
+  return await jsonCommand('python', ['-I', '-c', String.raw`
+import hashlib, json, os, stat, sys
+from pathlib import Path
+
+root = Path(sys.argv[1]).absolute()
+required = sys.argv[2] == 'required'
+files = {}
+if os.name == 'nt':
+    import ctypes
+    attributes = ctypes.WinDLL('kernel32', use_last_error=True).GetFileAttributesW
+    attributes.argtypes = [ctypes.c_wchar_p]
+    attributes.restype = ctypes.c_uint32
+
+def checked(path):
+    if os.name == 'nt':
+        flags = attributes(str(path))
+        if flags == 0xffffffff:
+            raise ctypes.WinError(ctypes.get_last_error())
+        # lstat can resolve non-name-surrogate reparse tags on Windows.
+        if flags & stat.FILE_ATTRIBUTE_REPARSE_POINT:
+            raise ValueError('Refusing application data reparse point: ' + str(path))
+    info = path.lstat()
+    if stat.S_ISLNK(info.st_mode):
+        raise ValueError('Refusing application data symbolic link: ' + str(path))
+    return info
+
+# Check ancestors first, before a path through a redirected directory is read.
+for path in reversed([root, *root.parents]):
+    try:
+        info = checked(path)
+    except FileNotFoundError:
+        if path == root and not required:
+            print('{}')
+            sys.exit(0)
+        raise
+    if not stat.S_ISDIR(info.st_mode):
+        raise ValueError('Application data path is not a directory: ' + str(path))
+
+def visit(directory):
+    for path in sorted(directory.iterdir()):
+        info = checked(path)
+        if stat.S_ISDIR(info.st_mode):
+            visit(path)
+        elif stat.S_ISREG(info.st_mode):
+            digest = hashlib.sha256()
+            size = 0
+            with path.open('rb') as stream:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+                    digest.update(chunk)
+                    size += len(chunk)
+            after = checked(path)
+            if (size != info.st_size or (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns)
+                    != (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns)):
+                raise ValueError('Application data changed during snapshot: ' + str(path))
+            files[path.relative_to(root).as_posix()] = {'sha256': digest.hexdigest(), 'bytes': size}
+        else:
+            raise ValueError('Unsupported application data entry: ' + str(path))
+
+visit(root)
+if required:
+    for name in ['news-terminal.sqlite3', 'workspace-windows.json']:
+        if name not in files or files[name]['bytes'] == 0:
+            raise ValueError('Missing or empty default application data: ' + name)
+print(json.dumps(files, sort_keys=True))
+`, directory, required ? 'required' : 'optional']);
+}
+
 export async function observeInstalledOperation(name, operation, milliseconds = 20000) {
   return await deadline(Promise.resolve().then(operation), milliseconds,
     name + ' did not complete within ' + milliseconds + 'ms');
@@ -286,20 +356,11 @@ async function main() {
     save();
     assert.equal(report.termination.passed, true, report.termination.error || 'Installed application did not exit normally');
   }
-  function dataHashes(required) {
-    const files = {};
-    for (const name of ['news-terminal.sqlite3', 'workspace-windows.json']) {
-      const path = join(preflight.dataDirectory, name);
-      if (required) assert.ok(existsSync(path) && statSync(path).isFile() && statSync(path).size > 0, 'Missing default application data: ' + name);
-      if (existsSync(path)) files[name] = { sha256: sha(path), bytes: statSync(path).size };
-    }
-    return files;
-  }
   async function uninstall(requiredData) {
     const before = await state('BeforeUninstall');
     report.beforeUninstallState = before;
     assertInstalledState(before, context.installDirectory, binding.version);
-    const preserved = dataHashes(requiredData);
+    const preserved = await snapshotApplicationData(preflight.dataDirectory, requiredData);
     report.preservedApplicationData = { directory: preflight.dataDirectory, files: preserved, byteIdenticalAfterUninstall: false };
     save();
     assert.equal(sha(installedUninstaller), binding.uninstallerSha256, 'Installed uninstaller changed');
@@ -310,8 +371,11 @@ async function main() {
     const after = await state('Uninstalled');
     report.uninstalledState = after;
     assertUninstalledState(after, context.installDirectory);
-    assert.deepEqual(dataHashes(requiredData), preserved, 'Uninstall changed preserved default application data');
-    report.preservedApplicationData = { directory: preflight.dataDirectory, files: preserved, byteIdenticalAfterUninstall: true };
+    const afterFiles = await snapshotApplicationData(preflight.dataDirectory, false);
+    report.preservedApplicationData.filesAfterUninstall = afterFiles;
+    save();
+    assert.deepEqual(afterFiles, preserved, 'Uninstall changed preserved default application data');
+    report.preservedApplicationData.byteIdenticalAfterUninstall = true;
     return { ...report.preservedApplicationData, registrationRemoved: true, shortcutsRemoved: true,
       installedDirectoryRemoved: true, retainedManufacturerLocation: after.manufacturerLocation, runtimeAfter: after.runtime };
   }

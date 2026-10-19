@@ -1,12 +1,13 @@
 import { expect, test } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { hostedContext, assertFreshState, assertInstalledState, assertUninstalledState, assertFirstRunDefaults,
   nsisArguments, finalizeInstalledEvidence, runInstalledSteps, observeInstalledOperation,
-  waitForInstalledState } from "../scripts/ci-installed-smoke.mjs";
+  waitForInstalledState, snapshotApplicationData } from "../scripts/ci-installed-smoke.mjs";
 
 const env = { GITHUB_ACTIONS: "true", RUNNER_ENVIRONMENT: "github-hosted", RUNNER_OS: "Windows",
   GITHUB_RUN_ID: "123", GITHUB_RUN_ATTEMPT: "2", GITHUB_SHA: "a".repeat(40),
@@ -122,6 +123,108 @@ test("uninstall must remove program registration while preserving the template's
   expect(() => assertUninstalledState({ ...state, registration: { exists: true } }, directory)).toThrow();
   expect(() => assertUninstalledState({ ...state, manufacturerLocation: null }, directory)).toThrow();
   expect(() => assertUninstalledState({ ...state, runtime: [] }, directory)).toThrow();
+});
+
+function dataFixture() {
+  const temporary = mkdtempSync(join(realpathSync(tmpdir()), "news-terminal-preserved-data-"));
+  const directory = join(temporary, "application data");
+  mkdirSync(directory);
+  writeFileSync(join(directory, "news-terminal.sqlite3"), Buffer.alloc(4096));
+  writeFileSync(join(directory, "workspace-windows.json"), '{"windows":{}}');
+  return { temporary, directory };
+}
+
+test.each(["removed", "changed"])("application-data preservation detects %s SQLite WAL while main database and layout stay intact", async change => {
+  const { temporary, directory } = dataFixture();
+  try {
+    const wal = join(directory, "news-terminal.sqlite3-wal");
+    writeFileSync(wal, "committed rows one");
+    const before = await snapshotApplicationData(directory);
+    if (change === "removed") rmSync(wal);
+    else writeFileSync(wal, "committed rows two");
+    const after = await snapshotApplicationData(directory);
+    expect(after["news-terminal.sqlite3"]).toEqual(before["news-terminal.sqlite3"]);
+    expect(after["workspace-windows.json"]).toEqual(before["workspace-windows.json"]);
+    expect(after).not.toEqual(before);
+  } finally { rmSync(temporary, { recursive: true, force: true }); }
+});
+
+test("application-data snapshot records sidecars, nested binary files and empty files with stable relative paths", async () => {
+  const { temporary, directory } = dataFixture();
+  try {
+    const files = { "news-terminal.sqlite3-wal": Buffer.from("committed rows"),
+      "news-terminal.sqlite3-shm": Buffer.alloc(32), "saved queries/多言語.bin": Buffer.from([0, 255, 10, 128]),
+      ".empty": Buffer.alloc(0) };
+    for (const [name, bytes] of Object.entries(files)) {
+      if (name.includes("/")) mkdirSync(join(directory, "saved queries"));
+      writeFileSync(join(directory, name), bytes);
+    }
+    const snapshot = await snapshotApplicationData(directory);
+    expect(Object.keys(snapshot)).toEqual([...Object.keys(files), "news-terminal.sqlite3", "workspace-windows.json"].sort());
+    for (const [name, bytes] of Object.entries(files)) {
+      expect(snapshot[name]).toEqual({ bytes: bytes.length, sha256: createHash("sha256").update(bytes).digest("hex") });
+    }
+    expect(await snapshotApplicationData(directory)).toEqual(snapshot);
+  } finally { rmSync(temporary, { recursive: true, force: true }); }
+});
+
+test.each(["changed SHM", "removed nested file", "added nested file"])("application-data preservation detects a %s", async change => {
+  const { temporary, directory } = dataFixture();
+  try {
+    mkdirSync(join(directory, "saved"));
+    writeFileSync(join(directory, "saved", "query.json"), '{"query":"one"}');
+    writeFileSync(join(directory, "news-terminal.sqlite3-shm"), "index one");
+    const before = await snapshotApplicationData(directory);
+    if (change === "changed SHM") writeFileSync(join(directory, "news-terminal.sqlite3-shm"), "index two");
+    else if (change === "removed nested file") rmSync(join(directory, "saved", "query.json"));
+    else writeFileSync(join(directory, "saved", "unexpected.json"), "new data");
+    const after = await snapshotApplicationData(directory);
+    expect(after["news-terminal.sqlite3"]).toEqual(before["news-terminal.sqlite3"]);
+    expect(after["workspace-windows.json"]).toEqual(before["workspace-windows.json"]);
+    expect(after).not.toEqual(before);
+  } finally { rmSync(temporary, { recursive: true, force: true }); }
+});
+
+test.each(["news-terminal.sqlite3", "workspace-windows.json"])("application-data snapshot requires a nonempty %s", async name => {
+  const { temporary, directory } = dataFixture();
+  try {
+    writeFileSync(join(directory, name), "");
+    await expect(snapshotApplicationData(directory)).rejects.toThrow(name);
+    rmSync(join(directory, name));
+    await expect(snapshotApplicationData(directory)).rejects.toThrow(name);
+    mkdirSync(join(directory, name));
+    await expect(snapshotApplicationData(directory)).rejects.toThrow(name);
+  } finally { rmSync(temporary, { recursive: true, force: true }); }
+});
+
+test("application-data snapshot permits absent failure-path data only when explicitly optional", async () => {
+  const { temporary, directory } = dataFixture();
+  try {
+    rmSync(directory, { recursive: true });
+    await expect(snapshotApplicationData(directory)).rejects.toThrow();
+    expect(await snapshotApplicationData(directory, false)).toEqual({});
+  } finally { rmSync(temporary, { recursive: true, force: true }); }
+});
+
+test.each(["root", "ancestor", "nested"])("application-data snapshot refuses a %s directory link or Windows junction", async location => {
+  const { temporary, directory } = dataFixture();
+  try {
+    const link = join(location === "nested" ? directory : temporary, "data link");
+    symlinkSync(location === "ancestor" ? temporary : directory, link, process.platform === "win32" ? "junction" : "dir");
+    const candidate = location === "nested" ? directory : location === "ancestor" ? join(link, "application data") : link;
+    await expect(snapshotApplicationData(candidate)).rejects.toThrow(/symbolic link|reparse point/);
+  } finally { rmSync(temporary, { recursive: true, force: true }); }
+});
+
+test.skipIf(process.platform === "win32")("application-data snapshot refuses an unsupported FIFO without opening it", async () => {
+  const { temporary, directory } = dataFixture();
+  try {
+    const created = spawnSync("python", ["-I", "-c", "import os, sys; os.mkfifo(sys.argv[1])", join(directory, "unsupported-pipe")],
+      { encoding: "utf8", timeout: 5000 });
+    expect(created.error).toBeUndefined();
+    expect(created.status, created.stderr).toBe(0);
+    await expect(snapshotApplicationData(directory)).rejects.toThrow(/Unsupported application data entry/);
+  } finally { rmSync(temporary, { recursive: true, force: true }); }
 });
 
 test("first run requires real default profile and disabled, unconsented providers before any UI edit", () => {
