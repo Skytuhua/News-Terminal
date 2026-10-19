@@ -1,6 +1,58 @@
 import { test, expect, type Page } from '@playwright/test';
 import { fixture } from './fixture';
 
+for (const destination of ['the same tab', 'another tab']) {
+  test(`a delayed Hide acknowledgement preserves a newer selection in ${destination}`, async ({page}) => {
+    await fixture(page);
+    let destinationTabId = 'home';
+    if (destination === 'another tab') {
+      await page.getByRole('button', {name:'New tab',exact:true}).click();
+      await expect(page.getByRole('tab')).toHaveCount(2);
+      destinationTabId = await page.evaluate(() => (window as any).__TEST_SNAPSHOT__().workspace.activeTabId);
+      await page.locator('#workspace-tab-home').click();
+      await expect(page.locator('#workspace-tab-home')).toHaveAttribute('aria-selected', 'true');
+    }
+    await page.locator('[data-article-id="a"] .headline').click();
+    await expect(page.locator('[data-article-id="a"]')).toHaveClass(/read/);
+    await expect.poll(() => page.evaluate(() => (window as any).__TEST_SNAPSHOT__().workspace.tabs[0].selectedId)).toBe('a');
+    await page.evaluate(() => {
+      const w = window as any;
+      w.__TEST_AFTER_DISPATCH__ = async (r:any) => {
+        if (r.op === 'article_state' && r.articleId === 'a' && r.hidden === true)
+          await new Promise<void>(resolve => { w.__RELEASE_HIDE_ACK__ = resolve; });
+      };
+    });
+    await page.getByRole('button', {name:'Hide story',exact:true}).click();
+    await expect.poll(() => page.evaluate(() => !!(window as any).__RELEASE_HIDE_ACK__)).toBe(true);
+    try {
+      if (destination !== 'the same tab') {
+        await page.locator(`#workspace-tab-${destinationTabId}`).click();
+        await expect(page.locator(`#workspace-tab-${destinationTabId}`)).toHaveAttribute('aria-selected', 'true');
+      }
+      await page.locator('[data-article-id="b"] .headline').click();
+      await expect(page.locator('.detail h2')).toHaveText('What lunar water observations can tell us');
+      await expect.poll(() => page.evaluate(id => (window as any).__TEST_SNAPSHOT__().workspace.tabs.find((tab:any) => tab.id === id).selectedId, destinationTabId)).toBe('b');
+    } finally {
+      await page.evaluate(() => { (window as any).__RELEASE_HIDE_ACK__(); });
+    }
+    await expect(page.getByRole('button', {name:'Undo hide',exact:true})).toBeEnabled();
+    await expect(page.locator('.detail h2')).toHaveText('What lunar water observations can tell us');
+    const hidden = await page.evaluate(() => (window as any).__TEST_SNAPSHOT__());
+    expect(hidden.articles.find((article:any) => article.id === 'a').hidden).toBe(true);
+    expect(hidden.workspace.activeTabId).toBe(destinationTabId);
+    expect(hidden.workspace.tabs.find((tab:any) => tab.id === destinationTabId).selectedId).toBe('b');
+    if (destination !== 'the same tab')
+      expect(hidden.workspace.tabs.find((tab:any) => tab.id === 'home').selectedId).toBeUndefined();
+
+    await page.getByRole('button', {name:'Undo hide',exact:true}).click();
+    await expect.poll(() => page.evaluate(() => (window as any).__TEST_SNAPSHOT__().articles.find((article:any) => article.id === 'a').hidden)).toBe(false);
+    await expect(page.locator('.detail h2')).toHaveText('What lunar water observations can tell us');
+    await page.reload();
+    await expect(page.locator('.detail h2')).toHaveText('What lunar water observations can tell us');
+    await expect(page.locator(`#workspace-tab-${destinationTabId}`)).toHaveAttribute('aria-selected', 'true');
+  });
+}
+
 for (const failedRead of ['snapshot', 'window_context']) {
   test(`acknowledged Hide keeps Undo when ${failedRead} readback fails`, async ({page}) => {
     await fixture(page, {savedProfile:true});
