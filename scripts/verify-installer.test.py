@@ -73,7 +73,13 @@ class InstallerTest(unittest.TestCase):
             runtime.parent.mkdir(parents=True)
             shutil.copyfile(source, runtime)
             check = module['check_payload_tree']
-            check(root, payload, 'installer', set(), source)
+            import hashlib
+            observed = check(root, payload, 'installer', set(), source)
+            self.assertEqual(observed.get('packaged_uninstaller_sha256'), hashlib.sha256(b'TEST FIXTURE').hexdigest())
+            (payload / 'uninstall.exe').write_bytes(b'DIFFERENT INERT UNINSTALLER')
+            changed = check(root, payload, 'installer', set(), source)
+            self.assertEqual(changed.get('packaged_uninstaller_sha256'), hashlib.sha256(b'DIFFERENT INERT UNINSTALLER').hexdigest())
+            self.assertNotEqual(changed.get('packaged_uninstaller_sha256'), observed.get('packaged_uninstaller_sha256'))
             runtime.write_bytes(b'CHANGED RUNTIME')
             with self.assertRaisesRegex(ValueError, 'WebView2 installer bytes'):
                 check(root, payload, 'installer', set(), source)

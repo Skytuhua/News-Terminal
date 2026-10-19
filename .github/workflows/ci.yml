@@ -59,7 +59,7 @@ jobs:
         shell: pwsh
         run: |
           $PSNativeCommandUseErrorActionPreference = $false
-          foreach ($script in 'package-release', 'verify-installer', 'verify-release') {
+          foreach ($script in 'package-release', 'verify-installer', 'verify-release', 'ci-installed-payload') {
             & python "scripts/$script.test.py" 2>&1 | Tee-Object "docs/evidence/ci-$script-tests.log"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
@@ -115,6 +115,22 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $false
           & powershell.exe -NoProfile -NonInteractive -File scripts/ci-native-firewall.ps1 -Action Cleanup 2>&1 | Tee-Object docs/evidence/ci-native-cleanup.log
           exit $LASTEXITCODE
+      - name: Install, launch in place, and uninstall inspected application
+        id: installed_smoke
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          & node scripts/ci-installed-smoke.mjs 2>&1 | Tee-Object docs/evidence/ci-installed-smoke.log
+          exit $LASTEXITCODE
+      - name: Clean up owned installed-application process and firewall rule
+        if: ${{ always() && steps.installed_smoke.outputs.ownership_created == 'true' }}
+        timeout-minutes: 2
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          & node scripts/ci-installed-smoke.mjs --cleanup 2>&1 | Tee-Object docs/evidence/ci-installed-cleanup.log
+          exit $LASTEXITCODE
       - name: Upload Windows verification evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
@@ -124,6 +140,7 @@ jobs:
             docs/evidence/ci-*
             docs/evidence/v05-native-ci-${{ github.run_id }}-${{ github.run_attempt }}*
             src-tauri/target/release/nsis/x64/installer.nsi
+            ${{ runner.temp }}/NewsTerminal install ${{ github.run_id }} ${{ github.run_attempt }}/owner.json
           if-no-files-found: warn
           retention-days: 14
       - uses: actions/upload-artifact@v4
