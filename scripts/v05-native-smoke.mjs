@@ -230,7 +230,7 @@ try {
   });
 
   // --- 0.5: keyboard shortcuts through the real window ---------------
-  await check('X, M and Escape act on the real native window', async () => {
+  await check('reader and tab shortcuts act on the real native window', async () => {
     // Return to the headline view first. The previous check leaves the window
     // on Saved stories, where the reading-status selector filters a different
     // collection entirely.
@@ -262,7 +262,36 @@ try {
       'M did not toggle read through the native host', 15000);
     await shot('keyboard-shortcuts');
     const s2 = await snapshot();
-    return { hiddenByX: targetId, toggledByM: next.id, read: s2.articles.find((a) => a.id === next.id).read };
+    const originalTab = s2.workspace.activeTabId;
+    const originalQuery = s2.workspace.tabs.find(tab => tab.id === originalTab).query;
+    const search = main.getByRole('searchbox', { name: 'Search cached stories', exact: true });
+    await search.fill('SYNTHETIC');
+    await until(async () => (await snapshot()).workspace.tabs.find(tab => tab.id === originalTab)?.query === 'SYNTHETIC',
+      'Original search was not persisted by the native host');
+    await search.press('Control+t');
+    await expect(main.getByRole('tab')).toHaveCount(2);
+    const addedTab = (await snapshot()).workspace.activeTabId;
+    assert.notEqual(addedTab, originalTab);
+    await expect(search).toHaveValue('');
+    await search.fill('fixture');
+    await until(async () => (await snapshot()).workspace.tabs.find(tab => tab.id === addedTab)?.query === 'fixture',
+      'New tab search was not persisted by the native host');
+    await search.press('Control+Shift+Tab');
+    await expect(main.locator(`#workspace-tab-${originalTab}`)).toHaveAttribute('aria-selected', 'true');
+    await expect(search).toHaveValue('SYNTHETIC');
+    await search.press('Control+Tab');
+    await expect(main.locator(`#workspace-tab-${addedTab}`)).toHaveAttribute('aria-selected', 'true');
+    await expect(search).toHaveValue('fixture');
+    await search.press('Control+w');
+    await expect(main.getByRole('tab')).toHaveCount(1);
+    await expect(main.locator(`#workspace-tab-${originalTab}`)).toHaveAttribute('aria-selected', 'true');
+    await expect(search).toHaveValue('SYNTHETIC');
+    await shot('search-tab-shortcuts');
+    await search.fill(originalQuery);
+    await until(async () => (await snapshot()).workspace.tabs.find(tab => tab.id === originalTab)?.query === originalQuery,
+      'Original search was not restored after the native tab shortcut check');
+    return { hiddenByX: targetId, toggledByM: next.id, read: s2.articles.find((a) => a.id === next.id).read,
+      tabShortcuts: { originalTab, addedTab, originalQueryRestored: true } };
   });
 
   // --- 0.5: reading status filter through the real host --------------
