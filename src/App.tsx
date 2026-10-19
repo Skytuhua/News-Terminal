@@ -724,7 +724,6 @@ export default function App() {
         (active?.mode === "hidden" ? document.querySelector<HTMLInputElement>(".hidden-search input") : searchInput.current)?.focus();
         return;
       }
-      if (typing) return;
       if (e.ctrlKey || e.metaKey || e.altKey) {
         if (e.ctrlKey && !e.altKey && !e.metaKey && !context.detached) {
           if (e.key === "t") {
@@ -746,6 +745,7 @@ export default function App() {
         }
         return;
       }
+      if (typing) return;
       if (e.key === "?") {
         e.preventDefault();
         setPanel("help");
