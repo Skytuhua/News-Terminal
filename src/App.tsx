@@ -625,6 +625,8 @@ export default function App() {
   const selected = reportView ? undefined : (
     data?.articles.find((a) => a.id === selectedId) ||
     results?.find((a) => a.id === selectedId));
+  const activeTabIdRef = useRef(active?.id);
+  activeTabIdRef.current = active?.id;
   const select = useCallback((a: Article) => {
     setSelectedId(a.id);
     patchTab({ selectedId: a.id });
@@ -657,19 +659,29 @@ export default function App() {
     }).catch(e => { if (current()) setError(String(e)); });
   }
   async function hideStory(article: Article) {
-    const target = { profileId, articleId: article.id, generation: workspaceGeneration.current };
-    if (importing.current || switchingProfile.current) return;
+    if (!active || importing.current || switchingProfile.current) return;
+    const target = { profileId, tabId: active.id, articleId: article.id, generation: workspaceGeneration.current };
+    const clearHiddenSelection = () => {
+      if (activeTabIdRef.current === target.tabId)
+        setSelectedId(current => current === target.articleId ? undefined : current);
+    };
     setHidePending(true);
     try {
       if (await action({ op: "article_state", profileId: target.profileId, articleId: target.articleId, hidden: true }, undefined, () => {
         // The write is confirmed even if its subsequent readback fails.
         if (profileRef.current === target.profileId && !switchingProfile.current) {
           setHiddenUndo(target);
-          setSelectedId(undefined);
+          clearHiddenSelection();
         }
       }) && target.generation === workspaceGeneration.current &&
           profileRef.current === target.profileId && !switchingProfile.current) {
-        closeStory();
+        clearHiddenSelection();
+        // The queued close must not erase a selection made while Hide settled.
+        await workspaceIntent(w => ({
+          ...w,
+          tabs: w.tabs.map(tab => tab.id === target.tabId && tab.selectedId === target.articleId
+            ? { ...tab, selectedId: undefined } : tab),
+        }), target.profileId);
       }
     } finally {
       if (target.generation === workspaceGeneration.current) setHidePending(false);
@@ -724,7 +736,6 @@ export default function App() {
         (active?.mode === "hidden" ? document.querySelector<HTMLInputElement>(".hidden-search input") : searchInput.current)?.focus();
         return;
       }
-      if (typing) return;
       if (e.ctrlKey || e.metaKey || e.altKey) {
         if (e.ctrlKey && !e.altKey && !e.metaKey && !context.detached) {
           if (e.key === "t") {
@@ -746,6 +757,7 @@ export default function App() {
         }
         return;
       }
+      if (typing) return;
       if (e.key === "?") {
         e.preventDefault();
         setPanel("help");

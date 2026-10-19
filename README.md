@@ -36,11 +36,11 @@ The core reader requires no News Terminal account, subscription or hosted backen
 
 ### Try a development build
 
-[Open the successful Windows CI build](https://github.com/Skytuhua/News-Terminal/actions/runs/38459176857#artifacts) or [browse newer builds](https://github.com/Skytuhua/News-Terminal/actions/workflows/ci.yml).
+[Open the verified Windows x64 build](https://github.com/Skytuhua/News-Terminal/actions/runs/39162103289#artifacts) or [browse newer builds](https://github.com/Skytuhua/News-Terminal/actions/workflows/ci.yml).
 
-Under **Artifacts**, download `news-terminal-windows-unsigned`, unzip it, and run the installer or application. GitHub sign-in is required; artifacts are available while GitHub retains them. These are **unsigned development builds**, so Windows may show a SmartScreen warning. No tagged release is published yet.
+Under **Artifacts**, download `news-terminal-windows-unsigned` and unzip it. For first-time setup, run the `*-setup.exe` installer. GitHub sign-in is required; artifacts are available while GitHub retains them. These are **unsigned development builds**, so Windows may show a SmartScreen warning. No tagged release is published yet.
 
-The linked development build requires an existing [Microsoft WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section). Installers newly built from this source bundle the offline WebView2 installer and install the runtime when it is missing. The standalone application and portable ZIP still require WebView2 to be installed separately.
+The linked setup installer bundles Microsoft's offline WebView2 installer and installs the runtime when it is missing. The standalone `news-terminal.exe` and portable ZIP require an existing [Microsoft WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section). Builds target Windows x64.
 
 ### Build from source
 
@@ -71,7 +71,11 @@ Find it under `src-tauri/target/release/bundle/nsis/`. The standalone applicatio
 
 The AI section separates **News**, **Models** and **Benchmarks**. Browse OpenRouter catalog changes and selected model-repository metadata without provider keys or inference requests. Arena and SWE-bench keep their own metrics and provenance.
 
-For summaries, the current build uses **local Ollama**, installed separately with a model. AI starts disabled and requires your consent plus source-level permission; most bundled feeds are not approved for AI processing. Cloud summary execution is blocked in this build. Generated text and selected quotations are unverified—check the linked originals.
+Summaries support **local Ollama** and an **OpenAI-compatible local server**, such as LM Studio or llama.cpp. Install and start your runtime and model separately.
+
+Open **Preferences**, choose **AI providers**, then enter the provider's model identifier, enable it, give consent and save its settings. For **Local OpenAI-compatible**, enter the server's HTTP loopback base URL, such as `http://127.0.0.1:1234/v1`, using its configured port and exact model identifier. Saving settings does not contact the server or generate a summary. A loopback address identifies the connection; configure the server itself to keep inference local.
+
+AI starts disabled and requires your consent plus source-level permission; most bundled feeds are not approved for AI processing. Cloud summary execution is blocked in this build. Generated text and selected quotations are unverified. Check the linked originals.
 
 ## Sources, media and privacy
 
