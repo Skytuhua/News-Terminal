@@ -1018,7 +1018,7 @@
   },
   {
     "id": "openai-news",
-    "name": "OpenAI ? News",
+    "name": "OpenAI: News",
     "url": "https://openai.com/news/rss.xml",
     "homepage": "https://openai.com/news/",
     "kind": "official notice",
@@ -1045,7 +1045,7 @@
   },
   {
     "id": "google-research",
-    "name": "Google Research ? Blog",
+    "name": "Google Research: Blog",
     "url": "https://research.google/blog/rss",
     "homepage": "https://research.google/blog/",
     "kind": "official notice",
@@ -1073,7 +1073,7 @@
   },
   {
     "id": "google-deepmind",
-    "name": "Google DeepMind ? Blog",
+    "name": "Google DeepMind: Blog",
     "url": "https://deepmind.google/blog/rss.xml",
     "homepage": "https://deepmind.google/blog/",
     "kind": "official notice",
@@ -1101,7 +1101,7 @@
   },
   {
     "id": "huggingface-blog",
-    "name": "Hugging Face ? Blog",
+    "name": "Hugging Face: Blog",
     "url": "https://huggingface.co/blog/feed.xml",
     "homepage": "https://huggingface.co/blog",
     "kind": "official notice",
@@ -1128,7 +1128,7 @@
   },
   {
     "id": "microsoft-research",
-    "name": "Microsoft Research ? Blog",
+    "name": "Microsoft Research: Blog",
     "url": "https://www.microsoft.com/en-us/research/feed",
     "homepage": "https://www.microsoft.com/en-us/research/",
     "kind": "official notice",
@@ -1156,7 +1156,7 @@
   },
   {
     "id": "nvidia-blog",
-    "name": "NVIDIA ? Blog",
+    "name": "NVIDIA: Blog",
     "url": "https://blogs.nvidia.com/feed",
     "homepage": "https://blogs.nvidia.com/",
     "kind": "official notice",
@@ -1184,7 +1184,7 @@
   },
   {
     "id": "nvidia-developer",
-    "name": "NVIDIA Developer ? Blog",
+    "name": "NVIDIA Developer: Blog",
     "url": "https://developer.nvidia.com/blog/feed",
     "homepage": "https://developer.nvidia.com/blog/",
     "kind": "official notice",
@@ -1211,7 +1211,7 @@
   },
   {
     "id": "aws-ml",
-    "name": "AWS Machine Learning ? Blog",
+    "name": "AWS Machine Learning: Blog",
     "url": "https://aws.amazon.com/blogs/machine-learning/feed",
     "homepage": "https://aws.amazon.com/blogs/machine-learning/",
     "kind": "official notice",
@@ -1238,7 +1238,7 @@
   },
   {
     "id": "openrouter-models-rss",
-    "name": "OpenRouter ? Model releases RSS",
+    "name": "OpenRouter: Model releases RSS",
     "url": "https://openrouter.ai/api/v1/models?use_rss=true",
     "homepage": "https://openrouter.ai/models",
     "kind": "official notice",
@@ -1265,7 +1265,7 @@
   },
   {
     "id": "simon-willison",
-    "name": "Simon Willison ? Everything",
+    "name": "Simon Willison: Everything",
     "url": "https://simonwillison.net/atom/everything",
     "homepage": "https://simonwillison.net/",
     "kind": "opinion",
@@ -1292,7 +1292,7 @@
   },
   {
     "id": "interconnects",
-    "name": "Interconnects ? AI analysis",
+    "name": "Interconnects: AI analysis",
     "url": "https://www.interconnects.ai/feed",
     "homepage": "https://www.interconnects.ai/",
     "kind": "opinion",
@@ -1319,7 +1319,7 @@
   },
   {
     "id": "latent-space",
-    "name": "Latent Space ? AI engineering",
+    "name": "Latent Space: AI engineering",
     "url": "https://www.latent.space/feed",
     "homepage": "https://www.latent.space/",
     "kind": "opinion",
@@ -1346,7 +1346,7 @@
   },
   {
     "id": "techcrunch-ai",
-    "name": "TechCrunch ? Artificial Intelligence",
+    "name": "TechCrunch: Artificial Intelligence",
     "url": "https://techcrunch.com/category/artificial-intelligence/feed",
     "homepage": "https://techcrunch.com/category/artificial-intelligence/",
     "kind": "reporting",
@@ -1374,7 +1374,7 @@
   },
   {
     "id": "techcrunch-technology",
-    "name": "TechCrunch ? Technology",
+    "name": "TechCrunch: Technology",
     "url": "https://techcrunch.com/feed",
     "homepage": "https://techcrunch.com/",
     "kind": "reporting",
@@ -1401,7 +1401,7 @@
   },
   {
     "id": "ars-technica",
-    "name": "Ars Technica ? All",
+    "name": "Ars Technica: All",
     "url": "https://feeds.arstechnica.com/arstechnica/index",
     "homepage": "https://arstechnica.com/",
     "kind": "reporting",
@@ -1428,7 +1428,7 @@
   },
   {
     "id": "the-verge",
-    "name": "The Verge ? Top stories",
+    "name": "The Verge: Top stories",
     "url": "https://www.theverge.com/rss/index.xml",
     "homepage": "https://www.theverge.com/",
     "kind": "reporting",
@@ -1455,7 +1455,7 @@
   },
   {
     "id": "wired-top",
-    "name": "WIRED ? Top stories",
+    "name": "WIRED: Top stories",
     "url": "https://www.wired.com/feed/rss",
     "homepage": "https://www.wired.com/",
     "kind": "reporting",
@@ -1483,7 +1483,7 @@
   },
   {
     "id": "github-blog",
-    "name": "GitHub ? Blog",
+    "name": "GitHub: Blog",
     "url": "https://github.blog/feed",
     "homepage": "https://github.blog/",
     "kind": "official notice",
@@ -1509,7 +1509,7 @@
   },
   {
     "id": "cloudflare-blog",
-    "name": "Cloudflare ? Blog",
+    "name": "Cloudflare: Blog",
     "url": "https://blog.cloudflare.com/rss",
     "homepage": "https://blog.cloudflare.com/",
     "kind": "official notice",
@@ -1536,7 +1536,7 @@
   },
   {
     "id": "bleepingcomputer",
-    "name": "BleepingComputer ? Security",
+    "name": "BleepingComputer: Security",
     "url": "https://www.bleepingcomputer.com/feed",
     "homepage": "https://www.bleepingcomputer.com/",
     "kind": "reporting",
@@ -1589,7 +1589,7 @@
   },
   {
     "id": "microsoft-blog",
-    "name": "Microsoft ? Official Blog",
+    "name": "Microsoft: Official Blog",
     "url": "https://blogs.microsoft.com/feed",
     "homepage": "https://blogs.microsoft.com/",
     "kind": "official notice",
@@ -1616,7 +1616,7 @@
   },
   {
     "id": "google-blog",
-    "name": "Google ? The Keyword",
+    "name": "Google: The Keyword",
     "url": "https://blog.google/rss",
     "homepage": "https://blog.google/",
     "kind": "official notice",
@@ -1670,7 +1670,7 @@
   },
   {
     "id": "engadget",
-    "name": "Engadget ? Technology",
+    "name": "Engadget: Technology",
     "url": "https://www.engadget.com/rss.xml",
     "homepage": "https://www.engadget.com/",
     "kind": "reporting",
@@ -1724,7 +1724,7 @@
   },
   {
     "id": "theregister-headlines",
-    "name": "The Register ? Headlines",
+    "name": "The Register: Headlines",
     "url": "https://www.theregister.com/headlines.atom",
     "homepage": "https://www.theregister.com/",
     "kind": "reporting",
@@ -1779,7 +1779,7 @@
   },
   {
     "id": "cnbc-markets",
-    "name": "CNBC ? Markets",
+    "name": "CNBC: Markets",
     "url": "https://www.cnbc.com/id/100003114/device/rss/rss.html",
     "homepage": "https://www.cnbc.com/markets/",
     "kind": "reporting",
@@ -1806,7 +1806,7 @@
   },
   {
     "id": "cnbc-investing",
-    "name": "CNBC ? Investing",
+    "name": "CNBC: Investing",
     "url": "https://www.cnbc.com/id/15839069/device/rss/rss.html",
     "homepage": "https://www.cnbc.com/investing/",
     "kind": "reporting",
@@ -1833,7 +1833,7 @@
   },
   {
     "id": "cnbc-technology",
-    "name": "CNBC ? Technology",
+    "name": "CNBC: Technology",
     "url": "https://www.cnbc.com/id/19854910/device/rss/rss.html",
     "homepage": "https://www.cnbc.com/technology/",
     "kind": "reporting",
@@ -1861,7 +1861,7 @@
   },
   {
     "id": "ecb-press",
-    "name": "European Central Bank ? Press",
+    "name": "European Central Bank: Press",
     "url": "https://www.ecb.europa.eu/rss/press.html",
     "homepage": "https://www.ecb.europa.eu/press/",
     "kind": "official notice",
@@ -1888,7 +1888,7 @@
   },
   {
     "id": "fed-speeches",
-    "name": "Federal Reserve ? Speeches",
+    "name": "Federal Reserve: Speeches",
     "url": "https://www.federalreserve.gov/feeds/speeches.xml",
     "homepage": "https://www.federalreserve.gov/newsevents/speeches.htm",
     "kind": "official notice",
@@ -1916,7 +1916,7 @@
   },
   {
     "id": "bls-latest",
-    "name": "BLS ? Latest releases",
+    "name": "BLS: Latest releases",
     "url": "https://www.bls.gov/feed/bls_latest.rss",
     "homepage": "https://www.bls.gov/",
     "kind": "official notice",
@@ -1943,7 +1943,7 @@
   },
   {
     "id": "marketwatch-top",
-    "name": "MarketWatch ? Top stories",
+    "name": "MarketWatch: Top stories",
     "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories",
     "homepage": "https://www.marketwatch.com/",
     "kind": "reporting",
@@ -1970,7 +1970,7 @@
   },
   {
     "id": "investing-stocks",
-    "name": "Investing.com ? Stock market news",
+    "name": "Investing.com: Stock market news",
     "url": "https://www.investing.com/rss/news_25.rss",
     "homepage": "https://www.investing.com/news/stock-market-news",
     "kind": "reporting",
