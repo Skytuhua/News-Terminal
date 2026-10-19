@@ -31,6 +31,7 @@ import {
 import AlertHistory from "./AlertHistory";
 import { date, sourceFailed, filterArticles, focusSections, relatedCounts, reconcileArticles, sameSnapshotValue, sameSearchInputs, sameBriefingInputs, topics, matchesReadingStatus, unreadCounts, type ReadingStatus } from "./model";
 import { coalescedRead } from "./coalescedRead";
+import { workspaceSubscription } from "./workspaceSubscription";
 import SettingsPanel from "./Settings";
 import Coverage from "./Coverage";
 import Summary from "./Summary";
@@ -222,26 +223,21 @@ export default function App() {
     try { await requestRead.current!(reset, immediate); }
     catch (error) { if (propagate) throw error; }
   }, []);
+  const [startupAttempt, setStartupAttempt] = useState(0);
   useEffect(() => {
     if (!runtimeAvailable) return;
-    let stop: (() => void) | undefined;
-    let closed = false;
-    void subscribe(kind => {
-      if (kind === "replaced" && !importing.current) {
-        invalidateReplacement();
-        void load(true);
-      } else if (!importing.current && !switchingProfile.current) void load(false, false, false);
-    })
-      .then((fn) => {
-        if (closed) fn();
-        else { stop = fn; void load(true); }
-      })
-      .catch((e) => setError(String(e)));
-    return () => {
-      closed = true;
-      stop?.();
-    };
-  }, [load]);
+    return workspaceSubscription(
+      subscribe,
+      kind => {
+        if (kind === "replaced" && !importing.current) {
+          invalidateReplacement();
+          void load(true);
+        } else if (!importing.current && !switchingProfile.current) void load(false, false, false);
+      },
+      () => { void load(true); },
+      e => setError(String(e)),
+    );
+  }, [load, startupAttempt]);
   function invalidateReplacement() {
     ++workspaceGeneration.current;
     ++loadGeneration.current;
@@ -838,7 +834,10 @@ export default function App() {
         {error && (
           <>
             <p role="alert">{error}</p>
-            <button onClick={() => void load(true)}>Retry</button>
+            <button onClick={() => {
+              setError("");
+              setStartupAttempt(attempt => attempt + 1);
+            }}>Retry</button>
           </>
         )}
       </main>
