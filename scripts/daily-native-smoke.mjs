@@ -1,3 +1,4 @@
+import { invokeNative } from './native-ipc.mjs';
 // Windows/WebView2 + real Rust host. SYNTHETIC fixtures via validated native import only.
 // node scripts/daily-native-smoke.mjs [--exe src-tauri/target/release/news-terminal.exe] [--prefix daily-native-release]
 // Does NOT build, modify production data, mock IPC, start servers/models, or stop unowned processes.
@@ -34,7 +35,7 @@ const delay = ms => new Promise(r=>setTimeout(r,ms));
 async function until(fn, message='Condition did not settle', timeout=30000) {
   const end=Date.now()+timeout; while(Date.now()<end) { const v=await fn(); if(v)return v; await delay(150); } throw Error(message);
 }
-async function invoke(page, request) {return page.evaluate(request=>window.__TAURI_INTERNALS__.invoke('dispatch',{request}),request);}
+async function invoke(page, request) {return invokeNative(page, request);}
 const snapshot = (page=main,profileId='default')=>invoke(page,{op:'snapshot',profileId});
 async function article(id, page=main) { return (await snapshot(page)).articles.find(a=>a.id===id); }
 const state = a=>({read:a.read,saved:a.saved,hidden:a.hidden});

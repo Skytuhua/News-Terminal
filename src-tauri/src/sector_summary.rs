@@ -7,6 +7,10 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
 pub(crate) const LIMIT: usize = 12;
+#[cfg(test)]
+std::thread_local! {
+    pub(crate) static SELECTION_READS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
 
 #[cfg(test)]
 #[path = "../tests/sector/unit.rs"]
@@ -245,6 +249,8 @@ pub(crate) fn select(
     request: &Value,
     now: i64,
 ) -> Result<Selection, String> {
+    #[cfg(test)]
+    SELECTION_READS.set(SELECTION_READS.get() + 1);
     let profile_id = db::text(request, "profileId", 200)?;
     let date = db::text(request, "date", 10)?;
     let sector_id = db::text(request, "sectorId", 100)?;

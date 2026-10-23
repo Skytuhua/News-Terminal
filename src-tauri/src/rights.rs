@@ -10,6 +10,11 @@ mod tests;
 use serde_json::json;
 use sha2::{Digest, Sha256};
 
+#[cfg(test)]
+std::thread_local! {
+    pub(crate) static FEED_EXCLUSION_SCANS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
 pub fn catalog() -> &'static [Value] {
     static CATALOG: std::sync::OnceLock<Vec<Value>> = std::sync::OnceLock::new();
     CATALOG.get_or_init(|| {
@@ -355,6 +360,8 @@ pub(crate) fn apply_media_policy(source: &Value, article: &mut Value, proof: &Va
 }
 
 pub(crate) fn feed_excluded(body: &[u8]) -> bool {
+    #[cfg(test)]
+    FEED_EXCLUSION_SCANS.set(FEED_EXCLUSION_SCANS.get() + 1);
     // feed-rs preserves standard item rights/credits. RSS item copyright and
     // unknown rights extensions are not standardized: reject the entire feed
     // conservatively rather than silently losing such metadata. The sole NHC

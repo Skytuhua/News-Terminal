@@ -1,3 +1,5 @@
+mod common;
+use common::current_settings;
 use news_terminal_lib::{db::Database, Backend};
 use serde_json::json;
 
@@ -34,10 +36,10 @@ async fn zero_paid_mode_preserves_cloud_settings_but_blocks_execution() {
     .unwrap();
     let article = db.request(&json!({"op":"snapshot"}), now).unwrap()["articles"][0].clone();
     let host = Backend::new(db);
-    host.execute(json!({
+    host.execute(current_settings(&host, json!({
         "op":"provider_save",
         "provider":{"id":"gemini","kind":"gemini","name":"Gemini","model":"gemini-2.5-flash","enabled":true,"consented":true}
-    }))
+    })))
     .await
     .unwrap();
     let providers = host

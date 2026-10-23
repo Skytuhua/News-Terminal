@@ -89,13 +89,28 @@ pub fn tile_bounds(
 }
 
 pub fn restore_bounds(saved: Rect, work: Rect, scale: f64, frame: Frame) -> Result<Rect, String> {
-    let maximum = tile_bounds(work, scale, frame, TileLayout::Full)?;
-    let width = saved
-        .width
-        .clamp((640.0 * scale).ceil() as u32, maximum.width);
-    let height = saved
-        .height
-        .clamp((480.0 * scale).ceil() as u32, maximum.height);
+    if !scale.is_finite()
+        || scale <= 0.0
+        || work.width <= frame.width
+        || work.height <= frame.height
+        || work.x as i64 + work.width as i64 > i32::MAX as i64
+        || work.y as i64 + work.height as i64 > i32::MAX as i64
+    {
+        return Err("Monitor geometry is invalid".into());
+    }
+    let maximum = Rect {
+        width: work.width - frame.width,
+        height: work.height - frame.height,
+        ..work
+    };
+    let width = saved.width.clamp(
+        ((640.0 * scale).ceil() as u32).min(maximum.width),
+        maximum.width,
+    );
+    let height = saved.height.clamp(
+        ((480.0 * scale).ceil() as u32).min(maximum.height),
+        maximum.height,
+    );
     Ok(Rect {
         x: (saved.x as i64).clamp(
             work.x as i64,
@@ -112,6 +127,43 @@ pub fn restore_bounds(saved: Rect, work: Rect, scale: f64, frame: Frame) -> Resu
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn startup_restoration_fits_small_high_dpi_display_without_relaxing_tiles() {
+        let work = Rect {
+            x: 0,
+            y: 0,
+            width: 1366,
+            height: 728,
+        };
+        let frame = Frame {
+            width: 24,
+            height: 58,
+        };
+        let restored = restore_bounds(
+            Rect {
+                x: 5000,
+                y: 5000,
+                width: 1440,
+                height: 900,
+            },
+            work,
+            1.5,
+            frame,
+        )
+        .expect("saved geometry must not prevent startup");
+        assert_eq!(
+            restored,
+            Rect {
+                x: 0,
+                y: 0,
+                width: 1342,
+                height: 670
+            }
+        );
+        assert!(tile_bounds(work, 1.5, frame, TileLayout::Full).is_err());
+        assert!(restore_bounds(restored, work, f64::NAN, frame).is_err());
+    }
+
     #[test]
     fn negative_monitor_left_half_accounts_for_frame_and_target_dpi() {
         let work = super::Rect {

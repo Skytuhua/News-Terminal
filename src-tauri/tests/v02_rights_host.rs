@@ -1,3 +1,5 @@
+mod common;
+use common::current_settings;
 use news_terminal_lib::{db::Database, Backend};
 use serde_json::{json, Value};
 
@@ -87,7 +89,7 @@ async fn actual_authorized_host_government_ai() {
     tokio::time::timeout(std::time::Duration::from_secs(180), async {
         let sources = ["nhc-atlantic", "fed-press_all", "fed-press_monetary"];
         let (_dir, host) = live_host(&sources);
-        host.execute(json!({"op":"local_ai_connect"})).await.unwrap();
+        host.execute(current_settings(&host, json!({"op":"local_ai_connect"}))).await.unwrap();
         let refreshed = host.execute(json!({"op":"refresh"})).await.unwrap();
         assert_eq!(refreshed["failed"], 0, "{refreshed}");
         let snapshot = host.execute(json!({"op":"snapshot"})).await.unwrap();

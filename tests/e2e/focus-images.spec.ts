@@ -11,7 +11,7 @@ for (const change of ['revoke', 'source', 'compact', 'profile', 'import', 'viewp
     });
     await page.getByRole('button', { name:'Enable automatic images' }).click();
     await expect.poll(() => page.evaluate(() => !!(window as any).__RELEASE_IMAGE__)).toBe(true);
-    if (change === 'source') await page.evaluate(async () => { await (window as any).__NEWS_TEST_DISPATCH__({op:'source_update',sourceId:'science',mediaAllowed:false}); });
+    if (change === 'source') await page.evaluate(async () => { const w = window as any; const s = await w.__NEWS_TEST_DISPATCH__({op:'snapshot',profileId:'default'}); await w.__NEWS_TEST_DISPATCH__({op:'source_update',sourceId:'science',mediaAllowed:false,replacementToken:s.replacementToken}); });
     if (change === 'revoke') await page.getByRole('button', { name:'Disable automatic images' }).click();
     if (change === 'compact') await page.getByRole('button', { name:'Compact', exact:true }).click();
     if (change === 'profile') await page.getByLabel('Reading profile', { exact:true }).selectOption('default');

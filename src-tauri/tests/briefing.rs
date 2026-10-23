@@ -121,6 +121,25 @@ fn grouping_does_not_hide_discussion_or_distinct_numeric_claims() {
 }
 
 #[test]
+fn grouping_preserves_no_evidence_and_positive_claim_headlines() {
+    use news_terminal_lib::briefing::{build, DayBounds};
+    let day = DayBounds {
+        date: "2026-09-23".into(),
+        start: 100,
+        end: 200,
+    };
+    let mut denied = article("denied", json!(130));
+    denied["title"] = json!("Court finds no evidence linking Acme executive to fraud");
+    let mut alleged = article("alleged", json!(130));
+    alleged["title"] = json!("Court finds evidence linking Acme executive to fraud");
+    let brief = build(&[denied, alleged], &json!({}), &day, 150);
+    assert_eq!(
+        sector(&brief, "science")["items"].as_array().unwrap().len(),
+        2
+    );
+}
+
+#[test]
 fn focused_sections_lead_briefing_without_losing_topic_detail() {
     use news_terminal_lib::briefing::{build, DayBounds};
     let day = DayBounds {

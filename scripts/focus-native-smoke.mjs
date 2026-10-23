@@ -1,3 +1,4 @@
+import { invokeNative } from './native-ipc.mjs';
 // Real Windows/WebView2 focus smoke. No fixture IPC and no production data.
 // Usage: node scripts/focus-native-smoke.mjs [--exe src-tauri/target/release/news-terminal.exe] [--prefix focus-native-smoke]
 import { chromium } from "@playwright/test";
@@ -65,7 +66,7 @@ function terminate() {
 }
 
 async function invoke(page, request) {
-  return page.evaluate(request => window.__TAURI_INTERNALS__.invoke("dispatch", { request }), request);
+  return invokeNative(page, request);
 }
 
 function cdpBrowserArgs(port) {

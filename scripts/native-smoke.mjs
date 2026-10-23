@@ -1,3 +1,4 @@
+import { invokeNative } from './native-ipc.mjs';
 // Real Windows/WebView2 smoke test. No fixture IPC, no production data directory.
 import { chromium } from '@playwright/test';
 import { spawn, execFileSync } from 'node:child_process';
@@ -49,7 +50,7 @@ async function launch() {
   return page;
 }
 async function invoke(page, request) {
-  return page.evaluate(request => window.__TAURI_INTERNALS__.invoke('dispatch', { request }), request);
+  return invokeNative(page, request);
 }
 function terminate() {
   if (app?.pid && app.exitCode === null) {

@@ -1,3 +1,5 @@
+mod common;
+use common::current_settings;
 use news_terminal_lib::{db::Database, Backend};
 use serde_json::{json, Value};
 
@@ -17,7 +19,7 @@ fn setup() -> (Backend, Value, String) {
 #[ignore = "Requires actual local Qwen on port 11434; synthetic public-domain inputs, not news"]
 async fn actual_local_qwen_combines_explicitly_authorized_synthetic_inputs() {
     let (host, _, date) = setup();
-    host.execute(json!({"op":"local_ai_connect"}))
+    host.execute(current_settings(&host, json!({"op":"local_ai_connect"})))
         .await
         .unwrap();
     let preview = host.execute(json!({"op":"sector_summary_preview","profileId":"default","date":date,"sectorId":"science"})).await.unwrap();
@@ -71,7 +73,7 @@ async fn actual_local_qwen_retained_government_inputs() {
         .iter()
         .all(|p| p["id"] == "ollama" || p["enabled"] != true || p["consented"] != true));
     let host = Backend::new(db);
-    host.execute(json!({"op":"local_ai_connect"}))
+    host.execute(current_settings(&host, json!({"op":"local_ai_connect"})))
         .await
         .unwrap();
     let date = &capture["preview"]["date"];
@@ -138,7 +140,7 @@ async fn actual_local_qwen_retained_government_inputs() {
 #[tokio::test]
 async fn sector_api_uses_existing_consent_aware_provider_transport() {
     let (host, _, date) = setup();
-    host.execute(json!({"op":"provider_save","provider":{"id":"ollama","kind":"ollama","name":"Invalid model test","model":"..","enabled":true,"consented":true}})).await.unwrap();
+    host.execute(current_settings(&host, json!({"op":"provider_save","provider":{"id":"ollama","kind":"ollama","name":"Invalid model test","model":"..","enabled":true,"consented":true}}))).await.unwrap();
     let preview = host.execute(json!({"op":"sector_summary_preview","profileId":"default","date":date,"sectorId":"science"})).await.unwrap();
     let error = host.execute(json!({"op":"sector_summarize","profileId":"default","date":date,"sectorId":"science","fingerprint":preview["fingerprint"],"requestId":"transport-test"})).await.unwrap_err();
     assert!(
@@ -171,9 +173,12 @@ async fn sector_preview_excludes_unauthorized_hidden_undated_wrong_day_and_disab
         host.execute(request.clone()).await.unwrap()["selectedCount"],
         1
     );
-    host.execute(json!({"op":"source_update","sourceId":source["id"],"enabled":false}))
-        .await
-        .unwrap();
+    host.execute(current_settings(
+        &host,
+        json!({"op":"source_update","sourceId":source["id"],"enabled":false}),
+    ))
+    .await
+    .unwrap();
     assert_eq!(
         host.execute(request.clone()).await.unwrap()["selectedCount"],
         0
@@ -207,7 +212,10 @@ async fn sector_preview_caps_displayed_representatives_and_invalidates_other_con
         .unwrap()
         .contains("22 retained"));
     let profile = host
-        .execute(json!({"op":"profile_create","name":"Other context"}))
+        .execute(current_settings(
+            &host,
+            json!({"op":"profile_create","name":"Other context"}),
+        ))
         .await
         .unwrap();
     for (field, value) in [

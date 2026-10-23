@@ -453,6 +453,17 @@ fn place(window: &WebviewWindow, saved: &Placement) -> Result<(), String> {
         target.scale_factor(),
         estimated,
     )?;
+    // A saved window must remain usable when a smaller display cannot fit the usual minimum.
+    window
+        .set_min_size(Some(PhysicalSize::new(
+            initial
+                .width
+                .min((640.0 * target.scale_factor()).ceil() as u32),
+            initial
+                .height
+                .min((480.0 * target.scale_factor()).ceil() as u32),
+        )))
+        .map_err(|_| "Could not fit the window minimum to the display")?;
     apply_rect(window, initial)?;
     let _ = window
         .inner_size()
@@ -463,6 +474,14 @@ fn place(window: &WebviewWindow, saved: &Placement) -> Result<(), String> {
         target.scale_factor(),
         frame(window)?,
     )?;
+    window
+        .set_min_size(Some(PhysicalSize::new(
+            rect.width
+                .min((640.0 * target.scale_factor()).ceil() as u32),
+            rect.height
+                .min((480.0 * target.scale_factor()).ceil() as u32),
+        )))
+        .map_err(|_| "Could not fit the window minimum to the display")?;
     apply_rect(window, rect)?;
     if saved.maximized {
         window.maximize().map_err(|_| "Could not maximize window")?;

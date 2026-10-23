@@ -1,3 +1,4 @@
+import { invokeNative } from './native-ipc.mjs';
 // Windows/WebView2 + real Rust host acceptance for the 0.5 features.
 // SYNTHETIC fixtures via the validated native import only.
 // node scripts/v05-native-smoke.mjs [--exe src-tauri/target/release/news-terminal.exe] [--prefix v05-native-review1]
@@ -52,8 +53,7 @@ async function until(fn, message = 'Condition did not settle', timeout = 30000) 
   while (Date.now() < end) { const v = await fn(); if (v) return v; await delay(150); }
   throw Error(message);
 }
-const invoke = (page, request) =>
-  page.evaluate((r) => window.__TAURI_INTERNALS__.invoke('dispatch', { request: r }), request);
+const invoke = invokeNative;
 const snapshot = (page = main) => invoke(page, { op: 'snapshot', profileId: 'default' });
 const rows = (page = main) => page.getByTestId('story-row');
 const state = (a) => ({ read: a.read, saved: a.saved, hidden: a.hidden });

@@ -150,12 +150,16 @@ export async function fixture(
     const liveStatus = () => ({ enabled: liveEnabled, state: liveEnabled ? "connected" : "off", lastEventAt: liveEnabled ? "2026-09-23T10:00:00Z" : null, lastItemAt: liveEnabled ? "2026-09-23T09:58:20Z" : null,
       message: "Fixture stream status", items: liveEnabled ? [{ id: "hn-fixture", title: "Fixture discussion about open science", url: "https://example.org/science", discussionUrl: "https://news.ycombinator.com/item?id=1", by: "fixture", publishedAt: "2026-09-23T09:50:00Z", receivedAt: "2026-09-23T09:58:20Z", score: 4 }, ...((window as any).__LIVE_ITEMS__ || [])] : [] });
     const imagePrefs: Record<string, any> = {};
+    let backupFile: {id: string; name: string; data: any; replacementToken: string} | undefined;
     (window as any).__TEST_CALLS__ = calls;
     (window as any).__TEST_PATCH__ = (patch: any) => Object.assign(s, patch);
     (window as any).__TEST_SNAPSHOT__ = (profileId?:string) => structuredClone(profileId ? byProfile[profileId] : s);
     (window as any).__NEWS_TEST_DISPATCH__ = async (r: any) => {
       calls.push({ ...r, apiKey: r.apiKey ? "[redacted]" : undefined });
       await (window as any).__TEST_BEFORE_DISPATCH__?.(r);
+      if (['profile_update', 'profile_reset', 'profile_create', 'watchlist_save', 'watchlist_delete',
+        'source_add', 'source_update', 'provider_save', 'local_ai_connect', 'backup_choose_file', 'backup_import_file'].includes(r.op) && r.replacementToken !== replacementToken)
+        throw new Error("Database replaced: reload before making a new change");
       if ((window as any).__FAIL_OP__ === r.op)
         throw new Error("Fixture service unavailable");
       if (r.op === "window_context")
@@ -472,8 +476,20 @@ export async function fixture(
           1,
         );
       if (r.op === "export") return JSON.stringify(s);
-      if (r.op === "import") {
-        s = JSON.parse(r.data);
+      if (r.op === "backup_export_file") {
+        (window as any).__TEST_EXPORTED_FILE__ = structuredClone(s);
+        return {saved: true, name: "news-terminal-backup.json"};
+      }
+      if (r.op === "backup_choose_file") {
+        const file = (window as any).__TEST_FILE_BACKUP__ || {name: "news-terminal-backup.json", data:s};
+        backupFile = {id:crypto.randomUUID(), name:file.name, data:structuredClone(file.data), replacementToken};
+        return {id:backupFile.id, name:backupFile.name};
+      }
+      if (r.op === "import" || r.op === "backup_import_file") {
+        if (r.op === "backup_import_file" && (!r.confirmed || !backupFile || r.fileId !== backupFile.id || backupFile.replacementToken !== replacementToken))
+          throw new Error("Choose a backup file and confirm replacement");
+        s = r.op === "import" ? JSON.parse(r.data) : structuredClone(backupFile!.data);
+        backupFile = undefined;
         delete s.replacementToken;
         replacementToken = crypto.randomUUID();
         for (const id of Object.keys(byProfile)) delete byProfile[id];

@@ -195,9 +195,11 @@ fn missing_permission_and_metadata_storage_drop_media_and_old_backups_still_rest
                 d["data"].as_object_mut().unwrap().remove("mediaAllowed");
             }
         }
-        let old = old.to_string();
-        db.import(&old).unwrap();
-        assert_eq!(db.export().unwrap(), old);
+        db.import(&old.to_string()).unwrap();
+        assert_eq!(
+            serde_json::from_str::<Value>(&db.export().unwrap()).unwrap(),
+            old
+        );
     }
 }
 

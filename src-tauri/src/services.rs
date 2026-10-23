@@ -947,6 +947,7 @@ pub(crate) fn parse_feed(body: &[u8], source: &Value) -> Result<Value, String> {
         .build()
         .parse(body)
         .map_err(|_| "Invalid RSS or Atom feed")?;
+    let feed_excluded = rights::feed_excluded(body);
     let mut articles = Vec::new();
     for entry in feed.entries.into_iter().take(500) {
         let Some(link) = entry
@@ -996,13 +997,7 @@ pub(crate) fn parse_feed(body: &[u8], source: &Value) -> Result<Value, String> {
                 article["media"] = json!(media);
             }
         }
-        let mut proof = rights::classify(
-            source,
-            &entry,
-            &link.href,
-            &article,
-            rights::feed_excluded(body),
-        );
+        let mut proof = rights::classify(source, &entry, &link.href, &article, feed_excluded);
         rights::apply_media_policy(source, &mut article, &proof);
         // The FEDS Notes review covers one item's original introduction only.
         // Keep other notes discoverable as metadata, not unreviewed excerpts.

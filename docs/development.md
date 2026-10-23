@@ -159,6 +159,27 @@ private. Import validates before replacing data and requires confirmation;
 AI consent is disabled on import. Native window placement is a separate
 local file, outside the JSON backup.
 
+Native file backups stream the existing version-1 JSON format directly between
+disk and the database. Imports accept any top-level key order and stage records
+in a temporary local SQLite file before validation and one replacement
+transaction. No aggregate file-size, article-count or state-count limit is
+imposed: a refresh may be interrupted before cache retention. SQLite checks
+article identities and state references through its indexes, without retaining
+all article IDs in memory. The bounds are 5,000 documents, 1,244,256
+alert receipts (32 profiles, three deliveries per ten minutes, 90 days including
+both endpoints), and 32 MiB per JSON record. The legacy string IPC operations
+keep their 32 MiB limit. Native file contents do not cross the renderer IPC.
+Both paths share record validation and reject duplicate keys, unknown fields,
+invalid references and trailing data; import never restores AI/media authority
+or credentials. Excerpt history is retained subject to source storage policy.
+The backup validator accepts up to 15,000 distinct saved IDs from legacy files.
+New UI saves keep the existing 10,000 unique-story cap; larger imports cannot repeatedly
+increase the legacy saved allowance.
+
+A persistent sibling `.lock` file holds an operating-system exclusive lock for
+each open database host. A second host fails before opening SQLite; the lock is
+released when the owning database closes. In-memory fixtures remain independent.
+
 Defaults are bounded to 32 profiles, 300 sources, 100 watchlists per profile,
 50 tabs per profile, 32 detached windows, 5,000 recent cached articles and
 up to 10,000 saved stories. Unsaved retention is 30 days; revisions retain

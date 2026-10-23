@@ -1,3 +1,4 @@
+import { invokeNative } from './native-ipc.mjs';
 // Actual Windows/WebView2 reader acceptance. No fixture, synthetic news, remote-src,
 // IPC mock, DOM replacement, app source edit, or production data directory.
 // Build embedded CURRENT dist (do not run while another worker is editing dist):
@@ -32,7 +33,7 @@ let app, browser, page, snapshot;
 const delay = ms => new Promise(r => setTimeout(r, ms));
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const persist = () => writeFileSync(evidencePath, JSON.stringify(evidence, null, 2));
-const invoke = request => page.evaluate(request => window.__TAURI_INTERNALS__.invoke('dispatch', { request }), request);
+const invoke = request => invokeNative(page, request);
 async function until(fn, timeout = 30000, interval = 250) {
   const end = Date.now() + timeout;
   let value;

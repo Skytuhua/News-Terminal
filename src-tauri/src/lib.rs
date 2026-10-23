@@ -1,3 +1,4 @@
+mod backup_files;
 pub mod benchmarks;
 pub mod briefing;
 pub mod db;
@@ -105,6 +106,7 @@ pub struct Backend {
     live: Arc<live::LiveDesk>,
     metadata: [models::MetadataCache; 4],
     database: Mutex<db::Database>,
+    backup_file: Mutex<Option<backup_files::Selected>>,
     cancellations: Mutex<HashMap<String, Arc<AtomicBool>>>,
     provider_generation: AtomicU64,
     refreshing: AtomicBool,
@@ -148,6 +150,7 @@ impl Backend {
     pub fn new(database: db::Database) -> Self {
         Self {
             database: Mutex::new(database),
+            backup_file: Mutex::new(None),
             live: Arc::new(live::LiveDesk::new()),
             metadata: std::array::from_fn(|_| models::MetadataCache::default()),
             cancellations: Mutex::new(HashMap::new()),
@@ -192,6 +195,41 @@ impl Backend {
         self.database
             .lock()
             .map_err(|_| "Local database lock failed; restart the application".into())
+    }
+    fn settings_request(&self, request: &Value) -> Result<Value, String> {
+        let mut database = self.database()?;
+        database.require_replacement(request)?;
+        database.request(request, chrono::Utc::now().timestamp())
+    }
+    fn replace_database<T>(
+        &self,
+        replace: impl FnOnce(&mut db::Database) -> Result<T, String>,
+    ) -> Result<T, String> {
+        self.refreshing
+            .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+            .map_err(|_| {
+                "Cannot import while a refresh or import is running; retry after it completes"
+            })?;
+        let _guard = RefreshGuard(&self.refreshing);
+        let _active = self.cancel_summaries()?;
+        let mut policy = self
+            .source_policy
+            .lock()
+            .map_err(|_| "Source policy lock failed")?;
+        let result = replace(&mut *self.database()?)?;
+        policy.import_generation += 1;
+        policy.generations.clear();
+        for job in policy.media_jobs.values() {
+            if let Some(waker) = &job.waker {
+                waker.wake_by_ref();
+            }
+        }
+        *self
+            .backup_file
+            .lock()
+            .map_err(|_| "Backup selection is unavailable")? = None;
+        self.provider_generation.fetch_add(1, Ordering::AcqRel);
+        Ok(result)
     }
     // Lock order: summary gate -> source policy gate -> database (skip unused
     // gates). Never retain a SQLite or policy mutex guard across an await.
@@ -275,6 +313,9 @@ impl Backend {
         } else {
             RequestBudget(34 * 1024 * 1024).check(&request)?;
         }
+        if settings_operation(op) {
+            self.database()?.require_replacement(&request)?;
+        }
         match op {
             "sector_summarize" => {
                 self.sector_summarize_using(&request, |selection, cancel| async move {
@@ -347,7 +388,7 @@ impl Backend {
                 .await
             }
             "local_ai_connect" => {
-                self.local_ai_connect_using(async {
+                self.local_ai_connect_using(&request, async {
                     // Fixed loopback only: no credentials, cloud endpoint or renderer URL.
                     let client = reqwest::Client::builder()
                         .no_proxy()
@@ -457,30 +498,9 @@ impl Backend {
                 }
                 Ok(Value::Null)
             }
-            "import" => {
-                // Atomically exclude both existing refresh jobs and new registrations
-                // until the import transaction completes (including error paths).
-                self.refreshing.compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
-                    .map_err(|_| "Cannot import while a refresh or import is running; retry after it completes")?;
-                let _guard = RefreshGuard(&self.refreshing);
-                let _active = self.cancel_summaries()?;
-                let mut policy = self
-                    .source_policy
-                    .lock()
-                    .map_err(|_| "Source policy lock failed")?;
-                let result = self
-                    .database()?
-                    .request(&request, chrono::Utc::now().timestamp())?;
-                policy.import_generation += 1;
-                policy.generations.clear();
-                for job in policy.media_jobs.values() {
-                    if let Some(waker) = &job.waker {
-                        waker.wake_by_ref();
-                    }
-                }
-                self.provider_generation.fetch_add(1, Ordering::AcqRel);
-                Ok(result)
-            }
+            "import" => self.replace_database(|database| {
+                database.request(&request, chrono::Utc::now().timestamp())
+            }),
             "source_update" => {
                 let id = db::text(&request, "sourceId", 200)?;
                 let _active = self.cancel_summaries()?;
@@ -488,9 +508,7 @@ impl Backend {
                     .source_policy
                     .lock()
                     .map_err(|_| "Source policy lock failed")?;
-                let result = self
-                    .database()?
-                    .request(&request, chrono::Utc::now().timestamp())?;
+                let result = self.settings_request(&request)?;
                 *policy.generations.entry(id.to_owned()).or_default() += 1;
                 for job in policy.media_jobs.values().filter(|job| job.source_id == id) {
                     if let Some(waker) = &job.waker {
@@ -502,15 +520,14 @@ impl Backend {
             "provider_save" => {
                 db::validate_provider(&request["provider"])?;
                 let _active = self.cancel_summaries()?;
+                self.database()?.require_replacement(&request)?;
                 if let Some(key) = request.get("apiKey") {
                     let key = key.as_str().ok_or("Invalid API key")?;
                     if !key.is_empty() {
                         services::save_key(db::text(&request["provider"], "id", 20)?, key)?;
                     }
                 }
-                let result = self
-                    .database()?
-                    .request(&request, chrono::Utc::now().timestamp())?;
+                let result = self.settings_request(&request)?;
                 self.provider_generation.fetch_add(1, Ordering::AcqRel);
                 Ok(result)
             }
@@ -533,8 +550,7 @@ impl Backend {
             }
             "group_split" | "profile_update" | "profile_reset" => {
                 let _active = self.cancel_summaries()?;
-                self.database()?
-                    .request(&request, chrono::Utc::now().timestamp())
+                self.settings_request(&request)
             }
             "snapshot" => {
                 let mut snapshot = self
@@ -548,6 +564,7 @@ impl Backend {
                 }
                 Ok(snapshot)
             }
+            _ if settings_operation(op) => self.settings_request(&request),
             _ => self
                 .database()?
                 .request(&request, chrono::Utc::now().timestamp()),
@@ -565,7 +582,7 @@ impl Backend {
         let id = db::text(request, "requestId", 200)?;
         let fingerprint = db::text(request, "fingerprint", 64)?;
         let cancel = Arc::new(AtomicBool::new(false));
-        let selection = {
+        let (selection, generation) = {
             let mut active = self
                 .cancellations
                 .lock()
@@ -573,11 +590,9 @@ impl Backend {
             if active.len() >= 4 || active.contains_key(id) {
                 return Err("Too many summaries or duplicate request ID; cancel and retry".into());
             }
-            let selection = sector_summary::select(
-                &mut *self.database()?,
-                request,
-                chrono::Utc::now().timestamp(),
-            )?;
+            let mut database = self.database()?;
+            let selection =
+                sector_summary::select(&mut database, request, chrono::Utc::now().timestamp())?;
             if selection.preview["fingerprint"] != fingerprint {
                 return Err("Sector inputs changed; reload the preview".into());
             }
@@ -585,7 +600,7 @@ impl Backend {
                 return Err("At least two eligible stories are required".into());
             }
             active.insert(id.into(), cancel.clone());
-            selection
+            (selection, database.input_generation())
         };
         let _registration = SummaryRegistration {
             active: &self.cancellations,
@@ -610,15 +625,22 @@ impl Backend {
                         return std::task::Poll::Ready(Err("Source policy lock failed".into()))
                     }
                 };
-                if let Err(error) = self.sector_current(request, &cancel) {
-                    return std::task::Poll::Ready(Err(error));
+                if cancel.load(Ordering::Acquire) {
+                    return std::task::Poll::Ready(Err("Summary cancelled".into()));
+                }
+                match self.database().map(|database| database.input_generation()) {
+                    Ok(current) if current == generation => {}
+                    Ok(_) => {
+                        return std::task::Poll::Ready(Err(
+                            "Sector inputs changed; reload the preview".into(),
+                        ))
+                    }
+                    Err(error) => return std::task::Poll::Ready(Err(error)),
                 }
                 // Wake even when a provider is idle so membership changes promptly abort IO.
                 let _ = heartbeat.poll_tick(cx);
                 match future.as_mut().poll(cx) {
-                    std::task::Poll::Ready(result) => {
-                        std::task::Poll::Ready(self.sector_current(request, &cancel).and(result))
-                    }
+                    std::task::Poll::Ready(result) => std::task::Poll::Ready(result),
                     std::task::Poll::Pending => std::task::Poll::Pending,
                 }
             })
@@ -781,7 +803,7 @@ impl Backend {
             .authorize_media(&registration.article, &registration.item)?;
         result
     }
-    async fn local_ai_connect_using<F>(&self, tags: F) -> Result<Value, String>
+    async fn local_ai_connect_using<F>(&self, request: &Value, tags: F) -> Result<Value, String>
     where
         F: Future<Output = Result<Value, String>>,
     {
@@ -813,7 +835,9 @@ impl Backend {
         for cancel in active.values() {
             cancel.store(true, Ordering::Release);
         }
-        self.database()?.request(
+        let mut database = self.database()?;
+        database.require_replacement(request)?;
+        database.request(
             &json!({"op":"provider_save","provider":provider}),
             chrono::Utc::now().timestamp(),
         )?;
@@ -922,6 +946,20 @@ impl Backend {
         Ok(json!({"updated":updated,"failed":failed}))
     }
 }
+fn settings_operation(op: &str) -> bool {
+    matches!(
+        op,
+        "profile_update"
+            | "profile_reset"
+            | "profile_create"
+            | "watchlist_save"
+            | "watchlist_delete"
+            | "source_add"
+            | "source_update"
+            | "provider_save"
+            | "local_ai_connect"
+    )
+}
 fn changed(op: &str) -> bool {
     ![
         "snapshot",
@@ -940,6 +978,8 @@ fn changed(op: &str) -> bool {
         "window_monitors",
         "search",
         "export",
+        "backup_export_file",
+        "backup_choose_file",
         "summarize",
         "summary_cancel",
         "window_context",
@@ -1044,8 +1084,15 @@ async fn dispatch(
     if let Some(result) = native::handle(&app, &window, &request) {
         return result;
     }
-    let result = state.execute(request).await?;
-    if op == "import" {
+    let result = if matches!(
+        op.as_str(),
+        "backup_choose_file" | "backup_export_file" | "backup_import_file"
+    ) {
+        backup_files::handle(app.clone(), window, request).await?
+    } else {
+        state.execute(request).await?
+    };
+    if matches!(op.as_str(), "import" | "backup_import_file") {
         // Replacement committed even if native layout reconciliation fails.
         let reconciled = native::reconcile(&app);
         let _ = app.emit("database-replaced", ());
@@ -1066,6 +1113,7 @@ pub fn run() {
     tauri::Builder::default()
       .plugin(tauri_plugin_opener::init())
       .plugin(tauri_plugin_notification::init())
+      .plugin(tauri_plugin_dialog::init())
       .setup(|app| {
           create_main_window(app.handle()).map_err(std::io::Error::other)?;
           let dir=std::env::var_os("NEWS_TERMINAL_DATA_DIR").map(PathBuf::from).unwrap_or(app.path().app_data_dir()?);

@@ -128,27 +128,27 @@
   "generator": "scripts/license-notices.py",
   "target_for_scope_labels": "x86_64-pc-windows-msvc",
   "input_sha256": {
-    "package.json": "fb3dc0173940ba1985e963564983bb31c68dd9928df58b489a5a9fb6f4122b88",
-    "package-lock.json": "8bf3489247561d75c2ddececeb087afa20b71474cfd6254844abee6e36a35aa6",
-    "src-tauri/Cargo.toml": "07381f9d85832832d077ef6662148a53969db4bc850d377f435b49a18c5e6326",
-    "src-tauri/Cargo.lock": "196929a4006a666bd6a13dc9acd2f3ea34fc7d1ecb717185894d87896e8328b7"
+    "package.json": "5db60dd72398c6072576b4ca4f00ffde916fb90107b04919436308f9f964e2a0",
+    "package-lock.json": "13fd333cf0a30e94640b273b69f8d99ce7e84d602332e3cfed00cbac9be969b6",
+    "src-tauri/Cargo.toml": "b664faf16b24c9549e161da4ffa3d32262485cc44e3a94548e5cd607ab9c571f",
+    "src-tauri/Cargo.lock": "2e3c2ecd233fbf8b3b38f330ca9ef647a4932d782fbe048aed33100c9a5ef343"
   },
   "counts": {
-    "packages": 555,
-    "cargo_packages": 549,
+    "packages": 558,
+    "cargo_packages": 552,
     "npm_packages": 6,
     "scopes": {
       "build-tool-emitted-helper-supplement": 1,
       "other-target-or-resolved-optional-supplement": 193,
       "production-lock-entry": 5,
-      "windows-build-or-dev-supplement": 23,
-      "windows-normal-dependency-closure": 333
+      "windows-build-or-dev-supplement": 22,
+      "windows-normal-dependency-closure": 337
     },
     "packages_without_named_license_texts": 30,
     "packages_without_license_expression": 0,
-    "license_or_notice_file_references": 978,
+    "license_or_notice_file_references": 985,
     "evidence_file_references": 49,
-    "unique_text_blobs": 349,
+    "unique_text_blobs": 350,
     "supplemental_artifacts": 34,
     "mpl_source_archives": 5,
     "windows_applicable_missing_license_issues": 0,
@@ -12159,6 +12159,38 @@
     },
     {
       "ecosystem": "cargo",
+      "name": "rfd",
+      "version": "0.16.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "f4fe518b6db89699d59862e4d1e3a0226316090f4e4ec09f7dd686be25634c7c",
+      "license_expression": "MIT",
+      "license_file": null,
+      "repository": "https://github.com/PolyMeilex/rfd",
+      "homepage": null,
+      "authors_from_metadata": [
+        "Poly <marynczak.bartlomiej@gmail.com>"
+      ],
+      "upstream_vcs": {
+        "git": {
+          "sha1": "a7116955d61dad7e7ebd7a2e870ab38c2abe5223"
+        },
+        "path_in_vcs": ""
+      },
+      "source_archive": "https://crates.io/api/v1/crates/rfd/0.16.1/download",
+      "scope": "windows-normal-dependency-closure",
+      "texts": [
+        {
+          "source_path": "LICENSE",
+          "path": "texts/65fc947f4bac882a2cd104ef73c246b1b037059df9f2b3a58b7f77f0b9e56071.txt",
+          "sha256": "65fc947f4bac882a2cd104ef73c246b1b037059df9f2b3a58b7f77f0b9e56071",
+          "bytes": 1079,
+          "kind": "upstream-license-or-notice"
+        }
+      ],
+      "evidence": []
+    },
+    {
+      "ecosystem": "cargo",
       "name": "ring",
       "version": "0.17.14",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -14693,6 +14725,98 @@
     },
     {
       "ecosystem": "cargo",
+      "name": "tauri-plugin-dialog",
+      "version": "2.7.3",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "61854a36651aa48381e5e209f69a01273b77f3f9f91f0c430b1b98d33bd47229",
+      "license_expression": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "repository": "https://github.com/tauri-apps/plugins-workspace",
+      "homepage": null,
+      "authors_from_metadata": [
+        "Tauri Programme within The Commons Conservancy"
+      ],
+      "upstream_vcs": {
+        "git": {
+          "sha1": "6aa2854f314481a459be1189b02c65a2450789ab"
+        },
+        "path_in_vcs": "plugins/dialog"
+      },
+      "source_archive": "https://crates.io/api/v1/crates/tauri-plugin-dialog/2.7.3/download",
+      "scope": "windows-normal-dependency-closure",
+      "texts": [
+        {
+          "source_path": "LICENSE.spdx",
+          "path": "texts/eb8a6c84630461b352badcab1dbe5d0168c56d377358b2b8c86b51003272d5ef.txt",
+          "sha256": "eb8a6c84630461b352badcab1dbe5d0168c56d377358b2b8c86b51003272d5ef",
+          "bytes": 888,
+          "kind": "upstream-license-or-notice"
+        },
+        {
+          "source_path": "LICENSE_APACHE-2.0",
+          "path": "texts/0cec06e0e55fbc3dc5cee4fca9b607f66cb8f4e4dbcf3b3c013594dd156732e9.txt",
+          "sha256": "0cec06e0e55fbc3dc5cee4fca9b607f66cb8f4e4dbcf3b3c013594dd156732e9",
+          "bytes": 10173,
+          "kind": "upstream-license-or-notice"
+        },
+        {
+          "source_path": "LICENSE_MIT",
+          "path": "texts/89ff9689dcf9dd53968785d05a26f7898bb169dbfcada8d032b3e68cf0d55607.txt",
+          "sha256": "89ff9689dcf9dd53968785d05a26f7898bb169dbfcada8d032b3e68cf0d55607",
+          "bytes": 1089,
+          "kind": "upstream-license-or-notice"
+        }
+      ],
+      "evidence": []
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "tauri-plugin-fs",
+      "version": "2.5.2",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "de22eef34fd78c0da050e748710edd50bf127e651d02ea1b2bfada1523cc5c51",
+      "license_expression": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "repository": "https://github.com/tauri-apps/plugins-workspace",
+      "homepage": null,
+      "authors_from_metadata": [
+        "Tauri Programme within The Commons Conservancy"
+      ],
+      "upstream_vcs": {
+        "git": {
+          "sha1": "6aa2854f314481a459be1189b02c65a2450789ab"
+        },
+        "path_in_vcs": "plugins/fs"
+      },
+      "source_archive": "https://crates.io/api/v1/crates/tauri-plugin-fs/2.5.2/download",
+      "scope": "windows-normal-dependency-closure",
+      "texts": [
+        {
+          "source_path": "LICENSE.spdx",
+          "path": "texts/eb8a6c84630461b352badcab1dbe5d0168c56d377358b2b8c86b51003272d5ef.txt",
+          "sha256": "eb8a6c84630461b352badcab1dbe5d0168c56d377358b2b8c86b51003272d5ef",
+          "bytes": 888,
+          "kind": "upstream-license-or-notice"
+        },
+        {
+          "source_path": "LICENSE_APACHE-2.0",
+          "path": "texts/0cec06e0e55fbc3dc5cee4fca9b607f66cb8f4e4dbcf3b3c013594dd156732e9.txt",
+          "sha256": "0cec06e0e55fbc3dc5cee4fca9b607f66cb8f4e4dbcf3b3c013594dd156732e9",
+          "bytes": 10173,
+          "kind": "upstream-license-or-notice"
+        },
+        {
+          "source_path": "LICENSE_MIT",
+          "path": "texts/89ff9689dcf9dd53968785d05a26f7898bb169dbfcada8d032b3e68cf0d55607.txt",
+          "sha256": "89ff9689dcf9dd53968785d05a26f7898bb169dbfcada8d032b3e68cf0d55607",
+          "bytes": 1089,
+          "kind": "upstream-license-or-notice"
+        }
+      ],
+      "evidence": []
+    },
+    {
+      "ecosystem": "cargo",
       "name": "tauri-plugin-notification",
       "version": "2.4.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -15004,7 +15128,7 @@
         "path_in_vcs": ""
       },
       "source_archive": "https://crates.io/api/v1/crates/tempfile/3.27.0/download",
-      "scope": "windows-build-or-dev-supplement",
+      "scope": "windows-normal-dependency-closure",
       "texts": [
         {
           "source_path": "LICENSE-APACHE",
@@ -21248,10 +21372,10 @@
     {
       "ecosystem": "npm",
       "name": "vite",
-      "version": "6.4.3",
+      "version": "6.4.5",
       "lock_path": "node_modules/vite",
-      "source": "https://registry.npmjs.org/vite/-/vite-6.4.3.tgz",
-      "integrity": "sha512-NTKlcQjlAK7MlQoyb6LgaqHc8sso/pVyUJYWMws3jg21uTJw/LddqIFPcPqP6PzpgbIcZyKI85sFE4HBrQDA8A==",
+      "source": "https://registry.npmjs.org/vite/-/vite-6.4.5.tgz",
+      "integrity": "sha512-4enwjFfi4IwtEh0w+jPzpLVOFQiPHmmzPxcHXQOyEur47o6u0jE573DmGpjA+7irXoMLYRZD5ZaFUEneS3abPg==",
       "license_expression": "MIT",
       "repository": {
         "type": "git",
@@ -21786,37 +21910,37 @@
     },
     {
       "lock_path": "node_modules/@vitest/expect",
-      "version": "4.1.11",
+      "version": "4.1.12",
       "reason": "dev-only lock entry, not a production dependency"
     },
     {
       "lock_path": "node_modules/@vitest/mocker",
-      "version": "4.1.11",
+      "version": "4.1.12",
       "reason": "dev-only lock entry, not a production dependency"
     },
     {
       "lock_path": "node_modules/@vitest/pretty-format",
-      "version": "4.1.11",
+      "version": "4.1.12",
       "reason": "dev-only lock entry, not a production dependency"
     },
     {
       "lock_path": "node_modules/@vitest/runner",
-      "version": "4.1.11",
+      "version": "4.1.12",
       "reason": "dev-only lock entry, not a production dependency"
     },
     {
       "lock_path": "node_modules/@vitest/snapshot",
-      "version": "4.1.11",
+      "version": "4.1.12",
       "reason": "dev-only lock entry, not a production dependency"
     },
     {
       "lock_path": "node_modules/@vitest/spy",
-      "version": "4.1.11",
+      "version": "4.1.12",
       "reason": "dev-only lock entry, not a production dependency"
     },
     {
       "lock_path": "node_modules/@vitest/utils",
-      "version": "4.1.11",
+      "version": "4.1.12",
       "reason": "dev-only lock entry, not a production dependency"
     },
     {
@@ -21841,7 +21965,7 @@
     },
     {
       "lock_path": "node_modules/chai",
-      "version": "6.2.2",
+      "version": "6.3.0",
       "reason": "dev-only lock entry, not a production dependency"
     },
     {
@@ -22031,7 +22155,7 @@
     },
     {
       "lock_path": "node_modules/tinyrainbow",
-      "version": "3.1.1",
+      "version": "3.2.0",
       "reason": "dev-only lock entry, not a production dependency"
     },
     {
@@ -22051,7 +22175,7 @@
     },
     {
       "lock_path": "node_modules/vitest",
-      "version": "4.1.11",
+      "version": "4.1.12",
       "reason": "dev-only lock entry, not a production dependency"
     },
     {
