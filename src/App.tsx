@@ -254,7 +254,7 @@ export default function App() {
     authoritativeSnapshot.current = undefined;
     contextAdopted.current = false;
     setWorkspaceInvalid(true);
-    // Keep the settings dialog mounted, but remove every old reading surface.
+    // Keep the import status dialog mounted while disabling its obsolete drafts.
     setData(current => current && {...current, articles: [], workspace: {...current.workspace, tabs: []}});
     setSelectedId(undefined);
     setResults(undefined);
@@ -265,7 +265,8 @@ export default function App() {
     setError("");
     setNotice("");
   }
-  async function importBackup(text: string) {
+  async function importBackup(text: string, fileId?: string) {
+    const replacementToken = dataRef.current?.replacementToken;
     importing.current = true;
     const previousQueue = queue.current;
     invalidateReplacement();
@@ -273,7 +274,9 @@ export default function App() {
       // Drain in-flight saves before replacing the database; queued old intents
       // check their generation and cannot write into the restored workspace.
       await previousQueue;
-      try { await dispatch({ op: "import", data: text }); }
+      try { await dispatch(fileId
+        ? { op: "backup_import_file", fileId, confirmed: true, replacementToken }
+        : { op: "import", data: text }); }
       catch (error) {
         // Validation can fail without replacing anything; recover authoritative UI.
         await load(true);
@@ -590,18 +593,31 @@ export default function App() {
     () => pageRows.filter(a => triageIds.has(a.id)).slice(0, 200),
     [pageRows, triageIds],
   );
-  const applyTriage = (patch: { read?: boolean; saved?: boolean; hidden?: boolean }, verb: string) => {
+  const applyTriage = async (patch: { read?: boolean; saved?: boolean; hidden?: boolean }, verb: string) => {
     if (!triageArticles.length) return;
+    const target = { profileId, generation: workspaceGeneration.current };
     const scope = triageScope.current;
     const submitted = new Set(triageArticles.map(a => a.id));
     const items = triageArticles.map(a => ({ articleId: a.id, ...patch }));
-    void action(
+    let confirmed = false;
+    await action(
       { op: "article_state_many", profileId, items },
       `${triageArticles.length} ${verb}`,
       () => {
+        confirmed = true;
         if (triageScope.current === scope) setTriage(current => current.filter(id => !submitted.has(id)));
+        if (patch.hidden && profileRef.current === target.profileId && !switchingProfile.current)
+          setSelectedId(current => current && submitted.has(current) ? undefined : current);
       },
     );
+    if (confirmed && patch.hidden && target.generation === workspaceGeneration.current &&
+        profileRef.current === target.profileId && !switchingProfile.current) {
+      await workspaceIntent(w => ({
+        ...w,
+        tabs: w.tabs.map(tab => tab.selectedId && submitted.has(tab.selectedId)
+          ? { ...tab, selectedId: undefined } : tab),
+      }), target.profileId);
+    }
   };
   function choosePage(value: number) { pageFromControl.current = true; setPage(value); }
   useEffect(() => { setPage(0); }, [profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, readingStatus]);
@@ -618,9 +634,7 @@ export default function App() {
     document.querySelector(`[data-article-id="${CSS.escape(selectedId || '')}"]`)
       ?.scrollIntoView({ block: "nearest", behavior: "instant" });
   }, [selectedId, currentPage]);
-  const selected = reportView ? undefined : (
-    data?.articles.find((a) => a.id === selectedId) ||
-    results?.find((a) => a.id === selectedId));
+  const selected = reportView ? undefined : data?.articles.find((a) => a.id === selectedId && !a.hidden);
   const activeTabIdRef = useRef(active?.id);
   activeTabIdRef.current = active?.id;
   const select = useCallback((a: Article) => {
@@ -1502,6 +1516,9 @@ export default function App() {
           close={() => setPanel(undefined)}
           reload={() => load(true, true)}
           importBackup={importBackup}
+          disabled={workspaceInvalid || profilePending || importing.current}
+          isCurrent={() => !importing.current && !switchingProfile.current &&
+            dataRef.current?.replacementToken === data.replacementToken}
         />
       )}
     </div>

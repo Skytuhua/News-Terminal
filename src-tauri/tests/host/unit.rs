@@ -1,5 +1,47 @@
 use super::*;
 
+fn current_settings(host: &Backend, mut request: Value) -> Value {
+    if request.get("replacementToken").is_none() {
+        request["replacementToken"] = host
+            .database()
+            .unwrap()
+            .request(&json!({"op":"workspace_get","profileId":"default"}), 0)
+            .unwrap()["replacementToken"]
+            .clone();
+    }
+    request
+}
+
+#[tokio::test]
+async fn settings_reject_missing_and_replaced_tokens_before_writing() {
+    let host = Backend::new(db::Database::memory().unwrap());
+    let token = host.execute(json!({"op":"snapshot"})).await.unwrap()["replacementToken"].clone();
+    let request = json!({"op":"profile_update","profileId":"default","preferences":{"keywords":["old draft"]}});
+    assert!(
+        host.execute(request.clone()).await.is_err(),
+        "renderer settings writes require a token"
+    );
+    let backup = host.database().unwrap().export().unwrap();
+    host.execute(json!({"op":"import","data":backup}))
+        .await
+        .unwrap();
+    let mut stale = request.clone();
+    stale["replacementToken"] = token;
+    assert!(
+        host.execute(stale).await.is_err(),
+        "old settings must not overwrite a replacement database"
+    );
+    let current = host.execute(json!({"op":"snapshot"})).await.unwrap();
+    assert_eq!(current["profile"]["preferences"]["keywords"], json!([]));
+    let mut fresh = request;
+    fresh["replacementToken"] = current["replacementToken"].clone();
+    host.execute(fresh).await.unwrap();
+    assert_eq!(
+        host.execute(json!({"op":"snapshot"})).await.unwrap()["profile"]["preferences"]["keywords"],
+        json!(["old draft"])
+    );
+}
+
 #[test]
 fn hidden_stories_is_read_only_for_change_events() {
     assert!(!changed("hidden_stories"));
@@ -215,9 +257,12 @@ async fn media_revoked_before_first_poll_never_starts_loader() {
         );
         registration
     };
-    host.execute(json!({"op":"source_update","sourceId":source_id,"mediaAllowed":false}))
-        .await
-        .unwrap();
+    host.execute(current_settings(
+        &host,
+        json!({"op":"source_update","sourceId":source_id,"mediaAllowed":false}),
+    ))
+    .await
+    .unwrap();
     let started = AtomicBool::new(false);
     let result = host
         .run_media(&registration, async {
@@ -269,9 +314,12 @@ async fn media_policy_change(import: bool) {
             .await
             .unwrap();
     } else {
-        host.execute(json!({"op":"source_update","sourceId":sid,"mediaAllowed":false}))
-            .await
-            .unwrap();
+        host.execute(current_settings(
+            &host,
+            json!({"op":"source_update","sourceId":sid,"mediaAllowed":false}),
+        ))
+        .await
+        .unwrap();
         assert!(host
             .database()
             .unwrap()
@@ -431,7 +479,8 @@ async fn delayed_local_ai_connection(import: bool) {
     let host = Backend::new(db::Database::memory().unwrap());
     let backup = host.database().unwrap().export().unwrap();
     let (release, wait) = tokio::sync::oneshot::channel::<()>();
-    let mut connect = Box::pin(host.local_ai_connect_using(async {
+    let connect_request = current_settings(&host, json!({"op":"local_ai_connect"}));
+    let mut connect = Box::pin(host.local_ai_connect_using(&connect_request, async {
         wait.await.unwrap();
         Ok(json!({"models":[{"name":"qwen3:4b-instruct-2507-q4_K_M"}]}))
     }));
@@ -441,7 +490,7 @@ async fn delayed_local_ai_connection(import: bool) {
             .await
             .unwrap();
     } else {
-        host.execute(json!({"op":"provider_save","provider":{"id":"ollama","kind":"ollama","name":"New choice","model":"other-model","enabled":false,"consented":false}})).await.unwrap();
+        host.execute(current_settings(&host, json!({"op":"provider_save","provider":{"id":"ollama","kind":"ollama","name":"New choice","model":"other-model","enabled":false,"consented":false}}))).await.unwrap();
     }
     release.send(()).unwrap();
     let result = connect.await;
@@ -501,14 +550,20 @@ async fn disabled_queued_refresh_never_starts_or_ingests() {
     assert!(futures_util::poll!(&mut refresh).is_pending());
     assert_eq!(started.lock().unwrap().len(), 4);
     for sid in [&queued, &inflight] {
-        host.execute(json!({"op":"source_update","sourceId":sid,"enabled":false}))
-            .await
-            .unwrap();
-    }
-    // Re-enable an inflight source: a pre-disable result must still be stale.
-    host.execute(json!({"op":"source_update","sourceId":inflight,"enabled":true}))
+        host.execute(current_settings(
+            &host,
+            json!({"op":"source_update","sourceId":sid,"enabled":false}),
+        ))
         .await
         .unwrap();
+    }
+    // Re-enable an inflight source: a pre-disable result must still be stale.
+    host.execute(current_settings(
+        &host,
+        json!({"op":"source_update","sourceId":inflight,"enabled":true}),
+    ))
+    .await
+    .unwrap();
     release.notify_waiters();
     let result = refresh.await.unwrap();
     assert!(
@@ -609,7 +664,7 @@ async fn revoked_summary_is_never_polled_for_a_fallback_request() {
     let mut running = Box::pin(host.run_summary(&cancel, &article, job));
     assert!(futures_util::poll!(&mut running).is_pending());
     assert_eq!(attempts.load(Ordering::SeqCst), 1);
-    host.execute(json!({"op":"provider_save","provider":{"id":"groq","kind":"groq","name":"Groq","model":"test","enabled":false,"consented":false}})).await.unwrap();
+    host.execute(current_settings(&host, json!({"op":"provider_save","provider":{"id":"groq","kind":"groq","name":"Groq","model":"test","enabled":false,"consented":false}}))).await.unwrap();
     release.send(()).unwrap();
     let result = running.await;
     assert_eq!(
@@ -675,12 +730,18 @@ async fn source_disable_cancels_registered_summaries_even_after_reenable() {
         .lock()
         .unwrap()
         .insert("source-revoke".into(), cancel.clone());
-    host.execute(json!({"op":"source_update","sourceId":sid,"enabled":false}))
-        .await
-        .unwrap();
-    host.execute(json!({"op":"source_update","sourceId":sid,"enabled":true}))
-        .await
-        .unwrap();
+    host.execute(current_settings(
+        &host,
+        json!({"op":"source_update","sourceId":sid,"enabled":false}),
+    ))
+    .await
+    .unwrap();
+    host.execute(current_settings(
+        &host,
+        json!({"op":"source_update","sourceId":sid,"enabled":true}),
+    ))
+    .await
+    .unwrap();
     assert!(
         cancel.load(Ordering::Acquire),
         "source disable left an active summary authorized"
@@ -700,7 +761,7 @@ async fn provider_save_cancels_every_registered_summary_before_mutation() {
         .lock()
         .unwrap()
         .insert("second".into(), second.clone());
-    host.execute(json!({"op":"provider_save","provider":{"id":"groq","kind":"groq","name":"Groq","model":"test","enabled":false,"consented":false}})).await.unwrap();
+    host.execute(current_settings(&host, json!({"op":"provider_save","provider":{"id":"groq","kind":"groq","name":"Groq","model":"test","enabled":false,"consented":false}}))).await.unwrap();
     assert!(
         first.load(Ordering::Acquire),
         "first summary retains stale consent"

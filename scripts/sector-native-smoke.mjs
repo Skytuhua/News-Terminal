@@ -1,3 +1,4 @@
+import { invokeNative } from './native-ipc.mjs';
 // Native Windows + real Rust host + existing local Ollama; no fixtures or policy overrides.
 // node scripts/sector-native-smoke.mjs --build [--exe src-tauri/target/debug/news-terminal.exe]
 // Alternate already-built exe: omit --build. Evidence discloses unverifiable build freshness.
@@ -27,7 +28,7 @@ const save = () => writeFileSync(`${base}.json`, JSON.stringify(evidence, null, 
 const delay = ms => new Promise(r => setTimeout(r,ms));
 let app, browser, page;
 async function until(fn, timeout=30000) { const end=Date.now()+timeout; while(Date.now()<end) { const v=await fn(); if(v) return v; await delay(300); } throw Error(`Timed out after ${timeout}ms`); }
-const invoke = request => page.evaluate(request => window.__TAURI_INTERNALS__.invoke('dispatch', { request }),request);
+const invoke = request => invokeNative(page, request);
 async function check(name, fn) { const c={name,startedAt:new Date().toISOString()}; evidence.checks.push(c); save(); try { c.details=await fn(); c.passed=true; } catch(e) { c.passed=false;c.error=String(e.stack||e);save();throw e; } save();return c.details; }
 async function shot(name, target=page) { const path=`${base}-${name}.png`;await target.screenshot({path,timeout:20000});evidence.screenshots.push(path);save(); }
 const localDate = timestamp => { const d=timestamp===undefined?new Date():new Date(timestamp*1000);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };

@@ -147,7 +147,7 @@ fn workspace_get_uses_default_fallback_without_reading_articles() {
 }
 
 #[test]
-fn export_enforces_import_state_and_receipt_limits() {
+fn legacy_json_backup_supports_states_and_receipts_beyond_old_limits() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("limits.db");
     let mut db = Database::open(&path).unwrap();
@@ -171,11 +171,8 @@ fn export_enforces_import_state_and_receipt_limits() {
     assert_eq!(parsed["states"].as_array().unwrap().len(), 50_000);
     Database::memory().unwrap().import(&backup).unwrap();
     conn.execute("INSERT INTO states VALUES('default',?1,'{\"read\":true,\"saved\":false,\"hidden\":false}')",[article["id"].as_str().unwrap()]).unwrap();
-    assert!(db
-        .export()
-        .map(|_| ())
-        .expect_err("over-limit states must reject export")
-        .contains("states"));
+    let backup = db.export().unwrap();
+    Database::memory().unwrap().import(&backup).unwrap();
     conn.execute(
         "DELETE FROM states WHERE article_id=?1",
         [article["id"].as_str().unwrap()],
@@ -189,11 +186,8 @@ fn export_enforces_import_state_and_receipt_limits() {
         [now],
     )
     .unwrap();
-    assert!(db
-        .export()
-        .map(|_| ())
-        .expect_err("over-limit receipts must reject export")
-        .contains("alerts"));
+    let backup = db.export().unwrap();
+    Database::memory().unwrap().import(&backup).unwrap();
 }
 
 #[test]

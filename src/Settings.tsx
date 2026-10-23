@@ -86,28 +86,39 @@ export default function Settings({
   close,
   reload,
   importBackup,
+  disabled,
+  isCurrent,
 }: {
   panel: Panel;
   setPanel: (p: Panel) => void;
   data: Snapshot;
   close: () => void;
   reload: () => Promise<void>;
-  importBackup: (text: string) => Promise<void>;
+  importBackup: (text: string, fileId?: string) => Promise<void>;
+  disabled: boolean;
+  isCurrent: () => boolean;
 }) {
   const [formVersion, setFormVersion] = useState(0);
   const [backup, setBackup] = useState("");
+  const [backupFile, setBackupFile] = useState<{id: string; name: string}>();
   const [confirmImport, setConfirmImport] = useState(false);
   const [editing, setEditing] = useState<Watchlist>();
   const [deleteWatchlist, setDeleteWatchlist] = useState<string>();
   const ref = useRef<HTMLDialogElement>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [pending, setBusy] = useState(false);
+  const busy = pending || disabled;
+  const mounted = useRef(false);
+  const replacementToken = useRef(data.replacementToken);
+  replacementToken.current = data.replacementToken;
   useEffect(() => {
+    mounted.current = true;
     const old = document.activeElement as HTMLElement;
     const dialog = ref.current;
     dialog?.showModal();
     return () => {
+      mounted.current = false;
       dialog?.close();
       old?.focus();
     };
@@ -116,25 +127,40 @@ export default function Settings({
     setMessage("");
     setError("");
   }, [panel]);
+  useEffect(() => {
+    setEditing(undefined);
+    setDeleteWatchlist(undefined);
+    setConfirmImport(false);
+    setBackup("");
+    setBackupFile(undefined);
+    setBusy(false);
+  }, [data.profile.id, data.replacementToken]);
   async function run(request: Request, success: string) {
+    if (!mounted.current || !isCurrent()) return false;
+    const token = data.replacementToken;
+    const importingBackup = request.op === "import" || request.op === "backup_import_file";
+    const current = () => mounted.current && (importingBackup ||
+      token === replacementToken.current && isCurrent());
     setBusy(true);
     setError("");
     setMessage("");
     try {
-      if (request.op === "import") {
-        await importBackup(String(request.data));
+      if (importingBackup) {
+        await importBackup(String(request.data ?? ""), request.op === "backup_import_file" ? String(request.fileId) : undefined);
       } else {
-        await dispatch(request);
+        await dispatch({ ...request, replacementToken: token });
+        if (!current()) return false;
         await reload();
       }
+      if (!current()) return false;
       if (request.op === "profile_reset") setFormVersion((v) => v + 1);
       setMessage(success);
       return true;
     } catch (e) {
-      setError(String(e));
+      if (current()) setError(String(e));
       return false;
     } finally {
-      setBusy(false);
+      if (current()) setBusy(false);
     }
   }
   // 0.5 source search and filter state. Local to the panel, never persisted:
@@ -182,7 +208,7 @@ export default function Settings({
             </button>
           ))}
         </nav>
-        <div className="settings-content">
+        <div className="settings-content" key={`${data.profile.id}:${data.replacementToken}`} inert={disabled}>
           {error && (
             <p className="form-error" role="alert">
               {error}
@@ -1016,11 +1042,37 @@ export default function Settings({
                 disabled={busy}
                 className="primary"
                 onClick={async () => {
+                  const token = data.replacementToken;
+                  if (!isCurrent()) return;
+                  setBusy(true);
+                  setError("");
+                  setMessage("");
+                  try {
+                    const result = await dispatch<{saved: boolean}>({op: "backup_export_file"});
+                    if (mounted.current && token === replacementToken.current && isCurrent() && result.saved)
+                      setMessage("Backup file saved.");
+                  } catch (e) {
+                    if (mounted.current && token === replacementToken.current && isCurrent()) setError(String(e));
+                  } finally {
+                    if (mounted.current && token === replacementToken.current) setBusy(false);
+                  }
+                }}
+              >
+                Export backup
+              </button>
+              <button
+                disabled={busy}
+                onClick={async () => {
+                  const token = data.replacementToken;
+                  if (!isCurrent()) return;
                   setBusy(true);
                   setError("");
                   try {
                     const text = await dispatch<string>({ op: "export" });
+                    if (!mounted.current || token !== replacementToken.current || !isCurrent()) return;
                     setBackup(text);
+                    setBackupFile(undefined);
+                    setConfirmImport(false);
                     const blob = new Blob([text], { type: "application/json" });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
@@ -1032,13 +1084,13 @@ export default function Settings({
                       "Backup prepared. Save the downloaded JSON file; you can also copy it from the field below.",
                     );
                   } catch (e) {
-                    setError(String(e));
+                    if (mounted.current && token === replacementToken.current && isCurrent()) setError(String(e));
                   } finally {
-                    setBusy(false);
+                    if (mounted.current && token === replacementToken.current) setBusy(false);
                   }
                 }}
               >
-                Export backup
+                Prepare backup JSON
               </button>
               <hr />
               <h3>Restore from a backup</h3>
@@ -1047,27 +1099,28 @@ export default function Settings({
                 validates the entire backup. Export your current workspace
                 first. Provider keys remain in the credential store.
               </p>
-              <Field label="Choose backup file">
-                <input
-                  type="file"
-                  accept="application/json,.json"
-                  onChange={async (e) => {
-                    const f = e.target.files?.[0];
+              <button
+                  disabled={busy}
+                  onClick={async () => {
+                    const token = data.replacementToken;
+                    if (!isCurrent()) return;
+                    setBusy(true);
                     setError("");
+                    setMessage("");
                     setConfirmImport(false);
-                    if (!f) return;
-                    if (f.size > 100 * 1024 * 1024) {
-                      setError("This backup exceeds the 100 MB import limit.");
-                      return;
-                    }
                     try {
-                      setBackup(await f.text());
-                    } catch {
-                      setError("The selected file could not be read.");
+                      const file = await dispatch<{id: string; name: string} | null>({op: "backup_choose_file", replacementToken: token});
+                      if (!mounted.current || token !== replacementToken.current || !isCurrent()) return;
+                      setBackupFile(file || undefined);
+                      if (file) setBackup("");
+                    } catch (e) {
+                      if (mounted.current && token === replacementToken.current && isCurrent()) setError(String(e));
+                    } finally {
+                      if (mounted.current && token === replacementToken.current) setBusy(false);
                     }
                   }}
-                />
-              </Field>
+              >Choose backup file</button>
+              {backupFile && <p role="status">Selected backup: {backupFile.name}</p>}
               <Field label="Backup JSON">
                 <textarea
                   rows={7}
@@ -1075,6 +1128,7 @@ export default function Settings({
                   spellCheck={false}
                   onChange={(e) => {
                     setBackup(e.target.value);
+                    setBackupFile(undefined);
                     setConfirmImport(false);
                   }}
                 />
@@ -1089,17 +1143,19 @@ export default function Settings({
               </label>
               <div className="form-actions">
                 <button
-                  disabled={busy || !confirmImport || !backup.trim()}
+                  disabled={busy || !confirmImport || (!backupFile && !backup.trim())}
                   onClick={async () => {
-                    try {
-                      JSON.parse(backup);
-                    } catch {
-                      setError("The backup is not valid JSON.");
-                      return;
+                    if (!backupFile) {
+                      try {
+                        JSON.parse(backup);
+                      } catch {
+                        setError("The backup is not valid JSON.");
+                        return;
+                      }
                     }
                     if (
                       await run(
-                        { op: "import", data: backup },
+                        backupFile ? {op: "backup_import_file", fileId: backupFile.id} : { op: "import", data: backup },
                         "Backup imported.",
                       )
                     )

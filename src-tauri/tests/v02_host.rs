@@ -1,3 +1,5 @@
+mod common;
+use common::current_settings;
 use news_terminal_lib::{db::Database, Backend};
 use serde_json::json;
 
@@ -108,7 +110,7 @@ async fn exported_quote_heavy_backup_roundtrips_through_host_import() {
 async fn connect_actual_local_ai_persists_exact_model_without_enabling_cloud_or_sources() {
     let host = Backend::new(Database::memory().unwrap());
     let provider = host
-        .execute(json!({"op":"local_ai_connect"}))
+        .execute(current_settings(&host, json!({"op":"local_ai_connect"})))
         .await
         .unwrap();
     assert_eq!(provider["model"], "qwen3:4b-instruct-2507-q4_K_M");

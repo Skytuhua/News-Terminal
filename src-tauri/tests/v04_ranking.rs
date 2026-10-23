@@ -273,3 +273,50 @@ fn relaxation_reason_matches_each_prefix_not_just_first_item() {
         }
     }
 }
+
+fn skewed_fixture(n: usize) -> Vec<Value> {
+    (0..n)
+        .rev()
+        .map(|i| {
+            json!({"id":format!("story-{i:06}"),"sourceId":if i == 1 {"B"} else {"A"},
+                "title":"Story","excerpt":"","publishedAt":NOW,"firstSeen":NOW})
+        })
+        .collect()
+}
+
+#[test]
+fn skewed_source_tail_matches_frozen_order_and_prefix_reasons() {
+    for cap in [-0.5, 0.0, 0.1, 0.5, 0.75, 0.9, 1.0, 1.5] {
+        for n in [2, 3, 16, 64] {
+            parity(skewed_fixture(n), json!({"diversityCap":cap}));
+        }
+    }
+    parity(skewed_fixture(64), json!({}));
+}
+
+#[test]
+fn skewed_source_tail_diversity_candidate_work_is_linear() {
+    for n in [128, 15_000] {
+        intelligence::DIVERSITY_CANDIDATE_VISITS.set(0);
+        let result = intelligence::rank(skewed_fixture(n), &json!({}), NOW);
+        assert_eq!(result.len(), n);
+        assert_eq!(result[0]["sourceId"], "A");
+        assert_eq!(result[1]["sourceId"], "B");
+        let visits = intelligence::DIVERSITY_CANDIDATE_VISITS.get();
+        assert!(
+            visits <= 3 * n,
+            "{n} rows visited {visits} diversity candidates; expected <= {}",
+            3 * n
+        );
+    }
+}
+
+#[test]
+fn no_evidence_is_not_related_to_a_positive_fraud_claim() {
+    let denied = json!({"url":"https://example.com/denied","publishedAt":NOW,
+        "title":"Court finds no evidence linking Acme executive to fraud"});
+    let alleged = json!({"url":"https://example.com/alleged","publishedAt":NOW,
+        "title":"Court finds evidence linking Acme executive to fraud"});
+    assert!(!intelligence::related(&denied, &alleged));
+    assert!(!intelligence::related(&alleged, &denied));
+}

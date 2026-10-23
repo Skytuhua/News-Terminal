@@ -1,5 +1,26 @@
 use super::*;
 
+#[test]
+fn feed_rights_exclusions_are_scanned_once_for_all_entries() {
+    let source = rights::bundled("fed-press_monetary").unwrap();
+    let item = "<item><title>Federal Reserve issues FOMC statement</title><link>https://www.federalreserve.gov/newsevents/pressreleases/monetary20260923a.htm</link><description>Federal Reserve issues FOMC statement</description><pubDate>Wed, 23 Sep 2026 15:00:00 GMT</pubDate></item>";
+    for (rights_tag, allowed) in [
+        ("", true),
+        ("<copyright>All rights reserved</copyright>", false),
+    ] {
+        let body = format!(
+            "<rss version=\"2.0\"><channel><title>Fixture</title><link>https://www.federalreserve.gov</link><description>Fixture</description>{rights_tag}{}</channel></rss>",
+            item.repeat(500)
+        );
+        rights::FEED_EXCLUSION_SCANS.set(0);
+        let result = parse_feed(body.as_bytes(), source).unwrap();
+        let articles = result["articles"].as_array().unwrap();
+        assert_eq!(articles.len(), 500);
+        assert!(articles.iter().all(|a| a["_rights"]["ai"] == allowed));
+        assert_eq!(rights::FEED_EXCLUSION_SCANS.get(), 1);
+    }
+}
+
 #[tokio::test]
 async fn sector_response_constructs_host_bullets_and_rejects_freeform_or_credentials() {
     let sources = json!([{"id":"S1","title":"Permitted fixture text.","excerpt":"fixture-secret"}]);

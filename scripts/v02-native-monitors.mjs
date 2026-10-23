@@ -1,3 +1,4 @@
+import { invokeNative } from './native-ipc.mjs';
 // Windows-only, real WebView2/native monitor acceptance. No fixture IPC or display changes.
 // Build (Git Bash, embedded dist without dev server):
 // TAURI_CONFIG='{"build":{"devUrl":null}}' cargo build --manifest-path src-tauri/Cargo.toml --features tauri/custom-protocol
@@ -32,7 +33,7 @@ async function check(name, fn) {
   return entry;
 }
 async function invoke(page, request) {
-  return page.evaluate(request => window.__TAURI_INTERNALS__.invoke('dispatch', { request }), request);
+  return invokeNative(page, request);
 }
 async function plugin(page, command, args = {}) {
   return page.evaluate(({ command, args }) => window.__TAURI_INTERNALS__.invoke(`plugin:window|${command}`, args), { command, args });

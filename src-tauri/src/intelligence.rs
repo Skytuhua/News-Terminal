@@ -97,30 +97,35 @@ pub fn rank(mut articles: Vec<Value>, preferences: &Value, now: i64) -> Vec<Valu
             .then_with(|| a["id"].as_str().cmp(&b["id"].as_str()))
     });
     let cap = preferences["diversityCap"].as_f64().unwrap_or(0.5);
-    // One normalized source means every candidate has the same prefix count.
-    // Keep the sorted vector, including saved overflow, without rescans or shifts.
-    if articles.first().is_some_and(|first| {
-        let source = first["sourceId"].as_str().unwrap_or("");
-        articles.iter().all(|a| {
-            #[cfg(test)]
-            DIVERSITY_CANDIDATE_VISITS.set(DIVERSITY_CANDIDATE_VISITS.get() + 1);
-            a["sourceId"].as_str().unwrap_or("") == source
-        })
-    }) {
-        for (count, a) in articles.iter_mut().enumerate() {
-            let allowed = (((count + 1) as f64) * cap).ceil() as usize;
-            if count >= allowed {
-                a["reasons"].as_array_mut().unwrap().push(json!(
-                    "Source diversity cap relaxed: insufficient alternative-source coverage"
-                ));
-            }
-        }
-        return articles;
+    let mut remaining: HashMap<String, usize> = HashMap::new();
+    for a in &articles {
+        #[cfg(test)]
+        DIVERSITY_CANDIDATE_VISITS.set(DIVERSITY_CANDIDATE_VISITS.get() + 1);
+        *remaining
+            .entry(a["sourceId"].as_str().unwrap_or("").to_owned())
+            .or_default() += 1;
     }
     let mut out = Vec::new();
     let mut counts: HashMap<String, usize> = HashMap::new();
-    // ponytail: retain mixed-source greedy semantics; skewed tails can still be quadratic.
+    // shortcut: mixed-source greedy scans can be quadratic; revisit if mixed-source caches grow.
     while !articles.is_empty() {
+        // A one-source tail keeps sorted order; evaluate its prefix reasons without rescans.
+        if remaining.len() == 1 {
+            let prior = counts
+                .get(articles[0]["sourceId"].as_str().unwrap_or(""))
+                .copied()
+                .unwrap_or(0);
+            for (offset, a) in articles.iter_mut().enumerate() {
+                let allowed = (((out.len() + offset + 1) as f64) * cap).ceil() as usize;
+                if prior + offset >= allowed {
+                    a["reasons"].as_array_mut().unwrap().push(json!(
+                        "Source diversity cap relaxed: insufficient alternative-source coverage"
+                    ));
+                }
+            }
+            out.extend(articles);
+            return out;
+        }
         let allowed = (((out.len() + 1) as f64) * cap).ceil() as usize;
         let index = articles.iter().position(|a| {
             #[cfg(test)]
@@ -137,9 +142,13 @@ pub fn rank(mut articles: Vec<Value>, preferences: &Value, now: i64) -> Vec<Valu
                 "Source diversity cap relaxed: insufficient alternative-source coverage"
             ));
         }
-        *counts
-            .entry(a["sourceId"].as_str().unwrap_or("").to_owned())
-            .or_default() += 1;
+        let source = a["sourceId"].as_str().unwrap_or("");
+        let left = remaining.get_mut(source).unwrap();
+        *left -= 1;
+        if *left == 0 {
+            remaining.remove(source);
+        }
+        *counts.entry(source.to_owned()).or_default() += 1;
         out.push(a);
     }
     out
@@ -147,7 +156,7 @@ pub fn rank(mut articles: Vec<Value>, preferences: &Value, now: i64) -> Vec<Valu
 fn tokens(s: &str) -> HashSet<String> {
     s.to_lowercase()
         .split(|c: char| !c.is_alphanumeric())
-        .filter(|s| s.len() > 2)
+        .filter(|s| s.len() > 2 || *s == "no")
         .map(str::to_owned)
         .collect()
 }
@@ -187,7 +196,7 @@ pub fn related(a: &Value, b: &Value) -> bool {
         t.iter()
             .filter(|s| {
                 s.chars().any(|c| c.is_numeric())
-                    || ["not", "never", "denies"].contains(&s.as_str())
+                    || ["no", "not", "never", "denies"].contains(&s.as_str())
             })
             .cloned()
             .collect::<HashSet<_>>()

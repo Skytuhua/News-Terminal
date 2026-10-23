@@ -1,5 +1,31 @@
 use super::*;
 
+#[tokio::test]
+async fn sector_waiting_does_not_rebuild_unchanged_reports() {
+    let (host, request, _) = sector_host();
+    sector_summary::SELECTION_READS.set(0);
+    let (send, wait) = tokio::sync::oneshot::channel();
+    let mut job = Box::pin(host.sector_summarize_using(&request, |_, _| async {
+        wait.await.unwrap();
+        Ok(provider_result())
+    }));
+    for _ in 0..50 {
+        assert!(futures_util::poll!(&mut job).is_pending());
+    }
+    assert_eq!(
+        sector_summary::SELECTION_READS.get(),
+        1,
+        "waiting must only check mutation generations"
+    );
+    send.send(()).unwrap();
+    assert!(job.await.is_ok());
+    assert_eq!(
+        sector_summary::SELECTION_READS.get(),
+        2,
+        "revalidate the complete input once before delivery"
+    );
+}
+
 fn sector_host() -> (Backend, Value, String) {
     let mut db = db::Database::memory().unwrap();
     let now = chrono::Utc::now().timestamp();

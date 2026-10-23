@@ -50,6 +50,9 @@ Provider `{id,name,kind:'ollama'|'gemini'|'groq',model:string,enabled:boolean,co
 - See `.hermes/work-ownership.md` for authoritative concurrent file ownership.
 
 ## Mutations
+
+Settings writes (`profile_create`, `profile_update`, `profile_reset`, `watchlist_save`, `watchlist_delete`, `source_add`, `source_update`, `provider_save`, and `local_ai_connect`) additionally require the top-level `replacementToken` captured when the form was opened. The host checks it before writes, including credential storage and after asynchronous local-model discovery. Replacement discards dirty forms and their pending acknowledgements.
+
 - `profile_create {name}` -> Profile
 - `profile_update {profileId,preferences?,quietHours?,alertsEnabled?}` -> Profile
 - `profile_reset {profileId}` -> Profile (preserve saved/read states)
@@ -68,6 +71,13 @@ Provider `{id,name,kind:'ollama'|'gemini'|'groq',model:string,enabled:boolean,co
 - `summary_cancel {requestId}` -> null
 - `export {}` -> string JSON backup, no secrets
 - `import {data:string}` -> null (validate all before transaction)
+
+## Native backup files
+
+- `backup_choose_file {replacementToken}` -> `{id,name}` or `null` on cancellation. A native picker opens a local JSON file; only its opaque ID and basename reach the renderer. The handle belongs to the invoking window and replacement token.
+- `backup_import_file {fileId,replacementToken,confirmed:true}` -> null. Consumes that handle once, validates records into temporary storage, then replaces the database in one transaction. Failure preserves the current database; choose the file again to retry. Successful imports use the same replacement events and native reconciliation as `import`.
+- `backup_export_file {}` -> `{saved:boolean,name?:string}`. A native save picker streams the legacy v1 JSON format to a temporary file beside the destination, flushes it, then replaces the destination. Backups cannot overwrite files in the active application data directory.
+- File-operation IPC envelopes are capped at 64 KiB; backup content stays outside IPC. Native files support the retained library beyond the compatibility text path's 32 MiB cap. Each record is bounded before parsing, and temporary validation storage is removed on failure or completion. The existing `export`/`import` text operations retain their 32 MiB limit.
 
 ## Native integration owned by parent
 - `open_original {url}` -> null, http/https only, system browser

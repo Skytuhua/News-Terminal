@@ -1,4 +1,6 @@
 //! Actual local model test with synthetic, public-domain test material, NOT live news.
+mod common;
+use common::current_settings;
 use news_terminal_lib::{db::Database, Backend};
 use serde_json::json;
 
@@ -10,7 +12,7 @@ async fn actual_local_model_summarizes_through_authorized_host_pipeline() {
     let source = db.request(&json!({"op":"source_add","name":"Synthetic public-domain AI test","url":"https://example.org/synthetic-test-feed","termsUrl":"https://example.org/test-material","topics":["culture"],"language":"en","region":"world","kind":"reporting","storage":"excerpt","aiAllowed":true}), now).unwrap();
     db.ingest(source["id"].as_str().unwrap(), &json!({"articles":[{"title":"Synthetic test: Pinebridge library opens","url":"https://example.org/synthetic-library","excerpt":"This is synthetic public-domain test material, not real news. Pinebridge opened a free public library on Monday with 1200 books. It opens Tuesday through Saturday. Volunteer reading classes start next month. No opening date for a second branch was announced.","publishedAt":now}]}),now).unwrap();
     let host = Backend::new(db);
-    host.execute(json!({"op":"local_ai_connect"}))
+    host.execute(current_settings(&host, json!({"op":"local_ai_connect"})))
         .await
         .unwrap();
     let snapshot = host.execute(json!({"op":"snapshot"})).await.unwrap();

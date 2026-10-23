@@ -7,7 +7,7 @@ test("fixture: a validated imported backup is read back into the workspace", asy
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("button", { name: "Backup", exact: true }).click();
   await page
-    .getByRole("button", { name: "Export backup", exact: true })
+    .getByRole("button", { name: "Prepare backup JSON", exact: true })
     .click();
   await expect(page.getByLabel("Backup JSON")).not.toHaveValue("");
   const backup = JSON.parse(await page.getByLabel("Backup JSON").inputValue());

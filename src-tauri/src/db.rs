@@ -1,7 +1,9 @@
 #[path = "db/backup.rs"]
 mod backup;
 use crate::rights;
-use backup::validate_backup;
+#[cfg(test)]
+#[path = "../tests/db/generation.rs"]
+mod generation_tests;
 #[cfg(test)]
 #[path = "../tests/local_ai/database.rs"]
 mod local_ai_tests;
@@ -11,7 +13,7 @@ mod rights_tests;
 use rusqlite::{params, Connection, OptionalExtension};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
-use std::{collections::HashSet, path::Path, time::Duration};
+use std::{collections::HashSet, fs::File, path::Path, time::Duration};
 
 pub type Result<T> = std::result::Result<T, String>;
 const MAX_WORKSPACE_REVISION: u64 = 9_007_199_254_740_990;
@@ -262,6 +264,8 @@ fn validate_quiet(q: &Value) -> Result<()> {
 }
 pub struct Database {
     conn: Connection,
+    // Keep the lock file in place so another host cannot lock a different inode.
+    _host_lock: Option<File>,
     visited: HashSet<String>,
     // Ephemeral ABA guard; never exported. Conservative whole-cache invalidation.
     input_generation: u64,
@@ -332,16 +336,16 @@ impl Database {
                 .map_err(sql)?;
             if prior.as_deref() != Some(&revision) {
                 self.conn.execute("DELETE FROM rights_provenance WHERE article_id IN (SELECT id FROM articles WHERE source_id=?1)", [id]).map_err(sql)?;
-                self.conn.execute("UPDATE articles SET data=json_set(data,'$.aiAllowed',json('false')) WHERE source_id=?1", [id]).map_err(sql)?;
+                self.conn.execute("UPDATE articles SET data=json_set(data,'$.aiAllowed',json('false')) WHERE source_id=?1 AND json_extract(data,'$.aiAllowed') IS NOT 0", [id]).map_err(sql)?;
                 self.conn.execute("INSERT INTO catalog_revisions(source_id,revision) VALUES(?1,?2) ON CONFLICT(source_id) DO UPDATE SET revision=excluded.revision", params![id,revision]).map_err(sql)?;
             }
             if next["storage"] == "metadata" {
-                self.conn.execute("UPDATE articles SET data=json_set(data,'$.excerpt','','$.history',json('[]')) WHERE source_id=?1", [id]).map_err(sql)?;
+                self.conn.execute("UPDATE articles SET data=json_set(data,'$.excerpt','','$.history',json('[]')) WHERE source_id=?1 AND (json_extract(data,'$.excerpt') IS NOT '' OR json_extract(data,'$.history') IS NOT '[]')", [id]).map_err(sql)?;
             }
             if next["storage"] != "excerpt" || next["mediaAllowed"] != true {
                 self.conn
                     .execute(
-                        "UPDATE articles SET data=json_remove(data,'$.media') WHERE source_id=?1",
+                        "UPDATE articles SET data=json_remove(data,'$.media') WHERE source_id=?1 AND json_type(data,'$.media') IS NOT NULL",
                         [id],
                     )
                     .map_err(sql)?;
@@ -744,7 +748,7 @@ impl Database {
         self.article_raw(aid)?.ok_or("Unknown article")?;
         let mut s = self.state(id, aid)?;
         if r["saved"] == true && s["saved"] != true {
-            let count:usize=self.conn.query_row("SELECT count(DISTINCT article_id) FROM states WHERE json_extract(data,'$.saved')=1",[],|row|row.get(0)).map_err(sql)?;
+            let count:usize=self.conn.query_row("SELECT CASE WHEN EXISTS(SELECT 1 FROM states WHERE article_id=?1 AND json_extract(data,'$.saved')=1) THEN 0 ELSE count(DISTINCT article_id) END FROM states WHERE json_extract(data,'$.saved')=1",[aid],|row|row.get(0)).map_err(sql)?;
             if count >= 10000 {
                 return Err(
                     "Maximum 10,000 saved stories; export and remove older saves first".into(),
@@ -885,76 +889,40 @@ impl Database {
         Ok(removed)
     }
     pub fn export(&self) -> Result<String> {
-        let mut stmt = self
-            .conn
-            .prepare("SELECT kind,id,scope,data FROM documents ORDER BY kind,id,scope")
-            .map_err(sql)?;
-        let rows = stmt
-            .query_map([], |r| {
-                Ok((
-                    r.get::<_, String>(0)?,
-                    r.get::<_, String>(1)?,
-                    r.get::<_, String>(2)?,
-                    r.get::<_, String>(3)?,
-                ))
-            })
-            .map_err(sql)?;
-        let mut docs = Vec::new();
-        for row in rows {
-            let (k, id, scope, s) = row.map_err(sql)?;
-            let data: Value = serde_json::from_str(&s).map_err(|_| "Corrupt record")?;
-            docs.push(json!({"kind":k,"id":id,"scope":scope,"data":data}));
+        struct LegacyWriter(Vec<u8>);
+        impl std::io::Write for LegacyWriter {
+            fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+                if self.0.len().saturating_add(bytes.len()) > 32 * 1024 * 1024 {
+                    return Err(std::io::Error::other("Backup exceeds 32 MiB"));
+                }
+                self.0.extend_from_slice(bytes);
+                Ok(bytes.len())
+            }
+            fn flush(&mut self) -> std::io::Result<()> {
+                Ok(())
+            }
         }
-        let mut stmt = self
-            .conn
-            .prepare("SELECT data FROM articles ORDER BY id")
-            .map_err(sql)?;
-        let rows = stmt.query_map([], |r| r.get::<_, String>(0)).map_err(sql)?;
-        let mut articles = Vec::new();
-        for row in rows {
-            articles.push(
-                serde_json::from_str::<Value>(&row.map_err(sql)?).map_err(|_| "Corrupt article")?,
-            );
-        }
-        let mut stmt = self
-            .conn
-            .prepare("SELECT profile_id,article_id,data FROM states ORDER BY profile_id,article_id")
-            .map_err(sql)?;
-        let rows = stmt
-            .query_map([], |r| {
-                Ok((
-                    r.get::<_, String>(0)?,
-                    r.get::<_, String>(1)?,
-                    r.get::<_, String>(2)?,
-                ))
-            })
-            .map_err(sql)?;
-        let mut states = Vec::new();
-        for row in rows {
-            let (p, a, s) = row.map_err(sql)?;
-            states.push(json!({"profileId":p,"articleId":a,"data":serde_json::from_str::<Value>(&s).map_err(|_|"Corrupt state")?}));
-        }
-        let mut stmt = self
-            .conn
-            .prepare(
-                "SELECT profile_id,article_id,at FROM alert_log ORDER BY profile_id,article_id",
-            )
-            .map_err(sql)?;
-        let rows=stmt.query_map([],|r|Ok(json!({"profileId":r.get::<_,String>(0)?,"articleId":r.get::<_,String>(1)?,"at":r.get::<_,i64>(2)?}))).map_err(sql)?;
-        let alerts = rows
-            .collect::<std::result::Result<Vec<_>, _>>()
-            .map_err(sql)?;
-        let data=json!({"version":1,"documents":docs,"articles":articles,"states":states,"alerts":alerts}).to_string();
-        // Never report a successful backup that this version cannot restore.
-        validate_backup(&data).map_err(|e| format!("Cannot export restorable backup: {e}"))?;
-        Ok(data)
+        let mut writer = LegacyWriter(Vec::new());
+        self.export_writer(&mut writer)?;
+        String::from_utf8(writer.0).map_err(|_| "Cannot encode backup JSON".into())
+    }
+    /// Native file backups keep records bounded without moving bulk data over IPC.
+    pub fn export_writer<W: std::io::Write>(&self, writer: W) -> Result<()> {
+        backup::export(&self.conn, writer)
+            .map_err(|e| format!("Cannot export restorable backup: {e}"))
     }
     pub fn import(&mut self, data: &str) -> Result<()> {
-        let backup = validate_backup(data)?;
+        if data.len() > 32 * 1024 * 1024 {
+            return Err("Backup exceeds 32 MiB".into());
+        }
+        self.import_reader(data.as_bytes())
+    }
+    pub fn import_reader<R: std::io::Read>(&mut self, reader: R) -> Result<()> {
+        let backup = backup::StagedBackup::read(reader)?;
         self.conn.execute_batch("BEGIN IMMEDIATE").map_err(sql)?;
         let result = (|| {
             self.conn.execute_batch("DELETE FROM states; DELETE FROM articles; DELETE FROM documents; DELETE FROM alert_log; DELETE FROM alert_attempts; DELETE FROM rights_provenance; DELETE FROM source_attestations; DELETE FROM media_preferences;").map_err(sql)?;
-            for d in backup["documents"].as_array().unwrap() {
+            backup.for_each(0, |d| {
                 let mut v = d["data"].clone();
                 if d["kind"] == "provider" {
                     v["enabled"] = json!(false);
@@ -965,11 +933,10 @@ impl Database {
                     d["id"].as_str().unwrap(),
                     d["scope"].as_str().unwrap(),
                     &v,
-                )?;
-            }
+                )
+            })?;
             self.migrate_catalog(false)?;
-            for original in backup["articles"].as_array().unwrap() {
-                let mut a = original.clone();
+            backup.for_each(1, |mut a| {
                 a["aiAllowed"] = json!(false);
                 let source = self
                     .get("source", a["sourceId"].as_str().unwrap(), "")?
@@ -981,15 +948,16 @@ impl Database {
                 if source["storage"] != "excerpt" || source["mediaAllowed"] != true {
                     a.as_object_mut().unwrap().remove("media");
                 }
+                crate::topics::apply(&source, &mut a);
                 self.conn
                     .execute(
                         "INSERT INTO articles(id,source_id,data) VALUES(?1,?2,?3)",
                         params![a["id"].as_str(), a["sourceId"].as_str(), a.to_string()],
                     )
                     .map_err(sql)?;
-            }
-            self.reclassify_all()?;
-            for s in backup["states"].as_array().unwrap() {
+                Ok(())
+            })?;
+            backup.for_each(2, |s| {
                 self.conn
                     .execute(
                         "INSERT INTO states(profile_id,article_id,data) VALUES(?1,?2,?3)",
@@ -1000,8 +968,9 @@ impl Database {
                         ],
                     )
                     .map_err(sql)?;
-            }
-            for a in backup["alerts"].as_array().unwrap() {
+                Ok(())
+            })?;
+            backup.for_each(3, |a| {
                 self.conn
                     .execute(
                         "INSERT INTO alert_log(profile_id,article_id,at) VALUES(?1,?2,?3)",
@@ -1012,18 +981,22 @@ impl Database {
                         ],
                     )
                     .map_err(sql)?;
-            }
+                Ok(())
+            })?;
             Ok(())
         })();
-        self.conn
-            .execute_batch(if result.is_ok() { "COMMIT" } else { "ROLLBACK" })
-            .map_err(sql)?;
-        if result.is_ok() {
-            self.input_generation = self.input_generation.saturating_add(1);
-            self.replacement_token = uuid::Uuid::new_v4().to_string();
-            self.visited.clear();
+        if let Err(error) = result {
+            self.conn.execute_batch("ROLLBACK").map_err(sql)?;
+            return Err(error);
         }
-        result
+        if let Err(error) = self.conn.execute_batch("COMMIT") {
+            let _ = self.conn.execute_batch("ROLLBACK");
+            return Err(sql(error));
+        }
+        self.input_generation = self.input_generation.saturating_add(1);
+        self.replacement_token = uuid::Uuid::new_v4().to_string();
+        self.visited.clear();
+        Ok(())
     }
     pub fn due_sources(&self, now: i64, _manual: bool) -> Result<Vec<Value>> {
         Ok(self
@@ -1064,6 +1037,28 @@ impl Database {
     }
     pub fn open(path: impl AsRef<Path>) -> Result<Self> {
         let path = path.as_ref();
+        let canonical = if path.exists() {
+            path.canonicalize()
+        } else {
+            path.parent()
+                .filter(|p| !p.as_os_str().is_empty())
+                .unwrap_or(Path::new("."))
+                .canonicalize()
+                .map(|parent| parent.join(path.file_name().unwrap_or_default()))
+        }
+        .map_err(|e| format!("Cannot resolve database path: {e}"))?;
+        let mut lock_path = canonical.into_os_string();
+        lock_path.push(".lock");
+        let host_lock = std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .truncate(false)
+            .open(lock_path)
+            .map_err(|e| format!("Cannot open database ownership lock: {e}"))?;
+        host_lock
+            .try_lock()
+            .map_err(|e| format!("Database is already open in another News Terminal host: {e}"))?;
         let conn = Connection::open(path).map_err(sql)?;
         let version: i64 = conn
             .pragma_query_value(None, "user_version", |r| r.get(0))
@@ -1077,7 +1072,8 @@ impl Database {
                 conn.backup("main", &backup, None).map_err(sql)?;
             }
         }
-        let db = Self::initialize(conn)?;
+        let mut db = Self::initialize(conn)?;
+        db._host_lock = Some(host_lock);
         db.conn.execute_batch("BEGIN IMMEDIATE").map_err(sql)?;
         let result = db
             .migrate_catalog(true)
@@ -1109,6 +1105,7 @@ impl Database {
         conn.execute_batch("COMMIT").map_err(sql)?;
         let db = Self {
             conn,
+            _host_lock: None,
             visited: HashSet::new(),
             input_generation: 0,
             replacement_token: uuid::Uuid::new_v4().to_string(),
@@ -1228,7 +1225,7 @@ impl Database {
         }
         Ok(())
     }
-    fn require_replacement(&self, r: &Value) -> Result<()> {
+    pub(crate) fn require_replacement(&self, r: &Value) -> Result<()> {
         if r["replacementToken"].as_str() != Some(self.replacement_token.as_str()) {
             return Err("Database replaced: reload before making a new change".into());
         }
@@ -1240,7 +1237,7 @@ impl Database {
         } else {
             "default"
         };
-        match r["op"].as_str().unwrap_or("") {
+        let result = match r["op"].as_str().unwrap_or("") {
             "media_preferences" => self.media_preferences(id),
             "media_preferences_set" => {
                 self.require_replacement(r)?;
@@ -1560,6 +1557,26 @@ impl Database {
                 Ok(p)
             }
             _ => Err("Unknown operation".into()),
+        };
+        if result.is_ok()
+            && (matches!(
+                r["op"].as_str(),
+                Some(
+                    "profile_update"
+                        | "profile_reset"
+                        | "provider_save"
+                        | "source_update"
+                        | "source_add"
+                        | "group_split"
+                )
+            ) || (r["op"] == "article_state" && r.get("hidden").is_some())
+                || (r["op"] == "article_state_many"
+                    && r["items"].as_array().is_some_and(|items| {
+                        items.iter().any(|item| item.get("hidden").is_some())
+                    })))
+        {
+            self.input_generation = self.input_generation.saturating_add(1);
         }
+        result
     }
 }

@@ -1,3 +1,4 @@
+import { invokeNative } from './native-ipc.mjs';
 // Executes setup only on a disposable GitHub-hosted Windows job. See the
 // acceptance document for the existing-runtime and isolated-WebView limits.
 import assert from 'node:assert/strict';
@@ -301,7 +302,7 @@ async function main() {
   const copiedUninstaller = join(context.runDirectory, 'owned-uninstall.exe');
   const webviewDirectory = join(context.runDirectory, 'webview');
   const invoke = request => observeInstalledOperation('Native ' + request.op,
-    () => page.evaluate(request => window.__TAURI_INTERNALS__.invoke('dispatch', { request }), request));
+    () => invokeNative(page, request));
   async function screenshot(label) {
     const path = base + '-' + label + '.png';
     await page.screenshot({ path, timeout: 15000 });
