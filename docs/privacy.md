@@ -10,7 +10,7 @@ and excludes credentials and private permission receipts.
 
 The application feed-refresh code contacts only configured sources. Requests necessarily disclose your network address to those services. Publisher terms continue to apply. Saving a story saves only content the configured source permits; it is not a paywall bypass or a guarantee of an offline full article.
 
-AI is optional and on-demand. Zero-paid mode blocks cloud AI providers before execution; local Ollama is the only runtime summary path and still requires explicit consent plus source-level AI permission. Provider API keys belong in Windows Credential Manager, not in backups or logs. Local Ollama runs separately and has its own model/hardware requirements. Free-tier eligibility and billing controls must be checked in your provider account; the app cannot guarantee a third party's current pricing.
+AI is optional and on-demand. Zero-paid mode blocks cloud provider kinds before execution. Summaries support Ollama and an OpenAI-compatible local server, with explicit consent plus source-level AI permission. These runtimes and their models run separately and have their own hardware requirements. A loopback connection does not establish local inference: configure the runtime to disable cloud models or remote delegation. See [local AI setup and limitations](local-ai.md). Provider API keys belong in Windows Credential Manager, not in backups or logs; the local compatible adapter does not support API keys.
 
 Cancel stops the local request; it cannot recall data a provider or local process has already received. AI output can be wrong; check the original linked reporting. OpenRouter model and benchmark panels are metadata-only and do not run inference.
 

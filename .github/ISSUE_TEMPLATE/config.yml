@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Setup and documentation
+    url: https://github.com/Skytuhua/News-Terminal/blob/main/docs/index.md
+    about: Find Windows setup, reading tools, source policy and local AI guidance.
