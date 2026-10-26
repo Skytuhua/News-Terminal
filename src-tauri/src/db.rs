@@ -16,6 +16,7 @@ use sha2::{Digest, Sha256};
 use std::{collections::HashSet, fs::File, path::Path, time::Duration};
 
 pub type Result<T> = std::result::Result<T, String>;
+const DATABASE_VERSION: i64 = 2;
 const MAX_WORKSPACE_REVISION: u64 = 9_007_199_254_740_990;
 pub const MAX_SOURCES: usize = 300;
 /// One bulk-triage dispatch must stay small enough that a single transaction
@@ -364,6 +365,7 @@ impl Database {
             return Err("Feed contains too many articles".into());
         }
         let mut pending = Vec::new();
+        let mut regroup = Vec::new();
         let mut proofs = Vec::new();
         let mut seen = HashSet::new();
         // Read the bounded comparison window once, not once for every feed entry.
@@ -441,26 +443,54 @@ impl Database {
             if history.len() > 20 {
                 history.drain(..history.len() - 20);
             }
-            let mut article = json!({"id":aid,"sourceId":source_id,"sourceName":source["name"],"title":title,"url":url,"excerpt":excerpt,"publishedAt":published,"firstSeen":old.as_ref().map(|a|a["firstSeen"].clone()).unwrap_or(json!(now)),"updatedAt":now,"topics":source["topics"],"region":source["region"],"language":source["language"],"kind":source["kind"],"aiAllowed":permitted,"read":false,"saved":false,"hidden":false,"groupId":old.as_ref().map(|a|a["groupId"].clone()).unwrap_or(json!(aid)),"reasons":[],"score":0,"history":history});
+            let regroup_article = old
+                .as_ref()
+                .is_none_or(|a| a["title"] != title || a["publishedAt"] != json!(published));
+            // The old group may be anchored by this article's id. A changed,
+            // unmatched story needs a fresh identity so its old peers stay apart.
+            let group = if old.is_some() && regroup_article {
+                json!(format!("auto:{aid}:{}", uuid::Uuid::new_v4()))
+            } else {
+                old.as_ref()
+                    .map(|a| a["groupId"].clone())
+                    .unwrap_or(json!(aid))
+            };
+            let mut article = json!({"id":aid,"sourceId":source_id,"sourceName":source["name"],"title":title,"url":url,"excerpt":excerpt,"publishedAt":published,"firstSeen":old.as_ref().map(|a|a["firstSeen"].clone()).unwrap_or(json!(now)),"updatedAt":now,"topics":source["topics"],"region":source["region"],"language":source["language"],"kind":source["kind"],"aiAllowed":permitted,"read":false,"saved":false,"hidden":false,"groupId":group,"reasons":[],"score":0,"history":history});
             if let Some(media) = media {
                 article["media"] = media;
             }
             crate::topics::apply(&source, &mut article);
-            if old.is_none() {
-                for candidate in &candidates {
-                    if crate::intelligence::related(&article, candidate) {
-                        article["groupId"] = candidate["groupId"].clone();
-                        break;
-                    }
-                }
-                for candidate in &pending {
-                    if crate::intelligence::related(&article, candidate) {
-                        article["groupId"] = candidate["groupId"].clone();
-                        break;
-                    }
-                }
-            }
             pending.push(article);
+            regroup.push(regroup_article);
+        }
+        // Resolve against current batch versions, never a stale stored self or
+        // another story replaced later in this feed. Unchanged grouping inputs
+        // keep their identity and avoid any additional matching work.
+        let pending_ids: HashSet<_> = pending
+            .iter()
+            .map(|a| a["id"].as_str().unwrap().to_owned())
+            .collect();
+        for index in 0..pending.len() {
+            if !regroup[index] {
+                continue;
+            }
+            let article = &pending[index];
+            let mut group = article["groupId"].clone();
+            if let Some(candidate) = candidates.iter().find(|candidate| {
+                !pending_ids.contains(candidate["id"].as_str().unwrap_or(""))
+                    && crate::intelligence::related(article, candidate)
+            }) {
+                group = candidate["groupId"].clone();
+            }
+            if let Some((_, candidate)) = pending.iter().enumerate().find(|(other, candidate)| {
+                // Later regrouped stories can join this resolved group in turn.
+                // Later unchanged groups already have a stable current identity.
+                (*other < index || (*other > index && !regroup[*other]))
+                    && crate::intelligence::related(article, candidate)
+            }) {
+                group = candidate["groupId"].clone();
+            }
+            pending[index]["groupId"] = group;
         }
         self.conn.execute_batch("BEGIN IMMEDIATE").map_err(sql)?;
         let result = (|| {
@@ -1063,13 +1093,42 @@ impl Database {
         let version: i64 = conn
             .pragma_query_value(None, "user_version", |r| r.get(0))
             .map_err(sql)?;
-        if version > 1 {
+        if version > DATABASE_VERSION {
             return Err("Database is from a newer application; update News Terminal.".into());
         }
-        if version < 1 && path.metadata().map(|m| m.len() > 0).unwrap_or(false) {
-            let backup = path.with_extension("pre-migration.sqlite3");
-            if !backup.exists() {
-                conn.backup("main", &backup, None).map_err(sql)?;
+        if version < DATABASE_VERSION && path.metadata().map(|m| m.len() > 0).unwrap_or(false) {
+            let backup = path.with_extension(if version < 1 {
+                "pre-migration.sqlite3".to_owned()
+            } else {
+                format!("v{version}.pre-migration.sqlite3")
+            });
+            if backup
+                .try_exists()
+                .map_err(|e| format!("Cannot check pre-migration backup: {e}"))?
+            {
+                if !backup.is_file() {
+                    return Err("Pre-migration backup destination is not a file".into());
+                }
+            } else {
+                let parent = backup
+                    .parent()
+                    .filter(|p| !p.as_os_str().is_empty())
+                    .unwrap_or(Path::new("."));
+                let temporary = tempfile::Builder::new()
+                    .prefix(".news-terminal-migration-")
+                    .tempfile_in(parent)
+                    .map_err(|e| format!("Cannot create pre-migration backup: {e}"))?;
+                // SQLite's backup API includes committed WAL data. Publish only
+                // a complete synced image, and never replace an existing snapshot.
+                conn.backup("main", temporary.path(), None)
+                    .map_err(|e| format!("Cannot copy pre-migration backup: {e}"))?;
+                temporary
+                    .as_file()
+                    .sync_all()
+                    .map_err(|e| format!("Cannot finish pre-migration backup: {e}"))?;
+                temporary
+                    .persist_noclobber(&backup)
+                    .map_err(|e| format!("Cannot save pre-migration backup: {}", e.error))?;
             }
         }
         let mut db = Self::initialize(conn)?;
@@ -1086,11 +1145,21 @@ impl Database {
     }
     fn initialize(conn: Connection) -> Result<Self> {
         conn.busy_timeout(Duration::from_secs(5)).map_err(sql)?;
+        let version: i64 = conn
+            .pragma_query_value(None, "user_version", |r| r.get(0))
+            .map_err(sql)?;
         conn.execute_batch("PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; BEGIN IMMEDIATE;")
             .map_err(sql)?;
-        if let Err(e) = conn.execute_batch(include_str!("../migrations/001_initial.sql")) {
-            let _ = conn.execute_batch("ROLLBACK");
-            return Err(sql(e));
+        for (target, migration) in [
+            (1, include_str!("../migrations/001_initial.sql")),
+            (2, include_str!("../migrations/002_indexed_search.sql")),
+        ] {
+            if version < target {
+                if let Err(e) = conn.execute_batch(migration) {
+                    let _ = conn.execute_batch("ROLLBACK");
+                    return Err(sql(e));
+                }
+            }
         }
         // Additive retry bookkeeping; receipts retain the v1 backup/schema contract.
         if let Err(e) = conn.execute_batch("CREATE TABLE IF NOT EXISTS alert_attempts(profile_id TEXT NOT NULL,article_id TEXT NOT NULL,at INTEGER NOT NULL,attempts INTEGER NOT NULL,PRIMARY KEY(profile_id,article_id));") {
@@ -1420,6 +1489,7 @@ impl Database {
                 let sid = text(r, "sourceId", 200)?;
                 let mut s = self.get("source", sid, "")?.ok_or("Unknown source")?;
                 let ai_attested = self.custom_attested(&s, "aiAllowed")?;
+                let prior_policy = rights::policy_revision(&s);
                 if let Some(enabled) = r.get("enabled") {
                     s["enabled"] = json!(boolean(enabled)?);
                 } else if r.get("mediaAllowed").is_none() {
@@ -1443,7 +1513,9 @@ impl Database {
                     if rights::bundled(sid).is_none() && r.get("mediaAllowed").is_some() {
                         self.record_attestation(&s, ai_attested)?;
                     }
-                    if s["enabled"] != true || s["mediaAllowed"] != true {
+                    // AI and media share the input proof. An unchanged false
+                    // media flag must not revoke an otherwise valid AI grant.
+                    if s["enabled"] != true || rights::policy_revision(&s) != prior_policy {
                         self.conn.execute("DELETE FROM rights_provenance WHERE article_id IN (SELECT id FROM articles WHERE source_id=?1)", [sid]).map_err(sql)?;
                     }
                     if s["mediaAllowed"] != true || s["storage"] != "excerpt" {

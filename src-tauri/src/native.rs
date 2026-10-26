@@ -676,9 +676,6 @@ pub fn setup(app: &AppHandle) -> Result<(), String> {
     // share the placement contract's logical minimum, independent of DPI.
     main.set_min_size(Some(tauri::LogicalSize::new(640.0, 480.0)))
         .map_err(|_| "Could not set the main window minimum size")?;
-    if let Some(saved) = &layout.main {
-        place(&main, saved)?;
-    }
     if layout.main.is_none() {
         let position = main.outer_position().ok();
         let size = main.inner_size().ok();
@@ -703,6 +700,23 @@ pub fn setup(app: &AppHandle) -> Result<(), String> {
             height: rect.height,
             maximized: false,
         });
+    }
+    // First launch uses the same work-area, decoration and DPI fitting as a
+    // saved placement. The initial native rectangle is only a preferred size.
+    if let Some(saved) = &mut layout.main {
+        place(&main, saved)?;
+        if !saved.maximized {
+            let position = main
+                .outer_position()
+                .map_err(|_| "Could not read fitted main window position")?;
+            let size = main
+                .inner_size()
+                .map_err(|_| "Could not read fitted main window size")?;
+            saved.x = position.x;
+            saved.y = position.y;
+            saved.width = size.width;
+            saved.height = size.height;
+        }
     }
     app.manage(NativeState {
         layout: Mutex::new(layout),

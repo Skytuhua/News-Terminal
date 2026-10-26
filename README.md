@@ -51,6 +51,8 @@ Profiles, workspace and permitted cached excerpts live on your PC. Reading cache
 
 These are **unsigned Windows x64 development builds**. Windows may show a SmartScreen warning. No tagged release is published yet; a successful run verifies that revision, not later changes.
 
+Current builds upgrade existing local search databases with a pre-migration snapshot. Older builds cannot open the upgraded database. Export a JSON backup before switching between development builds; its format is unchanged. See [database compatibility](docs/development.md#data-and-bounded-defaults).
+
 Current setup builds bundle Microsoft's offline WebView2 installer to install the runtime when it is missing. The standalone executable and separately packaged portable ZIP require an existing [Microsoft WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section). Runtime installation can still be affected by Windows policy; see the [installer documentation](docs/installer-payload.md).
 
 ### Build from source

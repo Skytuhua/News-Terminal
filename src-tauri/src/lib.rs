@@ -8,6 +8,7 @@ pub mod media;
 pub mod models;
 mod native;
 mod native_geometry;
+mod native_lifecycle;
 pub mod rights;
 mod sector_summary;
 pub mod services;
@@ -107,6 +108,7 @@ pub struct Backend {
     metadata: [models::MetadataCache; 4],
     database: Mutex<db::Database>,
     backup_file: Mutex<Option<backup_files::Selected>>,
+    native_lifecycle: native_lifecycle::NativeLifecycle,
     cancellations: Mutex<HashMap<String, Arc<AtomicBool>>>,
     provider_generation: AtomicU64,
     refreshing: AtomicBool,
@@ -151,6 +153,7 @@ impl Backend {
         Self {
             database: Mutex::new(database),
             backup_file: Mutex::new(None),
+            native_lifecycle: native_lifecycle::NativeLifecycle::default(),
             live: Arc::new(live::LiveDesk::new()),
             metadata: std::array::from_fn(|_| models::MetadataCache::default()),
             cancellations: Mutex::new(HashMap::new()),
@@ -1074,6 +1077,9 @@ async fn dispatch(
     request: Value,
 ) -> Result<Value, String> {
     let op = request["op"].as_str().unwrap_or("").to_owned();
+    // Keep owner validation/window creation on one side of replacement and
+    // reconciliation. This async gate never retains SQLite or layout guards.
+    let _lifecycle = state.native_lifecycle.acquire(&op).await;
     if ["detach_tab", "reattach_tab"].contains(&op.as_str()) {
         let pid = db::text(&request, "profileId", 200)?;
         let tid = db::text(&request, "tabId", 200)?;

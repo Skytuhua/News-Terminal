@@ -1143,6 +1143,7 @@ fn extract_media(entry: &feed_rs::model::Entry, source: &Value) -> Vec<Value> {
     }
     if source["rightsPolicy"]["mediaRule"] == "esa-standard-licence-exact-assets-v1" {
         if let Some(summary) = entry.summary.as_ref().map(|s| s.content.as_str()) {
+            let image_sources = html_image_sources(summary);
             for approval in source["rightsPolicy"]["mediaAllowlist"]
                 .as_array()
                 .into_iter()
@@ -1151,7 +1152,7 @@ fn extract_media(entry: &feed_rs::model::Entry, source: &Value) -> Vec<Value> {
                 let Some(url) = approval["url"].as_str() else {
                     continue;
                 };
-                if !html_image_sources(summary).iter().any(|src| src == url) {
+                if !image_sources.iter().any(|src| src == url) {
                     continue;
                 }
                 if let Some(item) = media_item(
@@ -1171,15 +1172,28 @@ fn extract_media(entry: &feed_rs::model::Entry, source: &Value) -> Vec<Value> {
     items
 }
 
+#[cfg(test)]
+std::thread_local! {
+    static IMAGE_MARKUP_SCAN_BYTES: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
 fn html_image_sources(raw: &str) -> Vec<String> {
     let mut sources = Vec::new();
-    let mut rest = raw;
-    while let Some(index) = rest.to_ascii_lowercase().find("<img") {
-        rest = &rest[index + 4..];
-        let Some(end) = rest.find('>') else { break };
-        let tag = &rest[..end];
-        rest = &rest[end + 1..];
-        let lower = tag.to_ascii_lowercase();
+    // ASCII folding preserves UTF-8 byte offsets. Normalize once and advance
+    // through both strings together, so later images never rescan earlier text.
+    #[cfg(test)]
+    IMAGE_MARKUP_SCAN_BYTES.set(IMAGE_MARKUP_SCAN_BYTES.get() + raw.len());
+    let folded = raw.to_ascii_lowercase();
+    let mut offset = 0;
+    while let Some(index) = folded[offset..].find("<img") {
+        let start = offset + index + 4;
+        let Some(length) = raw[start..].find('>') else {
+            break;
+        };
+        let end = start + length;
+        let tag = &raw[start..end];
+        let lower = &folded[start..end];
+        offset = end + 1;
         let Some(src_at) = lower.find("src") else {
             continue;
         };

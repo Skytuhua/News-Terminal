@@ -1,6 +1,45 @@
 use super::*;
 
 #[test]
+fn image_markup_scanning_preserves_urls_with_bounded_normalization_work() {
+    let markup = "<IMG SRC='https://example.org/a.png'><img src=\"https://example.org/b.png?x=1&amp;y=2\"><img src='https://example.org/c.png' alt='Lune 月'>";
+    IMAGE_MARKUP_SCAN_BYTES.set(0);
+    assert_eq!(
+        html_image_sources(markup),
+        [
+            "https://example.org/a.png",
+            "https://example.org/b.png?x=1&y=2",
+            "https://example.org/c.png",
+        ]
+    );
+    assert!(IMAGE_MARKUP_SCAN_BYTES.get() <= markup.len() * 2,
+        "case normalization must have bounded work across image tags, got {} bytes for {} input bytes",
+        IMAGE_MARKUP_SCAN_BYTES.get(), markup.len());
+}
+
+#[test]
+fn image_markup_for_an_approved_esa_item_is_not_rescanned_per_approval() {
+    let source = rights::bundled("esa-space-engineering").unwrap();
+    let approval = &source["rightsPolicy"]["mediaAllowlist"][0];
+    let markup = format!(
+        "<p>Image:</p><img src=\"{}\" alt=\"Silicon brains\"/>",
+        approval["url"].as_str().unwrap()
+    );
+    let xml = format!(
+        r#"<rss version="2.0"><channel><title>ESA</title><link>https://www.esa.int</link><description>Feed</description><item><title>The silicon brains steering next-generation antennas</title><link>{}</link><guid isPermaLink="false">{}</guid><description><![CDATA[{}]]></description></item></channel></rss>"#,
+        approval["itemUrl"].as_str().unwrap(),
+        approval["itemGuid"].as_str().unwrap(),
+        markup
+    );
+    IMAGE_MARKUP_SCAN_BYTES.set(0);
+    let result = parse_feed(xml.as_bytes(), source).unwrap();
+    assert_eq!(result["articles"][0]["media"][0]["url"], approval["url"]);
+    assert!(IMAGE_MARKUP_SCAN_BYTES.get() <= markup.len() * 2,
+        "one item's image markup must be shared across its approval checks, got {} bytes for {} input bytes",
+        IMAGE_MARKUP_SCAN_BYTES.get(), markup.len());
+}
+
+#[test]
 fn feed_rights_exclusions_are_scanned_once_for_all_entries() {
     let source = rights::bundled("fed-press_monetary").unwrap();
     let item = "<item><title>Federal Reserve issues FOMC statement</title><link>https://www.federalreserve.gov/newsevents/pressreleases/monetary20260923a.htm</link><description>Federal Reserve issues FOMC statement</description><pubDate>Wed, 23 Sep 2026 15:00:00 GMT</pubDate></item>";

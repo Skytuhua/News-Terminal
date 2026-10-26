@@ -61,7 +61,8 @@ def collect(root, outputs, license_file=None):
                 "sha256": sha, "bytes": len(content), "kind": kind}
         (texts if kind == "upstream-license-or-notice" else evidence).append(item)
 
-    for f in sorted(root.rglob("*")):
+    # Path comparison folds case on Windows; relative POSIX strings are portable.
+    for f in sorted(root.rglob("*"), key=lambda path: path.relative_to(root).as_posix()):
         if not f.is_file():
             continue
         rel = f.relative_to(root)

@@ -23,6 +23,7 @@ import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 import { disconnectNativeBrowser, finalizeNativeEvidence, nativeCommandJson, ownedNativeWindows,
   releaseFailedChildHandles, stopOwnedProcess } from './native-process-cleanup.mjs';
+import { assertOwnedNativeEndpoint } from './native-smoke-ownership.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const { values } = parseArgs({ options: {
@@ -124,8 +125,19 @@ try {
   app.stderr.on('data', (b) => { run.stderr = (run.stderr + b).slice(-12000); });
   app.stdout.on('data', () => {});
   await until(async () => { if (spawnError) throw spawnError;
-    if (app.exitCode !== null) throw Error(`Owned process exited ${app.exitCode}`);
-    try { browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`, { timeout: 1000 }); return true; } catch { return false; } },
+    if (app.exitCode !== null || app.signalCode !== null) throw Error(`Owned process exited ${app.exitCode}`);
+    // Exercise the real listener/process binding in the existing packaged CI
+    // fixture. Keep the OS probes outside all feature checks and IPC timings.
+    let identity;
+    try { identity = await assertOwnedNativeEndpoint(app, { port, executable: evidence.launchedExecutable }); }
+    catch (error) { if (error.code === 'NATIVE_ENDPOINT_PENDING') return false; throw error; }
+    let connected;
+    try { connected = await chromium.connectOverCDP(`http://127.0.0.1:${port}`, { timeout: 1000 }); }
+    catch { return false; }
+    try {
+      run.endpointOwner = await assertOwnedNativeEndpoint(app, { port, executable: evidence.launchedExecutable, ...identity });
+      browser = connected; return true;
+    } catch (error) { await disconnectNativeBrowser(connected); throw error; } },
   'CDP did not open', 45000);
   await until(async () => { for (const c of browser.contexts()) for (const p of c.pages())
     try { if ((await invoke(p, { op: 'window_context' })).label === 'main') { main = p; return true; } } catch {}

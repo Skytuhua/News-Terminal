@@ -1,22 +1,59 @@
 # Service verification harness
 
-This small Cargo package compiles the **same** `../src/services.rs` as the Tauri host, without requiring the desktop shell. Its Cargo manifest/harness were inherited, inspected, and reused; no additional dependency was required. Fixtures are test-only Rust values and local HTTP responses, never production news or generated AI results.
+This Cargo package compiles the **same** `../src/services.rs` as the Tauri host, without requiring the desktop shell. It imports the real `rights`, `media`, `sector_summary`, `db`, `briefing`, `intelligence`, and `topics` modules required by that implementation, including their unit tests. Fixtures are test-only Rust values and local HTTP responses, never production news or generated AI results.
+
+Its dependencies track those production modules: image codecs match the desktop package's JPEG, PNG, GIF, and WebP features, and database backup's `serde` and `tempfile` dependencies are available in ordinary library builds. Imported database, service, and sector-summary modules allow unused code because some entry points are called exclusively by the desktop host.
 
 Run from the repository root:
 
 ```sh
+cargo check --manifest-path src-tauri/service-tests/Cargo.toml --locked
+cargo test --manifest-path src-tauri/service-tests/Cargo.toml -- --list
 cargo test --manifest-path src-tauri/service-tests/Cargo.toml
 cargo clippy --manifest-path src-tauri/service-tests/Cargo.toml --all-targets -- -D warnings
-cargo test --manifest-path src-tauri/service-tests/Cargo.toml -- --ignored --nocapture
 ```
 
-The last command opts into three side-effecting/environment-dependent checks:
+Run the ignored checks individually after arranging their prerequisites. The local HTTP fixture requires a vacant port 11434; the live database/AI check requires a running Ollama server on that port, so they need separate server states.
 
-- Fetch a live USGS public-domain earthquake Atom feed. Permission reference: https://www.usgs.gov/faqs/are-usgs-reportspublications-copyrighted . Feed policy: https://earthquake.usgs.gov/earthquakes/feed/policy.php . Verification uses metadata-only storage and USGS attribution.
-- Bind loopback port 11434 to a clearly labeled **Ollama HTTP fixture**, not a live model. It fails rather than interfering if Ollama already occupies that port.
-- Save/read/remove a unique, non-secret fixture in Windows Credential Manager. Existing provider credentials are not modified.
+Live USGS feed: requires public HTTPS access to the USGS Atom feed. Verification uses metadata-only storage and USGS attribution. Permission reference: https://www.usgs.gov/faqs/are-usgs-reportspublications-copyrighted . Feed policy: https://earthquake.usgs.gov/earthquakes/feed/policy.php .
 
-## Actual execution evidence
+```sh
+cargo test --manifest-path src-tauri/service-tests/Cargo.toml --lib services::unit_tests::live_usgs_public_feed -- --exact --ignored --nocapture
+```
+
+Ollama HTTP fixture: requires port `127.0.0.1:11434` to be vacant. The test binds its own clearly labeled fixture server and performs no live model inference; it fails if the port is occupied.
+
+```sh
+cargo test --manifest-path src-tauri/service-tests/Cargo.toml --lib services::unit_tests::ollama_adapter_real_http_fixture_not_live_model -- --exact --ignored --nocapture
+```
+
+Live database/AI/media check: requires public HTTPS access to the compiled NHC, Federal Reserve, and NASA feeds/assets, plus a running local Ollama server at `127.0.0.1:11434` with `qwen3:4b-instruct-2507-q4_K_M` already installed. It performs real local inference on retrieved permitted feed excerpts and downloads pinned NASA media. Run it separately from the HTTP fixture above.
+
+```sh
+cargo test --manifest-path src-tauri/service-tests/Cargo.toml --lib db::rights_tests::rights_live_database_ai_and_pinned_media -- --exact --ignored --nocapture
+```
+
+Windows credential fixture: requires Windows and an available Windows Credential Manager for the current user. This Windows-only test saves, reads, and removes a unique non-secret fixture; existing provider credentials are not modified. It is not compiled on other operating systems.
+
+```sh
+cargo test --manifest-path src-tauri/service-tests/Cargo.toml --lib services::unit_tests::windows_keyring_roundtrip_fixture -- --exact --ignored --nocapture
+```
+
+NASA Apollo 17 image: requires public HTTPS access to the credited NASA image. This downloads and decodes the real image.
+
+```sh
+cargo test --manifest-path src-tauri/service-tests/Cargo.toml --lib media::tests::media_live_nasa_apollo17_public_image -- --exact --ignored --nocapture
+```
+
+Reviewed MIT/ESA previews: requires public HTTPS access to the exact assets in the compiled MIT/ESA allowlists. This downloads those assets, verifies the reviewed approvals, and decodes their static previews.
+
+```sh
+cargo test --manifest-path src-tauri/service-tests/Cargo.toml --lib media::tests::media_live_reviewed_mit_esa_static_previews -- --exact --ignored --nocapture
+```
+
+## Historical execution evidence
+
+The following records the original service-only suite. The current harness includes additional production-module tests; use `-- --list` to inspect the current inventory. Harness compilation and listing do not execute ignored checks.
 
 - Unit/HTTP fixture suite: **22 passed, 0 failed, 3 explicitly ignored by default**.
 - Explicit ignored suite: **3 passed, 0 failed**. The live USGS run returned **244 entries**; live feed counts and titles naturally change.
