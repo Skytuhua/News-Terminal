@@ -1,8 +1,8 @@
 import type { Snapshot, Tab } from './types';
 import {sourceFailed, type ReadingStatus} from './model';
 
-export default function EmptyHeadlines({ data, tab, query, kind, readingStatus, busy, failed, retrySearch, clear, browse, refresh, sources, watchlists, hidden }: {
-  data: Snapshot; tab: Tab; query: string; kind: string; readingStatus: ReadingStatus; busy: boolean; failed: boolean;
+export default function EmptyHeadlines({ data, tab, query, kind, readingStatus, extraFilters = false, busy, failed, retrySearch, clear, browse, refresh, sources, watchlists, hidden }: {
+  data: Snapshot; tab: Tab; query: string; kind: string; readingStatus: ReadingStatus; extraFilters?: boolean; busy: boolean; failed: boolean;
   retrySearch: () => void; clear: () => void; browse: () => void; refresh: () => void; sources: () => void; watchlists: () => void; hidden: () => void;
 }) {
   let title: string, body: string, label: string, action: () => void;
@@ -14,11 +14,11 @@ export default function EmptyHeadlines({ data, tab, query, kind, readingStatus, 
     title = hiddenSaves ? 'No visible saved stories' : 'No saved stories yet';
     body = hiddenSaves ? 'Your saved stories are hidden, not deleted.' : 'Select a story and press S to save its permitted excerpt for later.';
     label = hiddenSaves ? 'View hidden stories' : 'Browse headlines'; action = hiddenSaves ? hidden : browse;
-  } else if (tab.mode === 'saved' && (query.trim() || kind || readingStatus !== 'all' || tab.topic)) {
+  } else if (tab.mode === 'saved' && (query.trim() || kind || readingStatus !== 'all' || tab.topic || extraFilters)) {
     title = 'No saved stories match these filters'; body = 'Your saved stories are still in this profile. Clear the filters to see them.'; label = 'Clear filters'; action = clear;
-  } else if (query.trim() || kind || tab.topic) {
+  } else if (query.trim() || kind || tab.topic || extraFilters) {
     title = query.trim() ? 'No cached matches' : 'No stories match these filters'; body = 'Try a broader view of your cached stories.';
-    label = query.trim() && !kind && readingStatus === 'all' && !tab.topic ? 'Clear search' : 'Clear filters'; action = clear;
+    label = query.trim() && !kind && readingStatus === 'all' && !tab.topic && !extraFilters ? 'Clear search' : 'Clear filters'; action = clear;
   } else if (data.articles.length > 0 && data.articles.every(a => a.hidden)) {
     title = 'Your stories are hidden'; body = 'The stories in this view are hidden, not deleted. Restore retained stories from this reading profile.'; label = 'View hidden stories'; action = hidden;
   } else if (!data.articles.some(a => !a.hidden)) {

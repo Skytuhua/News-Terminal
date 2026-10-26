@@ -1,0 +1,59 @@
+name: Bug report
+description: Report a reproducible problem with the reader, setup or a source.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Include enough detail to reproduce the problem. Do not attach credentials or private backups; redact personal reading data and local paths from logs or screenshots.
+  - type: input
+    id: version
+    attributes:
+      label: App version or source revision
+      description: Include the Actions run URL or commit SHA when possible.
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version and architecture
+      description: Include your Windows build and whether it is x64 or ARM64.
+    validations:
+      required: true
+  - type: dropdown
+    id: distribution
+    attributes:
+      label: How are you running News Terminal?
+      options:
+        - Actions setup installer
+        - Standalone executable or portable ZIP
+        - Built from source
+        - Browser test fixture
+        - Other (describe in the steps)
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Describe the profile/view, relevant filters and exact actions. For source failures, include the public feed URL.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the visible error and whether the problem survives a restart.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Relevant logs or screenshots
+      description: Include only the smallest useful, redacted evidence. For display problems, include monitor scaling and window size.

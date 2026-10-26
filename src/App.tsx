@@ -47,6 +47,7 @@ import { MediaSession, ImageControls } from "./MediaSession";
 import EmptyHeadlines from "./EmptyHeadlines";
 import HiddenStories from "./HiddenStories";
 import { usePaneWidths } from "./usePaneWidths";
+import { filterReadingArticles, publisherOptions, type PublicationRange } from "./readingFilters";
 import "./daily-use.css";
 import type { CSSProperties } from "react";
 
@@ -113,6 +114,9 @@ export default function App() {
   // 0.5: replaces the old Unread checkbox. All/Unread/Read, defaults to All,
   // and writes no article state - it only narrows what is listed.
   const [readingStatus, setReadingStatus] = useState<ReadingStatus>("all");
+  const [publisherId, setPublisherId] = useState("");
+  const [published, setPublished] = useState<PublicationRange>("all");
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const [page, setPage] = useState(0);
   const pageFromControl = useRef(false);
   const [pending, setPending] = useState<Article[]>([]);
@@ -262,6 +266,8 @@ export default function App() {
     setPending([]);
     setKind("");
     setReadingStatus("all");
+    setPublisherId("");
+    setPublished("all");
     setError("");
     setNotice("");
   }
@@ -401,6 +407,8 @@ export default function App() {
     setResults(undefined);
     setKind("");
     setReadingStatus("all");
+    setPublisherId("");
+    setPublished("all");
   }, [active?.id, profileId]);
   function patchTab(patch: Partial<Tab>) {
     if (active)
@@ -417,6 +425,8 @@ export default function App() {
     setResults(undefined);
     setKind("");
     setReadingStatus("all");
+    setPublisherId("");
+    setPublished("all");
     setNavOpen(false);
     patchTab({ query: "", topic: "", section: undefined, ...patch });
   }
@@ -543,15 +553,18 @@ export default function App() {
       });
     return () => { live = false; stop(); };
   }, []);
+  const publishers = useMemo(() => publisherOptions(data?.articles || []), [data?.articles]);
+  const extraFilterCount = Number(!!publisherId) + Number(published !== "all");
+  const publicationNow = published === "all" ? 0 : now.getTime() / 1000;
   const collectionRows = useMemo(() =>
     active && data && !reportView
-      ? filterArticles(
+      ? filterReadingArticles(filterArticles(
           results?.map(a => acceptedArticles.get(a.id)).filter((a): a is Article => !!a) ?? data.articles,
           active,
           data.profile.previousVisit,
           data.watchlists.find((w) => w.id === active.watchlistId),
-        ).filter((a) => !kind || a.kind === kind)
-      : [], [active?.id, active?.mode, active?.topic, active?.section, active?.watchlistId, data?.articles, data?.profile.previousVisit, data?.watchlists, reportView, results, acceptedArticles, kind]);
+        ).filter((a) => !kind || a.kind === kind), publisherId, published, publicationNow)
+      : [], [active?.id, active?.mode, active?.topic, active?.section, active?.watchlistId, data?.articles, data?.profile.previousVisit, data?.watchlists, reportView, results, acceptedArticles, kind, publisherId, published, publicationNow]);
   const rows = useMemo(() => collectionRows.filter(a => matchesReadingStatus(a, readingStatus)), [collectionRows, readingStatus]);
   // 0.5: one projection for every navigation badge, so a badge can never
   // disagree with what its own destination lists. Unread only, never totals.
@@ -567,7 +580,7 @@ export default function App() {
   // Reading marks an item read, but must not erase its place in J/K history.
   // Only the current collection may participate: hidden/deleted/filtered items leave.
   const readingSequence = useRef({ key: '', ids: new Set<string>() });
-  const sequenceKey = JSON.stringify([profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, readingStatus]);
+  const sequenceKey = JSON.stringify([profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, readingStatus, publisherId, published]);
   const navigation = useMemo(() => {
     const previousIds = readingSequence.current.key === sequenceKey ? readingSequence.current.ids : new Set<string>();
     const rows = collectionRows.filter(a => matchesReadingStatus(a, readingStatus) || previousIds.has(a.id));
@@ -582,7 +595,7 @@ export default function App() {
   const [triage, setTriage] = useState<string[]>([]);
   const toggleTriage = useCallback((id: string) =>
     setTriage(current => current.includes(id) ? current.filter(v => v !== id) : [...current, id]), []);
-  const triageKey = JSON.stringify([profileId, active?.id, active?.mode, active?.topic, active?.section, active?.watchlistId, query, kind, readingStatus, page]);
+  const triageKey = JSON.stringify([profileId, active?.id, active?.mode, active?.topic, active?.section, active?.watchlistId, query, kind, readingStatus, publisherId, published, page]);
   const triageScope = useRef({ key: triageKey });
   if (triageScope.current.key !== triageKey) { triageScope.current = { key: triageKey }; if (triage.length) setTriage([]); }
   const triageIds = useMemo(() => new Set(triage), [triage]);
@@ -620,7 +633,7 @@ export default function App() {
     }
   };
   function choosePage(value: number) { pageFromControl.current = true; setPage(value); }
-  useEffect(() => { setPage(0); }, [profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, readingStatus]);
+  useEffect(() => { setPage(0); }, [profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, readingStatus, publisherId, published]);
   useEffect(() => {
     const index = rows.findIndex(article => article.id === selectedId);
     if (index >= 0) setPage(Math.floor(index / pageSize));
@@ -628,6 +641,7 @@ export default function App() {
   useEffect(() => {
     if (pageFromControl.current) {
       document.querySelector('.story-list')?.scrollTo({top:0, behavior:'instant'});
+      document.querySelector('main.headlines')?.scrollTo({top:0, behavior:'instant'});
       pageFromControl.current = false;
       return;
     }
@@ -1280,11 +1294,53 @@ export default function App() {
                 <option value="read">Read</option>
               </select>
             </label>
+            <button
+              type="button"
+              className="quiet more-filters-toggle"
+              aria-expanded={moreFiltersOpen}
+              aria-controls="additional-headline-filters"
+              onClick={() => setMoreFiltersOpen(open => !open)}
+            >
+              <ListFilter size={14} />
+              More filters{extraFilterCount > 0 ? ` (${extraFilterCount})` : ""}
+            </button>
+            <button
+              type="button"
+              className="quiet page-selection"
+              disabled={!pageRows.length}
+              onClick={() => setTriage(triageArticles.length === pageRows.length ? [] : pageRows.map(article => article.id))}
+            >
+              {pageRows.length > 0 && triageArticles.length === pageRows.length ? "Clear selection" : "Select this page"}
+            </button>
             <span className="spacer" />
             <span className="muted" role="status">
               {searching ? "Searching…" : `${rows.length} stories`}
             </span>
           </div>
+          {moreFiltersOpen && <section id="additional-headline-filters" className="reading-filters" aria-label="Additional headline filters">
+            <div className="reading-filter-controls">
+              <label>
+                Publisher
+                <select aria-label="Publisher" value={publisherId} onChange={event => setPublisherId(event.target.value)}>
+                  <option value="">All publishers</option>
+                  {publisherId && !publishers.some(publisher => publisher.id === publisherId) &&
+                    <option value={publisherId}>Publisher no longer cached</option>}
+                  {publishers.map(publisher => <option key={publisher.id} value={publisher.id}>{publisher.name}</option>)}
+                </select>
+              </label>
+              <label>
+                Published
+                <select aria-label="Published" value={published} onChange={event => setPublished(event.target.value as PublicationRange)}>
+                  <option value="all">Any time</option>
+                  <option value="day">Past 24 hours</option>
+                  <option value="week">Past 7 days</option>
+                  <option value="month">Past 30 days</option>
+                </select>
+              </label>
+              {extraFilterCount > 0 && <button type="button" className="quiet" onClick={() => { setPublisherId(""); setPublished("all"); }}>Reset extra filters</button>}
+            </div>
+            {published !== "all" && <p className="fine">Date filters exclude stories without a publication time.</p>}
+          </section>}
           {pending.length > 0 && (
             <button className="new-items" onClick={() => void load(true)}>
               {pending.length} new {pending.length === 1 ? "story" : "stories"}{" "}
@@ -1336,15 +1392,17 @@ export default function App() {
             <button type="button" onClick={() => applyTriage({ read: true }, 'stories marked read')}>Mark read</button>
             <button type="button" onClick={() => applyTriage({ read: false }, 'stories marked unread')}>Mark unread</button>
             <button type="button" onClick={() => applyTriage({ saved: true }, 'stories saved')}>Save</button>
+            <button type="button" onClick={() => applyTriage({ saved: false }, 'stories unsaved')}>Unsave</button>
             <button type="button" onClick={() => applyTriage({ hidden: true }, 'stories hidden')}>Hide</button>
+            <button type="button" className="quiet" onClick={() => setTriage(pageRows.filter(article => !triageIds.has(article.id)).map(article => article.id))}>Invert selection</button>
             <button type="button" className="quiet" onClick={() => setTriage([])}>Clear</button>
           </div>}
           <div className="story-list" aria-label="Cached stories">
             {pageRows.map(a => <HeadlineRow key={a.id} article={a} profileId={profileId} selected={a.id === selectedId} related={counts.get(a.groupId) || 0} onSelect={select} now={now}
               triageSelected={triageIds.has(a.id)} onToggleTriage={toggleTriage} />)}
-            {active && !rows.length && <EmptyHeadlines hidden={() => navigate({mode:"hidden", title:"Hidden stories"})} data={data} tab={active} query={query} kind={kind} readingStatus={readingStatus}
+            {active && !rows.length && <EmptyHeadlines hidden={() => navigate({mode:"hidden", title:"Hidden stories"})} data={data} tab={active} query={query} kind={kind} readingStatus={readingStatus} extraFilters={extraFilterCount > 0}
               retrySearch={() => { setError(''); setSearchFailed(false); setSearching(true); setSearchAttempt(value => value + 1); }}
-              failed={searchFailed} busy={searching || refreshing} clear={() => { editQuery(""); setKind(""); setReadingStatus("all"); if (active.topic) patchTab({topic:"", title: active.mode === 'saved' ? 'Saved stories' : 'Headlines'}); }}
+              failed={searchFailed} busy={searching || refreshing} clear={() => { editQuery(""); setKind(""); setReadingStatus("all"); setPublisherId(""); setPublished("all"); if (active.topic) patchTab({topic:"", title: active.mode === 'saved' ? 'Saved stories' : 'Headlines'}); }}
               browse={() => navigate({mode:"all", title:"Headlines"})} refresh={() => void refresh()} sources={() => setPanel("sources")} watchlists={() => setPanel("watchlists")} />}
           </div>
           {rows.length > pageSize && <nav className="headline-pages" aria-label="Headline pages">

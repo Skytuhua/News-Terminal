@@ -1,0 +1,47 @@
+name: Feed suggestion
+description: Suggest an official RSS/Atom source with permission references.
+title: "[Feed]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Public access does not automatically permit excerpt storage, media display, AI processing or redistribution. Link the publisher's terms and state what remains unknown; suggesting a feed does not grant these permissions.
+  - type: input
+    id: publisher
+    attributes:
+      label: Publisher name and official website
+    validations:
+      required: true
+  - type: input
+    id: feed_url
+    attributes:
+      label: Official HTTPS RSS/Atom URL
+      description: Use the publisher's feed, rather than an unofficial scraper or mirror.
+    validations:
+      required: true
+  - type: input
+    id: terms_url
+    attributes:
+      label: Terms or permission reference
+      description: Link the publisher's feed policy, content license or written permission reference.
+    validations:
+      required: true
+  - type: textarea
+    id: coverage
+    attributes:
+      label: Coverage, language and region
+      description: Explain what this adds to the current catalog and the section or topics it fits.
+    validations:
+      required: true
+  - type: textarea
+    id: restrictions
+    attributes:
+      label: Permissions and restrictions
+      description: Include known limits on storage, attribution, commercial use, media, AI processing or redistribution. State unknown where permission is unclear.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Feed availability and behavior
+      description: Include observed refresh guidance, access requirements or relevant errors, if known. Do not include credentials.

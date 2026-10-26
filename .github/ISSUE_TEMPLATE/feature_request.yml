@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest an improvement to a concrete reading workflow.
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What reading problem would this solve?
+      description: Describe what you are trying to do and where the current workflow gets in the way.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Give a concrete example of how the app would behave.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Current workaround or alternatives
+      description: Include any existing tools or controls you have tried.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Include relevant keyboard, accessibility or multi-monitor needs. Label any mockups as proposals.
