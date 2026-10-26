@@ -45,11 +45,11 @@ function snapshot(articles = [article(), article("b")]): Snapshot {
 const legacySearchInput = (s: Snapshot) => JSON.stringify([
   s.profile.preferences, s.articles.map(({ read: _read, saved: _saved, ...searchable }) => searchable),
 ]);
-const legacyBriefingInput = (s: Snapshot) => JSON.stringify([
+const briefingInputProjection = (s: Snapshot) => JSON.stringify([
   s.profile.preferences,
   s.sources.map(({ id, enabled, storage, aiAllowed, mediaAllowed }) => [id, enabled, storage, aiAllowed, mediaAllowed]),
-  s.articles.map(({ id, updatedAt, title, excerpt, url, sourceId, sourceName, publishedAt, topics, sections, topicLabels, region, language, kind, aiAllowed, hidden, media }) =>
-    [id, updatedAt, title, excerpt, url, sourceId, sourceName, publishedAt, topics, sections, topicLabels, region, language, kind, aiAllowed, hidden, media]),
+  s.articles.map(({ id, updatedAt, title, excerpt, url, sourceId, sourceName, publishedAt, topics, sections, topicLabels, region, language, kind, aiAllowed, hidden, groupId, media }) =>
+    [id, updatedAt, title, excerpt, url, sourceId, sourceName, publishedAt, topics, sections, topicLabels, region, language, kind, aiAllowed, hidden, groupId, media]),
 ]);
 
 test("equivalent full snapshots retain every article identity and the accepted array", () => {
@@ -72,7 +72,7 @@ test("each article field remains authoritative and uses the existing search and 
     expect(reconciled[1], field).toBe(previous.articles[1]);
     expect(reconciled[0], field).toEqual(next.articles[0]);
     expect(sameSearchInputs(previous, next), field).toBe(legacySearchInput(previous) === legacySearchInput(next));
-    expect(sameBriefingInputs(previous, next), field).toBe(legacyBriefingInput(previous) === legacyBriefingInput(next));
+    expect(sameBriefingInputs(previous, next), field).toBe(briefingInputProjection(previous) === briefingInputProjection(next));
   }
 });
 
@@ -147,7 +147,7 @@ test("preferences and briefing source permissions invalidate only the existing i
     const next = structuredClone(previous);
     mutate(next);
     expect(sameSearchInputs(previous, next)).toBe(legacySearchInput(previous) === legacySearchInput(next));
-    expect(sameBriefingInputs(previous, next)).toBe(legacyBriefingInput(previous) === legacyBriefingInput(next));
+    expect(sameBriefingInputs(previous, next)).toBe(briefingInputProjection(previous) === briefingInputProjection(next));
   }
 });
 

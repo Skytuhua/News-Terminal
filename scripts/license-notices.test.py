@@ -1,7 +1,7 @@
 """Integration checks against the real lockfiles, cache, and generated bundle."""
 import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import subprocess
 import sys
 import tomllib
@@ -11,6 +11,56 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class LicenseBundleTest(unittest.TestCase):
+    def test_capture_notice_order_is_portable_with_case_insensitive_paths(self):
+        import runpy
+        import tempfile
+        collect = runpy.run_path(str(ROOT / "scripts/license-notices.py"))["collect"]
+
+        class CaseInsensitivePath(type(Path())):
+            def __lt__(self, other):
+                return PureWindowsPath(self) < PureWindowsPath(other)
+
+        fixtures = {
+            "COPYING": b"Package notice\n",
+            "LICENSE": b"Package license\r\n",
+            "cmake/modules/COPYING-CMAKE-SCRIPTS": b"Nested upstream notice\r\n",
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            for relative, content in fixtures.items():
+                path = directory / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(content)
+            for path_type in (Path, CaseInsensitivePath):
+                with self.subTest(path_type=path_type.__name__):
+                    outputs = {}
+                    texts, evidence = collect(path_type(temporary), outputs)
+                    self.assertEqual([item["source_path"] for item in texts], [
+                        "COPYING", "LICENSE", "cmake/modules/COPYING-CMAKE-SCRIPTS",
+                    ])
+                    self.assertEqual(evidence, [])
+                    for item in texts:
+                        content = fixtures[item["source_path"]]
+                        self.assertEqual(outputs[item["path"]], content)
+                        self.assertEqual(item["bytes"], len(content))
+                        self.assertEqual(item["sha256"], hashlib.sha256(content).hexdigest())
+
+    def test_application_license_survives_a_crlf_checkout_byte_exact(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            checkout = directory / "checkout"
+            source = directory / "source"
+            source.mkdir()
+            for name in (".gitattributes", "LICENSE"):
+                (source / name).write_bytes((ROOT / name).read_bytes())
+            subprocess.run(["git", "init", "--quiet", str(source)], check=True, capture_output=True)
+            command = ["git", "-C", str(source), "-c", "core.autocrlf=true"]
+            subprocess.run(command + ["add", "--", ".gitattributes", "LICENSE"], check=True, capture_output=True)
+            subprocess.run(command + ["checkout-index", "--all", f"--prefix={checkout.as_posix()}/"],
+                           check=True, capture_output=True)
+            self.assertEqual((checkout / "LICENSE").read_bytes(), (ROOT / "LICENSE").read_bytes())
+
     def test_capture_excludes_copyright_named_program_files(self):
         import runpy
         import tempfile

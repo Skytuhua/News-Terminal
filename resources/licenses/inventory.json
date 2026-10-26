@@ -130,8 +130,8 @@
   "input_sha256": {
     "package.json": "5db60dd72398c6072576b4ca4f00ffde916fb90107b04919436308f9f964e2a0",
     "package-lock.json": "13fd333cf0a30e94640b273b69f8d99ce7e84d602332e3cfed00cbac9be969b6",
-    "src-tauri/Cargo.toml": "b664faf16b24c9549e161da4ffa3d32262485cc44e3a94548e5cd607ab9c571f",
-    "src-tauri/Cargo.lock": "2e3c2ecd233fbf8b3b38f330ca9ef647a4932d782fbe048aed33100c9a5ef343"
+    "src-tauri/Cargo.toml": "ea814d95d4881db73911c377f4ff284a2f6942f1819beb72f3d0d2479952dc97",
+    "src-tauri/Cargo.lock": "cf0736018a2678c53eb68d39808d48039a0a2bbf000f23c1c0d5d877667ddb19"
   },
   "counts": {
     "packages": 558,
@@ -8141,17 +8141,17 @@
           "kind": "upstream-license-or-notice"
         },
         {
-          "source_path": "vendor/dbus/cmake/modules/COPYING-CMAKE-SCRIPTS",
-          "path": "texts/c666ec2313dba24523ccad88f4c04ea4b24fad6545263a35b1d4ab2b08efe50a.txt",
-          "sha256": "c666ec2313dba24523ccad88f4c04ea4b24fad6545263a35b1d4ab2b08efe50a",
-          "bytes": 1326,
-          "kind": "upstream-license-or-notice"
-        },
-        {
           "source_path": "vendor/dbus/COPYING",
           "path": "texts/e61807cd1c32ff4e7bd5b4b61dd21997c6dc5642cf19316124fe38d50e1f9fa3.txt",
           "sha256": "e61807cd1c32ff4e7bd5b4b61dd21997c6dc5642cf19316124fe38d50e1f9fa3",
           "bytes": 29175,
+          "kind": "upstream-license-or-notice"
+        },
+        {
+          "source_path": "vendor/dbus/cmake/modules/COPYING-CMAKE-SCRIPTS",
+          "path": "texts/c666ec2313dba24523ccad88f4c04ea4b24fad6545263a35b1d4ab2b08efe50a.txt",
+          "sha256": "c666ec2313dba24523ccad88f4c04ea4b24fad6545263a35b1d4ab2b08efe50a",
+          "bytes": 1326,
           "kind": "upstream-license-or-notice"
         }
       ],
@@ -12420,9 +12420,9 @@
     {
       "ecosystem": "cargo",
       "name": "rustls",
-      "version": "0.23.45",
+      "version": "0.23.46",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "0d41d731c7d2f962d1ccc364cec258de3c0e93b38c2fb3ba97ac74513048d634",
+      "checksum": "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf",
       "license_expression": "Apache-2.0 OR ISC OR MIT",
       "license_file": null,
       "repository": "https://github.com/rustls/rustls",
@@ -12430,11 +12430,11 @@
       "authors_from_metadata": [],
       "upstream_vcs": {
         "git": {
-          "sha1": "2976d90fd1c2db6b518700dd101b714069cfcb17"
+          "sha1": "f04804fa13341a9b1dc02b5d1dd8a746f2c4b7fb"
         },
         "path_in_vcs": "rustls"
       },
-      "source_archive": "https://crates.io/api/v1/crates/rustls/0.23.45/download",
+      "source_archive": "https://crates.io/api/v1/crates/rustls/0.23.46/download",
       "scope": "windows-normal-dependency-closure",
       "texts": [
         {
@@ -12501,9 +12501,9 @@
     {
       "ecosystem": "cargo",
       "name": "rustls-webpki",
-      "version": "0.103.15",
+      "version": "0.103.16",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "f3c3cf1d8b1e7d4927e2d154c3fcb02979afb9939629c62cd9048d4f07b60ac2",
+      "checksum": "4443b1b6d39d7c663139942cc4558262562d2c84123bb6282ef177009ca8b281",
       "license_expression": "ISC",
       "license_file": null,
       "repository": "https://github.com/rustls/webpki",
@@ -12511,11 +12511,11 @@
       "authors_from_metadata": [],
       "upstream_vcs": {
         "git": {
-          "sha1": "c14836d8de33c0ad0ac7dcb28fe9aade20831a4d"
+          "sha1": "8ecdcc76f56b68fda67a6adf7976f5eed5006a4c"
         },
         "path_in_vcs": ""
       },
-      "source_archive": "https://crates.io/api/v1/crates/rustls-webpki/0.103.15/download",
+      "source_archive": "https://crates.io/api/v1/crates/rustls-webpki/0.103.16/download",
       "scope": "windows-normal-dependency-closure",
       "texts": [
         {
@@ -17956,9 +17956,9 @@
     {
       "ecosystem": "cargo",
       "name": "webpki-roots",
-      "version": "1.0.9",
+      "version": "1.0.10",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "7dcd9d09a39985f5344844e66b0c530a33843579125f23e21e9f0f220850f22a",
+      "checksum": "1c1c8e20c8a38fc7d65abfe74eb7280e4aa667e8eec8bc84996d2874810748d9",
       "license_expression": "CDLA-Permissive-2.0",
       "license_file": null,
       "repository": "https://github.com/rustls/webpki-roots",
@@ -17966,11 +17966,11 @@
       "authors_from_metadata": [],
       "upstream_vcs": {
         "git": {
-          "sha1": "0a553dbc8b3f18ea05c4f881cffa3f2d005d0d30"
+          "sha1": "70760478b9d3ea729b22faa0b5324da38a297c1c"
         },
         "path_in_vcs": "webpki-roots"
       },
-      "source_archive": "https://crates.io/api/v1/crates/webpki-roots/1.0.9/download",
+      "source_archive": "https://crates.io/api/v1/crates/webpki-roots/1.0.10/download",
       "scope": "windows-normal-dependency-closure",
       "texts": [
         {
@@ -20532,9 +20532,9 @@
     {
       "ecosystem": "cargo",
       "name": "yoke-derive",
-      "version": "0.8.3",
+      "version": "0.8.4",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "33811428bee40dbceb6d545e95754741d17a6aef9a4849f0fd62e2ba4f412a78",
+      "checksum": "ec8ebde2db3681e8c9980cc27822030e68752690ddfa9473e739aeb4dbde6d71",
       "license_expression": "Unicode-3.0",
       "license_file": null,
       "repository": "https://github.com/unicode-org/icu4x",
@@ -20544,11 +20544,11 @@
       ],
       "upstream_vcs": {
         "git": {
-          "sha1": "ce235d80cf7cbd028e8bd59920420e1203b205b3"
+          "sha1": "a59ab860d4bda548e94dfbf992d87fe1f761bc55"
         },
         "path_in_vcs": "utils/yoke/derive"
       },
-      "source_archive": "https://crates.io/api/v1/crates/yoke-derive/0.8.3/download",
+      "source_archive": "https://crates.io/api/v1/crates/yoke-derive/0.8.4/download",
       "scope": "windows-normal-dependency-closure",
       "texts": [
         {

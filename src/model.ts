@@ -210,7 +210,7 @@ export function sameSearchInputs(previous: Snapshot, next: Snapshot) {
 
 const briefingArticleFields = [
   "id", "updatedAt", "title", "excerpt", "url", "sourceId", "sourceName", "publishedAt", "topics",
-  "sections", "topicLabels", "region", "language", "kind", "aiAllowed", "hidden", "media",
+  "sections", "topicLabels", "region", "language", "kind", "aiAllowed", "hidden", "groupId", "media",
 ] as const satisfies readonly (keyof Article)[];
 const briefingSourceFields = ["id", "enabled", "storage", "aiAllowed", "mediaAllowed"] as const satisfies readonly (keyof Source)[];
 function sameFields<T>(previous: T, next: T, fields: readonly (keyof T)[]) {

@@ -154,6 +154,15 @@ The default data folder is the Tauri app-data directory for
 For isolated testing or a chosen data location, set `NEWS_TERMINAL_DATA_DIR`
 before launch. This does not relocate the Windows credential store.
 
+The current SQLite schema is version 2. Its one-time search-index migration
+preserves articles, reading state and history, and creates a coherent SQLite
+snapshot before upgrading an existing version-1 database. For the default
+database the snapshot is `news-terminal.v1.pre-migration.sqlite3` beside the
+database; existing snapshots are not overwritten. Version-0 migrations retain
+the legacy `*.pre-migration.sqlite3` name. Current-schema opens do not repeat
+the migration or backup. Older binaries reject a version-2 database; the JSON
+backup format remains version 1.
+
 JSON backups contain preferences and reading history and should be kept
 private. Import validates before replacing data and requires confirmation;
 AI consent is disabled on import. Native window placement is a separate

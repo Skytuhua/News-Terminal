@@ -84,6 +84,17 @@ jobs:
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
       - run: cargo test --manifest-path src-tauri/Cargo.toml
       - run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+      - name: Verify lock-bound license bundle
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          & cargo fetch --locked --manifest-path src-tauri/Cargo.toml
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & python scripts/license-notices.test.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & python scripts/license-notices.py --check --strict-windows
+          exit $LASTEXITCODE
       - run: npm run tauri -- build --bundles nsis
       - name: Inspect rebuilt offline installer payload
         id: installer_payload

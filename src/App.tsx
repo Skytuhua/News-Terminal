@@ -580,7 +580,7 @@ export default function App() {
   // Reading marks an item read, but must not erase its place in J/K history.
   // Only the current collection may participate: hidden/deleted/filtered items leave.
   const readingSequence = useRef({ key: '', ids: new Set<string>() });
-  const sequenceKey = JSON.stringify([profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, readingStatus, publisherId, published]);
+  const sequenceKey = JSON.stringify([profileId, active?.id, active?.mode, active?.topic, active?.section, active?.watchlistId, query, kind, readingStatus, publisherId, published]);
   const navigation = useMemo(() => {
     const previousIds = readingSequence.current.key === sequenceKey ? readingSequence.current.ids : new Set<string>();
     const rows = collectionRows.filter(a => matchesReadingStatus(a, readingStatus) || previousIds.has(a.id));
@@ -633,7 +633,7 @@ export default function App() {
     }
   };
   function choosePage(value: number) { pageFromControl.current = true; setPage(value); }
-  useEffect(() => { setPage(0); }, [profileId, active?.id, active?.mode, active?.topic, active?.watchlistId, query, kind, readingStatus, publisherId, published]);
+  useEffect(() => { setPage(0); }, [profileId, active?.id, active?.mode, active?.topic, active?.section, active?.watchlistId, query, kind, readingStatus, publisherId, published]);
   useEffect(() => {
     const index = rows.findIndex(article => article.id === selectedId);
     if (index >= 0) setPage(Math.floor(index / pageSize));

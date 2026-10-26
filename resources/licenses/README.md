@@ -59,8 +59,8 @@ Python 3.11+ (stdlib only). Generation and checking are offline; prerequisite in
 
 - `package.json`: `5db60dd72398c6072576b4ca4f00ffde916fb90107b04919436308f9f964e2a0`
 - `package-lock.json`: `13fd333cf0a30e94640b273b69f8d99ce7e84d602332e3cfed00cbac9be969b6`
-- `src-tauri/Cargo.toml`: `b664faf16b24c9549e161da4ffa3d32262485cc44e3a94548e5cd607ab9c571f`
-- `src-tauri/Cargo.lock`: `2e3c2ecd233fbf8b3b38f330ca9ef647a4932d782fbe048aed33100c9a5ef343`
+- `src-tauri/Cargo.toml`: `ea814d95d4881db73911c377f4ff284a2f6942f1819beb72f3d0d2479952dc97`
+- `src-tauri/Cargo.lock`: `cf0736018a2678c53eb68d39808d48039a0a2bbf000f23c1c0d5d877667ddb19`
 
 ## Missing local license texts / declarations
 
@@ -310,7 +310,7 @@ Python 3.11+ (stdlib only). Generation and checking are offline; prerequisite in
 | cargo / libappindicator | 0.9.0 | Apache-2.0 OR MIT | other-target-or-resolved-optional-supplement | [LICENSE-APACHE](texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt), [LICENSE-MIT](texts/eb227437252b2a7a9c1fc342c93ade1f3d7ce38cc6dd754f613db07d53ceff0b.txt) |
 | cargo / libappindicator-sys | 0.9.0 | Apache-2.0 OR MIT | other-target-or-resolved-optional-supplement | **MISSING — see issues** |
 | cargo / libc | 0.2.189 | MIT OR Apache-2.0 | windows-normal-dependency-closure | [LICENSE-APACHE](texts/62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a.txt), [LICENSE-MIT](texts/123a331b5dbf04c30097fa43b8f858bc85df671fe776de498d01f3d6b7c1f69e.txt) |
-| cargo / libdbus-sys | 0.2.7 | Apache-2.0/MIT | other-target-or-resolved-optional-supplement | [LICENSE-APACHE](texts/453745410e3be8cf25d56872ea2aec975a78e6c9f217443d0bf908a5bce7c8ff.txt), [LICENSE-MIT](texts/de3911c2d98c8bd2d701ee721347053d9b55995a11f9a8c955e44d3ca1b376bf.txt), [vendor/dbus/cmake/modules/COPYING-CMAKE-SCRIPTS](texts/c666ec2313dba24523ccad88f4c04ea4b24fad6545263a35b1d4ab2b08efe50a.txt), [vendor/dbus/COPYING](texts/e61807cd1c32ff4e7bd5b4b61dd21997c6dc5642cf19316124fe38d50e1f9fa3.txt) |
+| cargo / libdbus-sys | 0.2.7 | Apache-2.0/MIT | other-target-or-resolved-optional-supplement | [LICENSE-APACHE](texts/453745410e3be8cf25d56872ea2aec975a78e6c9f217443d0bf908a5bce7c8ff.txt), [LICENSE-MIT](texts/de3911c2d98c8bd2d701ee721347053d9b55995a11f9a8c955e44d3ca1b376bf.txt), [vendor/dbus/COPYING](texts/e61807cd1c32ff4e7bd5b4b61dd21997c6dc5642cf19316124fe38d50e1f9fa3.txt), [vendor/dbus/cmake/modules/COPYING-CMAKE-SCRIPTS](texts/c666ec2313dba24523ccad88f4c04ea4b24fad6545263a35b1d4ab2b08efe50a.txt) |
 | cargo / libloading | 0.7.4 | ISC | other-target-or-resolved-optional-supplement | [LICENSE](texts/b29f8b01452350c20dd1af16ef83b598fea3053578ccc1c7a0ef40e57be2620f.txt) |
 | cargo / libredox | 0.1.25 | MIT | other-target-or-resolved-optional-supplement | [LICENSE](texts/8d073a6a80d1ef2d2fc2bc6c809aa221161bf1906c76d4aeef55fd2b999d9413.txt) |
 | cargo / libsqlite3-sys | 0.35.0 | MIT | windows-normal-dependency-closure | [LICENSE](texts/c10c1f27337546471e5f7e4e97fdd398b35b9d4e126115dcd22de8d8e65abf6f.txt), [sqlcipher/LICENSE](texts/ea4fcb309f14a22065e1ea45362d494d320012249ed865fe9c7c0946db754131.txt) |
@@ -424,9 +424,9 @@ Python 3.11+ (stdlib only). Generation and checking are offline; prerequisite in
 | cargo / rustc-hash | 2.1.3 | Apache-2.0 OR MIT | windows-normal-dependency-closure | [LICENSE-APACHE](texts/95bd3988beee069fa2848f648dab43cc6e0b2add2ad6bcb17360caf749802bcc.txt), [LICENSE-MIT](texts/30fefc3a7d6a0041541858293bcbea2dde4caa4c0a5802f996a7f7e8c0085652.txt) |
 | cargo / rustc_version | 0.4.1 | MIT OR Apache-2.0 | windows-build-or-dev-supplement | [LICENSE-APACHE](texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt), [LICENSE-MIT](texts/c9a75f18b9ab2927829a208fc6aa2cf4e63b8420887ba29cdb265d6619ae82d5.txt) |
 | cargo / rustix | 1.1.5 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | other-target-or-resolved-optional-supplement | [COPYRIGHT](texts/377c2e7c53250cc5905c0b0532d35973392af16ffb9596a41d99d202cf3617c9.txt), [LICENSE-APACHE](texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt), [LICENSE-Apache-2.0_WITH_LLVM-exception](texts/268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5.txt), [LICENSE-MIT](texts/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt) |
-| cargo / rustls | 0.23.45 | Apache-2.0 OR ISC OR MIT | windows-normal-dependency-closure | [LICENSE-APACHE](texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt), [LICENSE-ISC](texts/7cfafc877eccc46c0e346ccbaa5c51bb6b894d2b818e617d970211e232785ad4.txt), [LICENSE-MIT](texts/709e3175b4212f7b13aa93971c9f62ff8c69ec45ad8c6532a7e0c41d7a7d6f8c.txt) |
+| cargo / rustls | 0.23.46 | Apache-2.0 OR ISC OR MIT | windows-normal-dependency-closure | [LICENSE-APACHE](texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt), [LICENSE-ISC](texts/7cfafc877eccc46c0e346ccbaa5c51bb6b894d2b818e617d970211e232785ad4.txt), [LICENSE-MIT](texts/709e3175b4212f7b13aa93971c9f62ff8c69ec45ad8c6532a7e0c41d7a7d6f8c.txt) |
 | cargo / rustls-pki-types | 1.15.1 | MIT OR Apache-2.0 | windows-normal-dependency-closure | [LICENSE-APACHE](texts/45fd05c4865e7c350b98ad7ac50e1b15462d49af4a91e9b0c9dd933dc9a69742.txt), [LICENSE-MIT](texts/9117d922e667125508dde62b02c1f57ed22f5ad21eb536aa2e2d99e1c796e639.txt) |
-| cargo / rustls-webpki | 0.103.15 | ISC | windows-normal-dependency-closure | [LICENSE](texts/5b698ca13897be3afdb7174256fa1574f8c6892b8bea1a66dd6469d3fe27885a.txt) |
+| cargo / rustls-webpki | 0.103.16 | ISC | windows-normal-dependency-closure | [LICENSE](texts/5b698ca13897be3afdb7174256fa1574f8c6892b8bea1a66dd6469d3fe27885a.txt) |
 | cargo / rustversion | 1.0.23 | MIT OR Apache-2.0 | windows-normal-dependency-closure | [LICENSE-APACHE](texts/62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a.txt), [LICENSE-MIT](texts/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt) |
 | cargo / ryu | 1.0.23 | Apache-2.0 OR BSL-1.0 | windows-normal-dependency-closure | [LICENSE-APACHE](texts/62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a.txt), [LICENSE-BOOST](texts/c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566.txt) |
 | cargo / same-file | 1.0.6 | Unlicense/MIT | windows-normal-dependency-closure | [COPYING](texts/01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f.txt), [LICENSE-MIT](texts/cb3c929a05e6cbc9de9ab06a4c57eeb60ca8c724bef6c138c87d3a577e27aa14.txt), [UNLICENSE](texts/7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c.txt) |
@@ -564,7 +564,7 @@ Python 3.11+ (stdlib only). Generation and checking are offline; prerequisite in
 | cargo / web_atoms | 0.2.6 | MIT OR Apache-2.0 | windows-normal-dependency-closure | [LICENSE-APACHE](texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt), [LICENSE-MIT](texts/86dd7f026f916daf7511e39951ad8ea8cf55a8db67ae64060dacf829761c18f3.txt) |
 | cargo / webkit2gtk | 2.0.2 | MIT | other-target-or-resolved-optional-supplement | [LICENSE](texts/3f39c032be4639be635da96d77c4d0f4393c3595a164450ffd86f3d17701ec10.txt) |
 | cargo / webkit2gtk-sys | 2.0.2 | MIT | other-target-or-resolved-optional-supplement | [LICENSE](texts/281b72cb008466810da31680e72005b9899c7e9d7705b909c86098260e12aa7d.txt) |
-| cargo / webpki-roots | 1.0.9 | CDLA-Permissive-2.0 | windows-normal-dependency-closure | [LICENSE](texts/e271993808fec50ab29350b39539cdec611a9103f827e0aa26d61da70e2d33f8.txt) |
+| cargo / webpki-roots | 1.0.10 | CDLA-Permissive-2.0 | windows-normal-dependency-closure | [LICENSE](texts/e271993808fec50ab29350b39539cdec611a9103f827e0aa26d61da70e2d33f8.txt) |
 | cargo / webview2-com | 0.38.2 | MIT | windows-normal-dependency-closure | [LICENSE](upstream/webview2-com-0.38.2/LICENSE) |
 | cargo / webview2-com-macros | 0.8.1 | MIT | windows-normal-dependency-closure | [LICENSE](upstream/webview2-com-macros-0.8.1/LICENSE) |
 | cargo / webview2-com-sys | 0.38.2 | MIT | windows-normal-dependency-closure | [LICENSE](upstream/webview2-com-sys-0.38.2/LICENSE), [LICENSE.txt](upstream/webview2-sdk/LICENSE.txt), [NOTICE.txt](upstream/webview2-sdk/NOTICE.txt) |
@@ -631,7 +631,7 @@ Python 3.11+ (stdlib only). Generation and checking are offline; prerequisite in
 | cargo / x11 | 2.21.0 | MIT | other-target-or-resolved-optional-supplement | [LICENSE-MIT](texts/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt) |
 | cargo / x11-dl | 2.21.0 | MIT | other-target-or-resolved-optional-supplement | [LICENSE-MIT](texts/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt) |
 | cargo / yoke | 0.8.3 | Unicode-3.0 | windows-normal-dependency-closure | [LICENSE](texts/f367c1b8e1aa262435251e442901da4607b4650e0e63a026f5044473ecfb90f2.txt) |
-| cargo / yoke-derive | 0.8.3 | Unicode-3.0 | windows-normal-dependency-closure | [LICENSE](texts/f367c1b8e1aa262435251e442901da4607b4650e0e63a026f5044473ecfb90f2.txt) |
+| cargo / yoke-derive | 0.8.4 | Unicode-3.0 | windows-normal-dependency-closure | [LICENSE](texts/f367c1b8e1aa262435251e442901da4607b4650e0e63a026f5044473ecfb90f2.txt) |
 | cargo / zbus | 5.19.0 | MIT | other-target-or-resolved-optional-supplement | [LICENSE](texts/260e4ff3fc493695880c90774283eb1e3d018f898fabe655bbd52dd2cbd2fcad.txt) |
 | cargo / zbus_macros | 5.19.0 | MIT | other-target-or-resolved-optional-supplement | [LICENSE](texts/260e4ff3fc493695880c90774283eb1e3d018f898fabe655bbd52dd2cbd2fcad.txt) |
 | cargo / zbus_names | 4.3.4 | MIT | other-target-or-resolved-optional-supplement | [LICENSE](texts/260e4ff3fc493695880c90774283eb1e3d018f898fabe655bbd52dd2cbd2fcad.txt) |

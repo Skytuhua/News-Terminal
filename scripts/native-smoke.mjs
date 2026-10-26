@@ -2,32 +2,61 @@ import { invokeNative } from './native-ipc.mjs';
 // Real Windows/WebView2 smoke test. No fixture IPC, no production data directory.
 import { chromium } from '@playwright/test';
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, existsSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, existsSync, writeFileSync, readFileSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import assert from 'node:assert/strict';
+import { createServer } from 'node:net';
+import { createHash } from 'node:crypto';
+import { assertOwnedNativeEndpoint } from './native-smoke-ownership.mjs';
+import { disconnectNativeBrowser, ownedNativeWindows, releaseFailedChildHandles, stopOwnedProcess } from './native-process-cleanup.mjs';
 
 const executable = resolve(process.argv[2] || 'src-tauri/target/release/news-terminal.exe');
 assert.ok(existsSync(executable), `Build the actual Windows executable first: ${executable}`);
 const dataDirectory = mkdtempSync(join(tmpdir(), 'news-terminal-native-'));
 const evidenceDirectory = resolve('docs/evidence');
 mkdirSync(evidenceDirectory, { recursive: true });
-const port = 9227;
-const evidence = { executable, dataDirectory, checks: [], startedAt: new Date().toISOString() };
-let app, browser;
+const launchedExecutable = join(dataDirectory, 'native-smoke-app.exe');
+const sha = path => createHash('sha256').update(readFileSync(path)).digest('hex');
+const executableSha256 = sha(executable);
+copyFileSync(executable, launchedExecutable);
+assert.equal(sha(launchedExecutable), executableSha256, 'Owned executable copy differs from the requested application');
+let port;
+const evidence = { executable, executableSha256, launchedExecutable, dataDirectory, checks: [], launches: [], startedAt: new Date().toISOString() };
+let app, browser, endpointIdentity;
 const delay = ms => new Promise(r => setTimeout(r, ms));
-function cdpBrowserArgs(port) {
-  return `--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --remote-debugging-port=${port} --remote-debugging-address=127.0.0.1`;
+async function freePort() {
+  return new Promise((done, reject) => {
+    const server = createServer(); server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => { const selected = server.address().port; server.close(() => done(selected)); });
+  });
 }
 async function launch() {
   const started = performance.now();
-  app = spawn(executable, [], { env: { ...process.env, NEWS_TERMINAL_DATA_DIR: dataDirectory, NEWS_TERMINAL_CDP_PORT: String(port), NEWS_TERMINAL_WEBVIEW_DATA_DIR: join(dataDirectory, 'webview'), WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: cdpBrowserArgs(port) }, stdio: 'pipe' });
-  let stderr = '';
+  port = await freePort();
+  browser = null; endpointIdentity = null;
+  app = spawn(launchedExecutable, [], { env: { ...process.env, NEWS_TERMINAL_DATA_DIR: dataDirectory, NEWS_TERMINAL_CDP_PORT: String(port), NEWS_TERMINAL_WEBVIEW_DATA_DIR: join(dataDirectory, 'webview') }, stdio: 'pipe' });
+  const run = { pid: app.pid, port, startedAt: new Date().toISOString() };
+  evidence.launches.push(run);
+  let stderr = '', spawnError;
+  app.on('error', error => { spawnError = error; });
+  app.stdout.on('data', () => {});
   app.stderr.on('data', b => { stderr += b.toString(); });
   const deadline = Date.now() + 45000;
   while (Date.now() < deadline) {
-    if (app.exitCode !== null) throw new Error(`App exited ${app.exitCode}: ${stderr.slice(-1000)}`);
-    try { browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`, { timeout: 1000 }); break; } catch { await delay(250); }
+    if (spawnError) throw spawnError;
+    if (app.exitCode !== null || app.signalCode !== null) throw new Error(`App exited ${app.exitCode}: ${stderr.slice(-1000)}`);
+    let identity;
+    try { identity = await assertOwnedNativeEndpoint(app, { port, executable: launchedExecutable }); }
+    catch (error) { if (error.code !== 'NATIVE_ENDPOINT_PENDING') throw error; await delay(250); continue; }
+    let connected;
+    try { connected = await chromium.connectOverCDP(`http://127.0.0.1:${port}`, { timeout: 1000 }); }
+    catch { await delay(250); continue; }
+    try {
+      endpointIdentity = await assertOwnedNativeEndpoint(app, { port, executable: launchedExecutable, ...identity });
+      browser = connected; run.endpointOwner = endpointIdentity;
+      break;
+    } catch (error) { await disconnectNativeBrowser(connected); throw error; }
   }
   assert.ok(browser, 'Native WebView2 debugging endpoint did not start');
   let page;
@@ -50,14 +79,30 @@ async function launch() {
   return page;
 }
 async function invoke(page, request) {
+  // The established WebSocket/page cannot move to another listener. Keep cheap
+  // liveness guards here so the cached IPC benchmark excludes OS probe latency.
+  assert.ok(endpointIdentity && app?.exitCode === null && app.signalCode === null, 'Owned application is not running');
+  assert.ok(browser?.isConnected(), 'Owned application browser disconnected');
   return invokeNative(page, request);
 }
-function terminate() {
-  if (app?.pid && app.exitCode === null) {
-    try { execFileSync('taskkill.exe', ['/PID', String(app.pid), '/T', '/F'], { stdio: 'ignore' }); } catch { /* already exited */ }
+async function terminate() {
+  const child = app, connected = browser;
+  endpointIdentity = null;
+  try {
+    if (child?.pid) {
+      const termination = await stopOwnedProcess(child, {
+        requestClose: () => ownedNativeWindows(child.pid, { close: true }), gracefulTimeout: 8000,
+      });
+      evidence.launches.at(-1).termination = termination;
+      assert.ok(termination.passed, termination.error || 'Owned application cleanup failed');
+    }
+  } finally {
+    try { await disconnectNativeBrowser(connected); }
+    finally {
+      releaseFailedChildHandles(child);
+      app = null; browser = null;
+    }
   }
-  app = null;
-  browser = null;
 }
 try {
   let page = await launch();
@@ -152,7 +197,7 @@ try {
   await page.getByRole('combobox', { name: 'Reading profile' }).selectOption(second.id);
   await page.waitForFunction(async id => (await window.__TAURI_INTERNALS__.invoke('dispatch', { request: { op: 'window_context' } })).profileId === id, second.id);
   assert.equal((await invoke(page, { op: 'window_context' })).profileId, second.id);
-  terminate();
+  await terminate();
   const windowFile = join(dataDirectory, 'workspace-windows.json');
   const savedLayout = JSON.parse(readFileSync(windowFile, 'utf8'));
   for (const placement of [savedLayout.main, ...Object.values(savedLayout.windows)]) {
@@ -173,7 +218,7 @@ try {
   await invoke(page, { op: 'reattach_tab', profileId: 'default', tabId: tab.id });
   const reattached = await invoke(page, { op: 'window_context' });
   assert.ok(!reattached.detachedTabs.some(t => t.tabId === tab.id));
-  evidence.checks.push({ name: 'crash/restart persistence and reattach', passed: true });
+  evidence.checks.push({ name: 'close/restart persistence and reattach', passed: true });
   await assert.rejects(invoke(page, { op: 'open_original', url: 'javascript:alert(1)' }));
   await assert.rejects(invoke(page, { op: 'summarize', profileId: 'default', articleId: story.id, requestId: 'no-consented-provider' }));
   evidence.checks.push({ name: 'unsafe opener and unconfigured AI fail safely', passed: true });
@@ -194,7 +239,7 @@ try {
   const reconciled = await invoke(page, { op: 'window_context' });
   assert.equal(reconciled.profileId, 'default', 'Import left main window owned by deleted profile');
   assert.ok(!reconciled.detachedTabs.some(t => t.profileId === temporaryProfile.id), 'Import retained orphan detached ownership');
-  terminate();
+  await terminate();
   page = await launch();
   const afterImportRestart = await invoke(page, { op: 'window_context' });
   assert.equal(afterImportRestart.profileId, 'default');
@@ -204,7 +249,7 @@ try {
   const monitors = await page.evaluate(() => window.__TAURI_INTERNALS__.invoke('plugin:window|available_monitors'));
   evidence.checks.push({ name: 'actual connected monitor configuration', monitors });
   for (const monitor of monitors) {
-    terminate();
+    await terminate();
     const layout = JSON.parse(readFileSync(windowFile, 'utf8'));
     const area = monitor.workArea || { position: monitor.position, size: monitor.size };
     layout.main.x = area.position.x + 20;
@@ -246,7 +291,8 @@ try {
   evidence.error = String(error);
   process.exitCode = 1;
 } finally {
-  terminate();
+  try { await terminate(); }
+  catch (error) { evidence.passed = false; evidence.cleanupError = String(error); process.exitCode = 1; }
   evidence.finishedAt = new Date().toISOString();
   writeFileSync(join(evidenceDirectory, 'native-smoke.json'), JSON.stringify(evidence, null, 2));
   console.log(JSON.stringify(evidence, null, 2));

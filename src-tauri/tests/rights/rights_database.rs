@@ -187,6 +187,47 @@ fn fed_feed() -> Value {
     crate::services::parse_feed(xml, rights::bundled("fed-press_monetary").unwrap()).unwrap()
 }
 #[test]
+fn rights_noop_enable_preserves_media_disabled_source_ai_provenance() {
+    let mut db = Database::memory().unwrap();
+    let id = "fed-press_monetary";
+    db.put("source", id, "", rights::bundled(id).unwrap())
+        .unwrap();
+    let feed = fed_feed();
+    db.ingest(id, &feed, 1800000000).unwrap();
+    let article = db.articles("default", None).unwrap().remove(0);
+    let before = reviewed(&db, id);
+    assert_eq!(before["mediaAllowed"], false);
+    db.authorize_ai(&article).unwrap();
+    for update in [json!({"enabled":true}), json!({"mediaAllowed":false})] {
+        let mut request = json!({"op":"source_update","sourceId":id});
+        request
+            .as_object_mut()
+            .unwrap()
+            .extend(update.as_object().unwrap().clone());
+        db.request(&request, 1800000001).unwrap();
+        assert_eq!(reviewed(&db, id), before);
+        db.authorize_ai(&article)
+            .expect("unchanged source policy must preserve its valid AI proof");
+    }
+    db.request(
+        &json!({"op":"source_update","sourceId":id,"enabled":false}),
+        1800000002,
+    )
+    .unwrap();
+    assert!(db.authorize_ai(&article).is_err());
+    db.request(
+        &json!({"op":"source_update","sourceId":id,"enabled":true}),
+        1800000003,
+    )
+    .unwrap();
+    assert!(
+        db.authorize_ai(&article).is_err(),
+        "a real disable must still revoke the proof until refresh"
+    );
+    db.ingest(id, &feed, 1800000004).unwrap();
+    db.authorize_ai(&article).unwrap();
+}
+#[test]
 fn rights_authorization_is_private_input_bound_revoked_by_import_and_restored_on_refresh() {
     let mut db = Database::memory().unwrap();
     db.put(
