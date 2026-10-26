@@ -19,3 +19,7 @@ mod sector_summary;
 pub mod services;
 #[path = "../src/topics.rs"]
 pub mod topics;
+
+#[allow(dead_code)]
+#[path = "../src/native_lifecycle.rs"]
+mod native_lifecycle;
